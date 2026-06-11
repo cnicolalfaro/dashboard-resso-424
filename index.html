@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RESSO SKIC 424 · Sistema de Gestión SSO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1" />
+</head>
+<body>
+  <div class="page-shell">
+
+    <!-- ENCABEZADO -->
+    <header class="hero">
+      <div class="hero-brand">
+        <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="brand-logo" />
+        <div>
+          <p class="eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+          <h1>RESSO SKIC 424</h1>
+          <p class="lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <span class="badge" id="updatedAt">Actualizado: —</span>
+        <button id="printBtn" class="hero-btn no-print" type="button">Imprimir / PDF</button>
+      </div>
+    </header>
+
+    <!-- INFORMACIÓN DEL CONTRATO -->
+    <section class="panel contract-panel" id="contractPanel"></section>
+
+    <main>
+      <!-- KPI CARDS -->
+      <section class="cards" id="kpiCards"></section>
+
+      <!-- CUMPLIMIENTO RESSO -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Cumplimiento RESSO — Ciclo PHVA</h2>
+            <p>Evaluación por elemento del Sistema de Gestión (PLAN · DO · CHECK · ACT)</p>
+          </div>
+        </div>
+        <div class="resso-grid" id="resssoGrid"></div>
+      </section>
+
+      <!-- GRÁFICOS -->
+      <section class="grid two-col">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Cumplimiento por elemento</h2>
+              <p>Porcentaje obtenido en cada elemento evaluado</p>
+            </div>
+          </div>
+          <div id="elementBars" class="bars"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Hallazgos</h2>
+              <p>Distribución de hallazgos documentales y en terreno</p>
+            </div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut" id="hallazgosDonut"></div>
+            <div class="legend" id="donutLegend"></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ACCESOS DOCUMENTALES -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Accesos documentales</h2>
+            <p>Documentación de respaldo del sistema de gestión</p>
+          </div>
+        </div>
+        <div id="accessLinks" class="access-links"></div>
+      </section>
+
+      <!-- REGLAMENTOS INTERNOS -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Reglamentos Internos de Minería aplicables</h2>
+            <p>Buscador de reglamentos y estado de difusión a los trabajadores</p>
+          </div>
+        </div>
+
+        <div class="filters">
+          <label class="field">
+            <span>Buscar reglamento</span>
+            <input id="regSearch" type="text" placeholder="Ej: R-001, soldadura, bloqueo…" />
+          </label>
+          <label class="field">
+            <span>Difusión</span>
+            <select id="regFilter">
+              <option value="">Todos</option>
+              <option value="si">Difundido</option>
+              <option value="no">Pendiente</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="results-summary">
+          <span class="mini-chip" id="regCount">0 reglamentos</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Código</th>
+                <th>Nombre del Reglamento</th>
+                <th>Difusión</th>
+              </tr>
+            </thead>
+            <tbody id="regTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- AUDITORÍA ABC-S -->
+      <section class="panel" id="abcPanel">
+        <div class="panel-header">
+          <div>
+            <h2 id="abcTitulo">Auditoría ABC-S</h2>
+            <p>Auditoría de Aspectos de Gestión de Riesgo Seguridad — 9 criterios evaluados</p>
+          </div>
+        </div>
+
+        <div class="abc-summary" id="abcSummary"></div>
+
+        <div class="abc-layout">
+          <div class="abc-bars" id="abcBars"></div>
+          <div class="abc-scale">
+            <h4>Escala de evaluación</h4>
+            <ul id="abcScale"></ul>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-top:18px">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Criterio evaluado</th>
+                <th>Cumplimiento</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="abcTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      RESSO SKIC 424 · SKIC S.A. — Sistema de Gestión SSO · Generado automáticamente
+    </footer>
+  </div>
+
+  <script src="data/dashboard_data.js?v=1"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>

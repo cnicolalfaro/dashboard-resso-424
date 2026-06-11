@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Logo SK Industrial">
+  <defs>
+    <linearGradient id="skBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a4a8a"/>
+      <stop offset="1" stop-color="#1b3568"/>
+    </linearGradient>
+  </defs>
+  <!-- Octagon outline -->
+  <polygon points="59,8 141,8 192,59 192,141 141,192 59,192 8,141 8,59"
+           fill="#ffffff" stroke="url(#skBlue)" stroke-width="9"/>
+  <!-- SK letters -->
+  <text x="100" y="118" text-anchor="middle" font-family="Arial Black, Arial, sans-serif"
+        font-weight="900" font-size="78" fill="#1f3c74" letter-spacing="-4">SK</text>
+  <!-- Red triangles -->
+  <polygon points="56,150 76,150 66,166" fill="#e1251b"/>
+  <polygon points="124,150 144,150 134,166" fill="#e1251b"/>
+</svg>

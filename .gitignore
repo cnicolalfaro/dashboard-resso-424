@@ -1,0 +1,15 @@
+# Archivos internos que NO se publican en GitHub Pages
+# --------------------------------------------------------
+
+# Carpeta de evidencias (privada)
+RESSO_Preguntas/
+
+# Archivos fuente y utilidades (Excel, scripts de extracción)
+fuentes/
+
+# Temporales y del sistema
+*.tmp
+*.log
+Thumbs.db
+.DS_Store
+desktop.ini
