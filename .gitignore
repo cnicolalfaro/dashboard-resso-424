@@ -4,6 +4,9 @@
 # Carpeta de evidencias (privada)
 RESSO_Preguntas/
 
+# Evidencias escaneadas del personal (documentos personales — NO publicar)
+Evidencias escaneadas/
+
 # Archivos fuente y utilidades (Excel, scripts de extracción)
 fuentes/
 

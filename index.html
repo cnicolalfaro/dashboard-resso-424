@@ -159,6 +159,59 @@
           </table>
         </div>
       </section>
+
+      <!-- CUMPLIMIENTO DE CURSOS -->
+      <section class="panel" id="cursosPanel">
+        <div class="panel-header">
+          <div>
+            <h2>Cumplimiento de cursos del personal</h2>
+            <p>Porcentaje de personal activo con curso al día (cruce con evidencias escaneadas)</p>
+          </div>
+        </div>
+        <div class="cursos-grid" id="cursosGrid"></div>
+      </section>
+
+      <!-- PERSONAL Y CURSOS -->
+      <section class="panel" id="personalPanel">
+        <div class="panel-header">
+          <div>
+            <h2>Personal y cursos realizados</h2>
+            <p>Listado de personal activo y estado de cumplimiento por curso</p>
+          </div>
+        </div>
+
+        <div class="filters">
+          <label class="field">
+            <span>Buscar persona</span>
+            <input id="perSearch" type="text" placeholder="Nombre, RUT o cargo…" />
+          </label>
+          <label class="field">
+            <span>Filtrar</span>
+            <select id="perFilter">
+              <option value="">Todo el personal</option>
+              <option value="IRL">Pendientes de IRL</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="results-summary">
+          <span class="mini-chip" id="perCount">0 personas</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Nombre</th>
+                <th>Cargo</th>
+                <th class="cell-center">IRL</th>
+              </tr>
+            </thead>
+            <tbody id="perTableBody"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <footer class="footer">
@@ -167,6 +220,7 @@
   </div>
 
   <script src="data/dashboard_data.js?v=1"></script>
-  <script src="app.js?v=1"></script>
+  <script src="data/personal_data.js?v=1"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

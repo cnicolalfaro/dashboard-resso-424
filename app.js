@@ -353,6 +353,86 @@
       .join("");
   }
 
+  // ---- Cursos: gráficos circulares de cumplimiento -----------------------
+  function renderCursos() {
+    const cont = $("#cursosGrid");
+    if (!cont || !D.cursos) return;
+    cont.innerHTML = D.cursos
+      .map((c) => {
+        const pct = typeof c.pct === "number" ? c.pct : 0;
+        const color = pctColor(pct);
+        const deg = (pct / 100) * 360;
+        return `
+        <div class="curso-card">
+          <div class="curso-donut" style="background:conic-gradient(${color} 0deg ${deg}deg, var(--line) ${deg}deg 360deg)">
+            <div class="curso-donut-hole">
+              <span class="cd-pct" style="color:${color}">${pct}%</span>
+            </div>
+          </div>
+          <div class="curso-info">
+            <h3>${c.nombre}</h3>
+            <p class="curso-meta"><strong>${c.cumplen}</strong> de <strong>${c.total}</strong> cumplen</p>
+          </div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  // ---- Tabla de personal y cursos (estilo SKIONLINE) ---------------------
+  function renderPersonal() {
+    if (!D.personal || !D.cursos) return;
+    const search = $("#perSearch");
+    const filter = $("#perFilter");
+    const tbody = $("#perTableBody");
+    const count = $("#perCount");
+    if (!tbody) return;
+
+    const cursos = D.cursos;
+
+    function apply() {
+      const q = (search.value || "").trim().toLowerCase();
+      const f = filter.value; // "" | curso id (no cumple)
+      const rows = D.personal.filter((p) => {
+        const matchQ =
+          !q ||
+          (p.nombre && p.nombre.toLowerCase().includes(q)) ||
+          (p.rut && p.rut.toLowerCase().includes(q)) ||
+          (p.cargo && p.cargo.toLowerCase().includes(q));
+        const matchF = !f || p.cursos[f] === false;
+        return matchQ && matchF;
+      });
+
+      tbody.innerHTML = rows
+        .map((p, i) => {
+          const celdas = cursos
+            .map((c) => {
+              const ok = p.cursos[c.id] === true;
+              return `<td class="cell-center">${
+                ok
+                  ? '<span class="tag tag-ok">Cumple</span>'
+                  : '<span class="tag tag-pending">Pendiente</span>'
+              }</td>`;
+            })
+            .join("");
+          return `
+          <tr>
+            <td>${i + 1}</td>
+            <td><strong>${p.nombre}</strong></td>
+            <td>${p.cargo || "—"}</td>
+            ${celdas}
+          </tr>`;
+        })
+        .join("");
+
+      count.textContent =
+        rows.length + (rows.length === 1 ? " persona" : " personas");
+    }
+
+    search.addEventListener("input", apply);
+    filter.addEventListener("change", apply);
+    apply();
+  }
+
   // ---- Imprimir -----------------------------------------------------------
   $("#printBtn").addEventListener("click", () => window.print());
 
@@ -365,4 +445,6 @@
   renderAccess();
   renderReglamentos();
   renderAbc();
+  renderCursos();
+  renderPersonal();
 })();
