@@ -7,6 +7,13 @@ RESSO_Preguntas/
 # Evidencias escaneadas del personal (documentos personales — NO publicar)
 Evidencias escaneadas/
 
+# Datos en texto plano (NO publicar — solo se publica la versión cifrada)
+data/dashboard_data.js
+data/personal_data.js
+
+# Herramienta local de cifrado (no se publica)
+cifrar.html
+
 # Archivos fuente y utilidades (Excel, scripts de extracción)
 fuentes/
 
