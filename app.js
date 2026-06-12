@@ -512,6 +512,78 @@
       });
     }
 
+    // Paleta para los gráficos de respuestas
+    const chartColors = [
+      "#24407a", "#2e8b57", "#e1251b", "#f0a500", "#5b8def",
+      "#8e5bd0", "#00a3a3", "#d0608e", "#7a7a24", "#c0392b",
+    ];
+
+    // Gráficos: respuestas de los trabajadores + % de cumplimiento
+    function renderRepCharts(dataset) {
+      const charts = $("#repCharts");
+      if (!charts) return;
+
+      // Distribución de respuestas (campo p1: evento / hallazgo)
+      const counts = {};
+      dataset.forEach((r) => {
+        const k = (r.p1 || "—").toString().trim().toUpperCase() || "—";
+        counts[k] = (counts[k] || 0) + 1;
+      });
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const maxV = entries.length ? entries[0][1] : 1;
+      const totalR = dataset.length;
+      const barsHtml = entries.length
+        ? entries
+            .map((e, i) => {
+              const pct = totalR ? Math.round((e[1] / totalR) * 100) : 0;
+              const w = Math.round((e[1] / maxV) * 100);
+              const color = chartColors[i % chartColors.length];
+              return `
+              <div class="bar-row">
+                <div class="bar-top">
+                  <span class="bar-name">${esc(e[0])}</span>
+                  <span class="bar-val">${e[1]} · ${pct}%</span>
+                </div>
+                <div class="bar-track"><span class="bar-fill" style="width:${w}%;background:${color}"></span></div>
+              </div>`;
+            })
+            .join("")
+        : '<div class="rep-empty">Sin datos para esos filtros.</div>';
+
+      // Cumplimiento: en turno con reporte vs. sin reporte (respeta filtro de turno)
+      const turnoSel = selTurno ? selTurno.value : "";
+      const totalTurnos = (D.turnos || []).filter(
+        (p) => !turnoSel || p.turno === turnoSel
+      ).length;
+      const missing = missingList().length;
+      const delivered = Math.max(totalTurnos - missing, 0);
+      const cmpl = totalTurnos ? Math.round((delivered / totalTurnos) * 100) : 0;
+      const okColor = "#2e8b57";
+      const missColor = "#e1251b";
+      const donutBg = totalTurnos
+        ? `conic-gradient(${okColor} 0deg ${cmpl * 3.6}deg, ${missColor} ${cmpl * 3.6}deg 360deg)`
+        : "var(--line)";
+
+      charts.innerHTML = `
+        <div class="rep-chart-card">
+          <div class="rep-chart-title">Respuestas de los trabajadores</div>
+          <div class="rep-bars">${barsHtml}</div>
+        </div>
+        <div class="rep-chart-card">
+          <div class="rep-chart-title">Porcentaje de cumplimiento</div>
+          <div class="rep-cmpl">
+            <div class="rep-donut" style="background:${donutBg}">
+              <div class="rep-donut-val">${cmpl}%<small>cumple</small></div>
+            </div>
+            <div class="rep-cmpl-legend">
+              <div class="legend-item"><span class="legend-dot" style="background:${okColor}"></span>Con reporte <b>${delivered}</b></div>
+              <div class="legend-item"><span class="legend-dot" style="background:${missColor}"></span>Sin reporte <b>${missing}</b></div>
+              <div class="legend-item"><span class="legend-dot" style="background:var(--muted)"></span>Total en turno <b>${totalTurnos}</b></div>
+            </div>
+          </div>
+        </div>`;
+    }
+
     function apply() {
       const raw = (search.value || "").trim();
       const semana = selSemana ? selSemana.value : "";
@@ -523,6 +595,14 @@
         missCount.textContent =
           n + (n === 1 ? " en turno sin reporte" : " en turno sin reporte");
       }
+
+      // Gráficos: overview por semana/turno (ignora la búsqueda de texto)
+      const overview = D.reportes.filter((r) => {
+        if (semana && r.semana !== semana) return false;
+        if (turno && r.turno !== turno) return false;
+        return true;
+      });
+      renderRepCharts(overview);
 
       if (!raw && !semana && !turno) {
         results.innerHTML = "";

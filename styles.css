@@ -522,6 +522,15 @@ h1 {
 
 /* ===== DETALLE DE REPORTES (búsqueda por RUT) ===== */
 .rep-results { display: grid; gap: 18px; }
+/* Reportes: alto fijo con scroll interno (muestra ~uno y se desplaza) */
+#reportesPanel .rep-results:not(:empty) {
+  max-height: 520px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
 #reportesPanel .filters {
   grid-template-columns: 2fr 1.4fr 1.4fr auto;
   align-items: end;
@@ -543,6 +552,50 @@ h1 {
 .btn-export:hover { background: var(--sk-blue-dark); border-color: var(--sk-blue-dark); }
 .mini-chip.alt { background: rgba(212, 57, 57, .12); color: var(--sk-red); }
 .mini-chip.alt:empty { display: none; }
+
+/* ===== Gráficos de la difusión (respuestas + cumplimiento) ===== */
+.rep-charts {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  margin: 4px 0 18px;
+}
+.rep-charts:empty { display: none; }
+.rep-chart-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fafbfe;
+  padding: 16px 18px;
+}
+.rep-chart-title {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); font-weight: 800; margin-bottom: 14px;
+}
+.rep-bars { display: grid; gap: 10px; }
+.rep-cmpl {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+}
+.rep-donut {
+  width: 130px; height: 130px; border-radius: 50%;
+  display: grid; place-items: center; flex: 0 0 auto;
+}
+.rep-donut::before {
+  content: ""; width: 86px; height: 86px; border-radius: 50%;
+  background: #fafbfe; grid-area: 1 / 1;
+}
+.rep-donut .rep-donut-val {
+  grid-area: 1 / 1; z-index: 1; text-align: center;
+  font-size: 1.5rem; font-weight: 800; color: var(--sk-blue-dark); line-height: 1;
+}
+.rep-donut .rep-donut-val small { display: block; font-size: .62rem; color: var(--muted); font-weight: 700; margin-top: 3px; }
+.rep-cmpl-legend { display: grid; gap: 8px; font-size: .85rem; }
+.rep-cmpl-legend .legend-item { display: flex; align-items: center; gap: 8px; }
+.rep-cmpl-legend .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex: 0 0 auto; }
+.rep-cmpl-legend b { color: var(--text); }
+@media (max-width: 760px) {
+  .rep-charts { grid-template-columns: 1fr; }
+}
+
 .rep-empty {
   padding: 24px; text-align: center; color: var(--muted);
   background: #fafbfe; border: 1px dashed var(--line); border-radius: 12px;
