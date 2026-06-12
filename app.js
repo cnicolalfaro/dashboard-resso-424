@@ -439,6 +439,10 @@
     const search = $("#repSearch");
     const results = $("#repResults");
     const count = $("#repCount");
+    const selSemana = $("#repSemana");
+    const selTurno = $("#repTurno");
+    const missCount = $("#repMissCount");
+    const exportBtn = $("#repExport");
     if (!search || !results) return;
 
     const esc = (s) =>
@@ -458,11 +462,71 @@
     const rutDigits = (s) =>
       String(s || "").toUpperCase().replace(/[^0-9K]/g, "");
 
+    // Clave de nombre: tokens (>1 letra) ordenados, para cruzar con turnos
+    const nameKey = (s) =>
+      norm(s)
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .split(" ")
+        .filter((t) => t.length > 1)
+        .sort()
+        .join(" ");
+
+    // Conjuntos de quienes SÍ entregaron reporte (por RUT y por nombre)
+    const reportRutSet = new Set();
+    const reportNameSet = new Set();
+    D.reportes.forEach((r) => {
+      if (r.rutKey) reportRutSet.add(r.rutKey);
+      reportNameSet.add(nameKey(r.nombre));
+    });
+
+    // Pobla los selects una sola vez
+    if (selSemana && selSemana.options.length <= 1) {
+      [...new Set(D.reportes.map((r) => r.semana).filter(Boolean))].forEach((s) => {
+        const o = document.createElement("option");
+        o.value = s;
+        o.textContent = s;
+        selSemana.appendChild(o);
+      });
+    }
+    if (selTurno && selTurno.options.length <= 1) {
+      const turnosSet = new Set();
+      (D.turnos || []).forEach((p) => p.turno && turnosSet.add(p.turno));
+      D.reportes.forEach((r) => r.turno && turnosSet.add(r.turno));
+      [...turnosSet].sort().forEach((t) => {
+        const o = document.createElement("option");
+        o.value = t;
+        o.textContent = t;
+        selTurno.appendChild(o);
+      });
+    }
+
+    // Personas que están en turnos (tarja) pero NO entregaron reporte
+    function missingList() {
+      const turno = selTurno ? selTurno.value : "";
+      return (D.turnos || []).filter((p) => {
+        if (turno && p.turno !== turno) return false;
+        if (p.rutKey && reportRutSet.has(p.rutKey)) return false;
+        if (reportNameSet.has(nameKey(p.nombre))) return false;
+        return true;
+      });
+    }
+
     function apply() {
       const raw = (search.value || "").trim();
-      if (!raw) {
+      const semana = selSemana ? selSemana.value : "";
+      const turno = selTurno ? selTurno.value : "";
+
+      // Chip comparativo: en turno sin reporte
+      if (missCount) {
+        const n = missingList().length;
+        missCount.textContent =
+          n + (n === 1 ? " en turno sin reporte" : " en turno sin reporte");
+      }
+
+      if (!raw && !semana && !turno) {
         results.innerHTML = "";
-        count.textContent = "Escribe un RUT o nombre para buscar";
+        count.textContent = "Escribe un RUT o nombre, o filtra por semana/turno";
         return;
       }
 
@@ -471,15 +535,21 @@
       const looksRut = /^[0-9]/.test(raw.replace(/[.\-\s]/g, "")) && qRut.length >= 4;
 
       const matches = D.reportes.filter((r) => {
-        if (looksRut) {
-          return r.rutKey && r.rutKey.indexOf(qRut) !== -1;
+        if (raw) {
+          if (looksRut) {
+            if (!(r.rutKey && r.rutKey.indexOf(qRut) !== -1)) return false;
+          } else if (norm(r.nombre).indexOf(qName) === -1) {
+            return false;
+          }
         }
-        return norm(r.nombre).indexOf(qName) !== -1;
+        if (semana && r.semana !== semana) return false;
+        if (turno && r.turno !== turno) return false;
+        return true;
       });
 
       if (matches.length === 0) {
         results.innerHTML =
-          '<div class="rep-empty">Sin reportes para esa búsqueda.</div>';
+          '<div class="rep-empty">Sin reportes para esos filtros.</div>';
         count.textContent = "0 reportes";
         return;
       }
@@ -498,6 +568,7 @@
         const rutTxt = f.rutMostrar
           ? f.rutMostrar
           : '<span class="rep-norut">sin RUT en tarja</span>';
+        const turnoTxt = f.turno ? esc(f.turno) : "—";
         const filas = reps
           .map(
             (r) => `
@@ -523,6 +594,7 @@
         }</span>
             </div>
             <div class="rep-ficha-meta">
+              <div><span class="rfm-label">Turno</span><span>${turnoTxt}</span></div>
               <div><span class="rfm-label">Cargo</span><span>${esc(f.cargo) || "—"}</span></div>
               <div><span class="rfm-label">Gerencia</span><span>${esc(f.gerencia) || "—"}</span></div>
               <div><span class="rfm-label">Empresa</span><span>${esc(f.empresa) || "—"}</span></div>
@@ -554,7 +626,46 @@
         }`;
     }
 
+    // Exporta CSV: personas en turnos sin reporte (respeta el filtro de turno)
+    function exportMissing() {
+      const miss = missingList();
+      const turno = selTurno ? selTurno.value : "";
+      if (miss.length === 0) {
+        alert("No hay personas en turno sin reporte para exportar.");
+        return;
+      }
+      const rows = [["RUT", "Nombre", "Turno", "Cargo"]];
+      miss.forEach((p) => {
+        rows.push([p.rutMostrar || "", p.nombre || "", p.turno || "", p.cargo || ""]);
+      });
+      const csv = rows
+        .map((r) =>
+          r
+            .map((c) => {
+              const v = String(c == null ? "" : c);
+              return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+            })
+            .join(";")
+        )
+        .join("\r\n");
+      const blob = new Blob(["\ufeff" + csv], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const suf = turno ? "_" + turno.replace(/[^0-9A-Za-z]+/g, "") : "_todos";
+      a.href = url;
+      a.download = "en_turno_sin_reporte" + suf + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
     search.addEventListener("input", apply);
+    if (selSemana) selSemana.addEventListener("change", apply);
+    if (selTurno) selTurno.addEventListener("change", apply);
+    if (exportBtn) exportBtn.addEventListener("click", exportMissing);
     apply();
   }
 

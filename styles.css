@@ -416,6 +416,10 @@ h1 {
 .records-table tbody tr:nth-child(even) { background: #fafbfe; }
 .records-table tbody tr:hover { background: var(--sk-blue-soft); }
 
+/* Tabla de personal: alto fijo con scroll interno y encabezado fijo */
+#personalPanel .table-wrap { max-height: 60vh; overflow-y: auto; }
+#personalPanel .records-table thead th { position: sticky; top: 0; z-index: 2; }
+
 .tag {
   display: inline-block; padding: 3px 10px; border-radius: 999px;
   font-size: .78rem; font-weight: 700;
@@ -518,6 +522,27 @@ h1 {
 
 /* ===== DETALLE DE REPORTES (búsqueda por RUT) ===== */
 .rep-results { display: grid; gap: 18px; }
+#reportesPanel .filters {
+  grid-template-columns: 2fr 1.4fr 1.4fr auto;
+  align-items: end;
+}
+.rep-export-field { display: grid; gap: 6px; }
+.btn-export {
+  padding: 11px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--sk-blue);
+  background: var(--sk-blue);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+.btn-export:hover { background: var(--sk-blue-dark); border-color: var(--sk-blue-dark); }
+.mini-chip.alt { background: rgba(212, 57, 57, .12); color: var(--sk-red); }
+.mini-chip.alt:empty { display: none; }
 .rep-empty {
   padding: 24px; text-align: center; color: var(--muted);
   background: #fafbfe; border: 1px dashed var(--line); border-radius: 12px;
@@ -559,6 +584,7 @@ h1 {
   .hero { flex-direction: column; align-items: flex-start; }
   .hero-meta { align-items: flex-start; }
   .filters { grid-template-columns: 1fr; }
+  #reportesPanel .filters { grid-template-columns: 1fr; }
 }
 
 /* ===== PRINT ===== */

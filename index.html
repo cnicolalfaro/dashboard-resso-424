@@ -244,10 +244,29 @@
             <span>Buscar por RUT o nombre</span>
             <input id="repSearch" type="text" placeholder="Ej. 12.345.678-9 o nombre…" />
           </label>
+          <label class="field">
+            <span>Semana</span>
+            <select id="repSemana">
+              <option value="">Todas</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Turno</span>
+            <select id="repTurno">
+              <option value="">Todos</option>
+            </select>
+          </label>
+          <div class="field rep-export-field">
+            <span>Comparar con turnos</span>
+            <button id="repExport" type="button" class="btn-export">
+              Exportar sin reporte (CSV)
+            </button>
+          </div>
         </div>
 
         <div class="results-summary">
-          <span class="mini-chip" id="repCount">Escribe un RUT o nombre para buscar</span>
+          <span class="mini-chip" id="repCount">Escribe un RUT o nombre, o filtra por semana/turno</span>
+          <span class="mini-chip alt" id="repMissCount"></span>
         </div>
 
         <div id="repResults" class="rep-results"></div>
