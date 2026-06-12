@@ -548,14 +548,23 @@
       D.reportes.forEach((r) => r.rc && s.add(r.rc));
       return [...s].sort();
     })();
+    const cargoVals = (() => {
+      const s = new Set();
+      D.reportes.forEach((r) => r.cargoTarja && s.add(r.cargoTarja));
+      (D.turnos || []).forEach((p) => p.cargo && s.add(p.cargo));
+      return [...s].sort();
+    })();
     const turnoMS = makeMultiSelect("repTurno", turnosVals, "Todos");
     const rfMS = makeMultiSelect("repRf", rfVals, "Todos");
+    const cargoMS = makeMultiSelect("repCargo", cargoVals, "Todos");
 
     // Personas que están en turnos (tarja) pero NO entregaron reporte
     function missingList() {
       const turnos = turnoMS.get();
+      const cargos = cargoMS.get();
       return (D.turnos || []).filter((p) => {
         if (turnos.length && turnos.indexOf(p.turno) === -1) return false;
+        if (cargos.length && cargos.indexOf(p.cargo) === -1) return false;
         if (p.rutKey && reportRutSet.has(p.rutKey)) return false;
         if (reportNameSet.has(nameKey(p.nombre))) return false;
         return true;
@@ -573,22 +582,19 @@
       const charts = $("#repCharts");
       if (!charts) return;
 
-      // Distribución de respuestas (campo p1: evento / hallazgo)
-      const counts = {};
-      dataset.forEach((r) => {
-        const k = (r.p1 || "—").toString().trim().toUpperCase() || "—";
-        counts[k] = (counts[k] || 0) + 1;
-      });
-      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-      const maxV = entries.length ? entries[0][1] : 1;
       const totalR = dataset.length;
-      const barsHtml = entries.length
-        ? entries
-            .map((e, i) => {
-              const pct = totalR ? Math.round((e[1] / totalR) * 100) : 0;
-              const w = Math.round((e[1] / maxV) * 100);
-              const color = chartColors[i % chartColors.length];
-              return `
+
+      // Arma barras a partir de un conteo {clave: n}
+      function buildBars(counts) {
+        const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        const maxV = entries.length ? entries[0][1] : 1;
+        return entries.length
+          ? entries
+              .map((e, i) => {
+                const pct = totalR ? Math.round((e[1] / totalR) * 100) : 0;
+                const w = Math.round((e[1] / maxV) * 100);
+                const color = chartColors[i % chartColors.length];
+                return `
               <div class="bar-row">
                 <div class="bar-top">
                   <span class="bar-name">${esc(e[0])}</span>
@@ -596,14 +602,34 @@
                 </div>
                 <div class="bar-track"><span class="bar-fill" style="width:${w}%;background:${color}"></span></div>
               </div>`;
-            })
-            .join("")
-        : '<div class="rep-empty">Sin datos para esos filtros.</div>';
+              })
+              .join("")
+          : '<div class="rep-empty">Sin datos para esos filtros.</div>';
+      }
 
-      // Cumplimiento: en turno con reporte vs. sin reporte (respeta filtro de turno)
+      // Distribución de respuestas (campo p1: evento / hallazgo)
+      const counts = {};
+      dataset.forEach((r) => {
+        const k = (r.p1 || "—").toString().trim().toUpperCase() || "—";
+        counts[k] = (counts[k] || 0) + 1;
+      });
+      const barsHtml = buildBars(counts);
+
+      // Distribución por RF (campo rc)
+      const rfCounts = {};
+      dataset.forEach((r) => {
+        const k = (r.rc || "S/RF").toString().trim().toUpperCase() || "S/RF";
+        rfCounts[k] = (rfCounts[k] || 0) + 1;
+      });
+      const rfBarsHtml = buildBars(rfCounts);
+
+      // Cumplimiento: en turno con reporte vs. sin reporte (respeta filtro de turno y cargo)
       const turnosSel = turnoMS.get();
+      const cargosSel = cargoMS.get();
       const totalTurnos = (D.turnos || []).filter(
-        (p) => !turnosSel.length || turnosSel.indexOf(p.turno) !== -1
+        (p) =>
+          (!turnosSel.length || turnosSel.indexOf(p.turno) !== -1) &&
+          (!cargosSel.length || cargosSel.indexOf(p.cargo) !== -1)
       ).length;
       const missing = missingList().length;
       const delivered = Math.max(totalTurnos - missing, 0);
@@ -618,6 +644,10 @@
         <div class="rep-chart-card">
           <div class="rep-chart-title">Respuestas de los trabajadores</div>
           <div class="rep-bars">${barsHtml}</div>
+        </div>
+        <div class="rep-chart-card">
+          <div class="rep-chart-title">Riesgos Fatales (RF) reportados</div>
+          <div class="rep-bars">${rfBarsHtml}</div>
         </div>
         <div class="rep-chart-card">
           <div class="rep-chart-title">Porcentaje de cumplimiento</div>
@@ -639,6 +669,7 @@
       const semana = selSemana ? selSemana.value : "";
       const turnos = turnoMS.get();
       const rfs = rfMS.get();
+      const cargos = cargoMS.get();
 
       // Chip comparativo: en turno sin reporte
       if (missCount) {
@@ -652,11 +683,12 @@
         if (semana && r.semana !== semana) return false;
         if (turnos.length && turnos.indexOf(r.turno) === -1) return false;
         if (rfs.length && rfs.indexOf(r.rc) === -1) return false;
+        if (cargos.length && cargos.indexOf(r.cargoTarja) === -1) return false;
         return true;
       });
       renderRepCharts(overview);
 
-      if (!raw && !semana && !turnos.length && !rfs.length) {
+      if (!raw && !semana && !turnos.length && !rfs.length && !cargos.length) {
         results.innerHTML = "";
         count.textContent = "Escribe un RUT o nombre, o filtra por semana/turno";
         return;
@@ -677,6 +709,7 @@
         if (semana && r.semana !== semana) return false;
         if (turnos.length && turnos.indexOf(r.turno) === -1) return false;
         if (rfs.length && rfs.indexOf(r.rc) === -1) return false;
+        if (cargos.length && cargos.indexOf(r.cargoTarja) === -1) return false;
         return true;
       });
 
