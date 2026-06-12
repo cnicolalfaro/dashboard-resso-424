@@ -596,6 +596,59 @@ h1 {
   .rep-charts { grid-template-columns: 1fr; }
 }
 
+/* ===== MULTI-SELECT (Turno / RF) ===== */
+.ms-dropdown { position: relative; }
+.ms-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.ms-toggle:hover { border-color: var(--sk-blue); }
+.ms-toggle[aria-expanded="true"] { border-color: var(--sk-blue); }
+.ms-toggle .ms-caret { color: var(--muted); font-size: 12px; flex: 0 0 auto; }
+.ms-toggle > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(36, 64, 122, 0.18);
+  padding: 6px;
+}
+.ms-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+}
+.ms-opt:hover { background: var(--sk-blue-soft); }
+.ms-opt input { accent-color: var(--sk-blue); width: 15px; height: 15px; flex: 0 0 auto; }
+
+
 .rep-empty {
   padding: 24px; text-align: center; color: var(--muted);
   background: #fafbfe; border: 1px dashed var(--line); border-radius: 12px;

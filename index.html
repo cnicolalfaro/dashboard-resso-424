@@ -250,12 +250,26 @@
               <option value="">Todas</option>
             </select>
           </label>
-          <label class="field">
+          <div class="field">
             <span>Turno</span>
-            <select id="repTurno">
-              <option value="">Todos</option>
-            </select>
-          </label>
+            <div class="ms-dropdown" id="repTurnoDrop">
+              <button type="button" class="ms-toggle" id="repTurnoToggle" aria-expanded="false">
+                <span id="repTurnoLabel">Todos</span>
+                <span class="ms-caret">▾</span>
+              </button>
+              <div class="ms-menu" id="repTurnoMenu" hidden></div>
+            </div>
+          </div>
+          <div class="field">
+            <span>RF</span>
+            <div class="ms-dropdown" id="repRfDrop">
+              <button type="button" class="ms-toggle" id="repRfToggle" aria-expanded="false">
+                <span id="repRfLabel">Todos</span>
+                <span class="ms-caret">▾</span>
+              </button>
+              <div class="ms-menu" id="repRfMenu" hidden></div>
+            </div>
+          </div>
           <div class="field rep-export-field">
             <span>Comparar con turnos</span>
             <button id="repExport" type="button" class="btn-export">

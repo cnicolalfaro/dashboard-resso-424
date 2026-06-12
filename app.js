@@ -440,7 +440,6 @@
     const results = $("#repResults");
     const count = $("#repCount");
     const selSemana = $("#repSemana");
-    const selTurno = $("#repTurno");
     const missCount = $("#repMissCount");
     const exportBtn = $("#repExport");
     if (!search || !results) return;
@@ -489,23 +488,74 @@
         selSemana.appendChild(o);
       });
     }
-    if (selTurno && selTurno.options.length <= 1) {
-      const turnosSet = new Set();
-      (D.turnos || []).forEach((p) => p.turno && turnosSet.add(p.turno));
-      D.reportes.forEach((r) => r.turno && turnosSet.add(r.turno));
-      [...turnosSet].sort().forEach((t) => {
-        const o = document.createElement("option");
-        o.value = t;
-        o.textContent = t;
-        selTurno.appendChild(o);
+    // Multi-selects (Turno y RF) con casillas
+    const closeAllMenus = () => {
+      document
+        .querySelectorAll("#reportesPanel .ms-menu")
+        .forEach((m) => (m.hidden = true));
+      document
+        .querySelectorAll("#reportesPanel .ms-toggle")
+        .forEach((t) => t.setAttribute("aria-expanded", "false"));
+    };
+    function makeMultiSelect(prefix, values, allLabel) {
+      const toggle = $("#" + prefix + "Toggle");
+      const label = $("#" + prefix + "Label");
+      const menu = $("#" + prefix + "Menu");
+      const selected = new Set();
+      if (!toggle || !menu) return { get: () => [] };
+      function updateLabel() {
+        if (selected.size === 0) label.textContent = allLabel;
+        else if (selected.size === 1) label.textContent = [...selected][0];
+        else label.textContent = selected.size + " seleccionados";
+      }
+      menu.innerHTML = values
+        .map(
+          (v) =>
+            `<label class="ms-opt"><input type="checkbox" value="${esc(
+              v
+            )}" /><span>${esc(v)}</span></label>`
+        )
+        .join("");
+      menu.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+        cb.addEventListener("change", () => {
+          if (cb.checked) selected.add(cb.value);
+          else selected.delete(cb.value);
+          updateLabel();
+          apply();
+        });
       });
+      toggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const willOpen = menu.hidden;
+        closeAllMenus();
+        menu.hidden = !willOpen;
+        toggle.setAttribute("aria-expanded", String(willOpen));
+      });
+      menu.addEventListener("click", (e) => e.stopPropagation());
+      updateLabel();
+      return { get: () => [...selected] };
     }
+    document.addEventListener("click", closeAllMenus);
+
+    const turnosVals = (() => {
+      const s = new Set();
+      (D.turnos || []).forEach((p) => p.turno && s.add(p.turno));
+      D.reportes.forEach((r) => r.turno && s.add(r.turno));
+      return [...s].sort();
+    })();
+    const rfVals = (() => {
+      const s = new Set();
+      D.reportes.forEach((r) => r.rc && s.add(r.rc));
+      return [...s].sort();
+    })();
+    const turnoMS = makeMultiSelect("repTurno", turnosVals, "Todos");
+    const rfMS = makeMultiSelect("repRf", rfVals, "Todos");
 
     // Personas que están en turnos (tarja) pero NO entregaron reporte
     function missingList() {
-      const turno = selTurno ? selTurno.value : "";
+      const turnos = turnoMS.get();
       return (D.turnos || []).filter((p) => {
-        if (turno && p.turno !== turno) return false;
+        if (turnos.length && turnos.indexOf(p.turno) === -1) return false;
         if (p.rutKey && reportRutSet.has(p.rutKey)) return false;
         if (reportNameSet.has(nameKey(p.nombre))) return false;
         return true;
@@ -551,9 +601,9 @@
         : '<div class="rep-empty">Sin datos para esos filtros.</div>';
 
       // Cumplimiento: en turno con reporte vs. sin reporte (respeta filtro de turno)
-      const turnoSel = selTurno ? selTurno.value : "";
+      const turnosSel = turnoMS.get();
       const totalTurnos = (D.turnos || []).filter(
-        (p) => !turnoSel || p.turno === turnoSel
+        (p) => !turnosSel.length || turnosSel.indexOf(p.turno) !== -1
       ).length;
       const missing = missingList().length;
       const delivered = Math.max(totalTurnos - missing, 0);
@@ -587,7 +637,8 @@
     function apply() {
       const raw = (search.value || "").trim();
       const semana = selSemana ? selSemana.value : "";
-      const turno = selTurno ? selTurno.value : "";
+      const turnos = turnoMS.get();
+      const rfs = rfMS.get();
 
       // Chip comparativo: en turno sin reporte
       if (missCount) {
@@ -596,15 +647,16 @@
           n + (n === 1 ? " en turno sin reporte" : " en turno sin reporte");
       }
 
-      // Gráficos: overview por semana/turno (ignora la búsqueda de texto)
+      // Gráficos: overview por semana/turno/RF (ignora la búsqueda de texto)
       const overview = D.reportes.filter((r) => {
         if (semana && r.semana !== semana) return false;
-        if (turno && r.turno !== turno) return false;
+        if (turnos.length && turnos.indexOf(r.turno) === -1) return false;
+        if (rfs.length && rfs.indexOf(r.rc) === -1) return false;
         return true;
       });
       renderRepCharts(overview);
 
-      if (!raw && !semana && !turno) {
+      if (!raw && !semana && !turnos.length && !rfs.length) {
         results.innerHTML = "";
         count.textContent = "Escribe un RUT o nombre, o filtra por semana/turno";
         return;
@@ -623,7 +675,8 @@
           }
         }
         if (semana && r.semana !== semana) return false;
-        if (turno && r.turno !== turno) return false;
+        if (turnos.length && turnos.indexOf(r.turno) === -1) return false;
+        if (rfs.length && rfs.indexOf(r.rc) === -1) return false;
         return true;
       });
 
@@ -685,7 +738,7 @@
                   <tr>
                     <th>Fecha</th>
                     <th>Semana</th>
-                    <th>RC</th>
+                    <th>RF</th>
                     <th>1. Evento / hallazgo</th>
                     <th>2. ¿Dónde?</th>
                     <th>3. ¿Cómo evitarlo?</th>
@@ -709,7 +762,7 @@
     // Exporta CSV: personas en turnos sin reporte (respeta el filtro de turno)
     function exportMissing() {
       const miss = missingList();
-      const turno = selTurno ? selTurno.value : "";
+      const turnos = turnoMS.get();
       if (miss.length === 0) {
         alert("No hay personas en turno sin reporte para exportar.");
         return;
@@ -733,7 +786,9 @@
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const suf = turno ? "_" + turno.replace(/[^0-9A-Za-z]+/g, "") : "_todos";
+      const suf = turnos.length
+        ? "_" + turnos.join("-").replace(/[^0-9A-Za-z]+/g, "")
+        : "_todos";
       a.href = url;
       a.download = "en_turno_sin_reporte" + suf + ".csv";
       document.body.appendChild(a);
@@ -744,7 +799,6 @@
 
     search.addEventListener("input", apply);
     if (selSemana) selSemana.addEventListener("change", apply);
-    if (selTurno) selTurno.addEventListener("change", apply);
     if (exportBtn) exportBtn.addEventListener("click", exportMissing);
     apply();
   }
