@@ -433,7 +433,131 @@
     apply();
   }
 
-  // ---- Imprimir -----------------------------------------------------------
+  // ---- Detalle de reportes ABC-S (búsqueda por RUT o nombre) -------------
+  function renderReportes() {
+    if (!D.reportes) return;
+    const search = $("#repSearch");
+    const results = $("#repResults");
+    const count = $("#repCount");
+    if (!search || !results) return;
+
+    const esc = (s) =>
+      String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // Normaliza texto: minúsculas, sin acentos
+    const norm = (s) =>
+      String(s || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    // Solo dígitos y K para comparar RUT
+    const rutDigits = (s) =>
+      String(s || "").toUpperCase().replace(/[^0-9K]/g, "");
+
+    function apply() {
+      const raw = (search.value || "").trim();
+      if (!raw) {
+        results.innerHTML = "";
+        count.textContent = "Escribe un RUT o nombre para buscar";
+        return;
+      }
+
+      const qRut = rutDigits(raw);
+      const qName = norm(raw);
+      const looksRut = /^[0-9]/.test(raw.replace(/[.\-\s]/g, "")) && qRut.length >= 4;
+
+      const matches = D.reportes.filter((r) => {
+        if (looksRut) {
+          return r.rutKey && r.rutKey.indexOf(qRut) !== -1;
+        }
+        return norm(r.nombre).indexOf(qName) !== -1;
+      });
+
+      if (matches.length === 0) {
+        results.innerHTML =
+          '<div class="rep-empty">Sin reportes para esa búsqueda.</div>';
+        count.textContent = "0 reportes";
+        return;
+      }
+
+      // Agrupa por persona (rutKey si existe, si no por nombre normalizado)
+      const groups = new Map();
+      matches.forEach((r) => {
+        const key = r.rutKey || "n:" + norm(r.nombre);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(r);
+      });
+
+      let html = "";
+      groups.forEach((reps) => {
+        const f = reps[0];
+        const rutTxt = f.rutMostrar
+          ? f.rutMostrar
+          : '<span class="rep-norut">sin RUT en tarja</span>';
+        const filas = reps
+          .map(
+            (r) => `
+            <tr>
+              <td>${esc(r.fecha)}</td>
+              <td>${esc(r.semana)}</td>
+              <td><strong>${esc(r.rc)}</strong></td>
+              <td>${esc(r.p1)}</td>
+              <td>${esc(r.p2)}</td>
+              <td>${esc(r.p3)}</td>
+            </tr>`
+          )
+          .join("");
+        html += `
+          <div class="rep-ficha">
+            <div class="rep-ficha-head">
+              <div>
+                <div class="rep-nombre">${esc(f.nombre)}</div>
+                <div class="rep-sub">RUT ${rutTxt}</div>
+              </div>
+              <span class="mini-chip">${reps.length} ${
+          reps.length === 1 ? "reporte" : "reportes"
+        }</span>
+            </div>
+            <div class="rep-ficha-meta">
+              <div><span class="rfm-label">Cargo</span><span>${esc(f.cargo) || "—"}</span></div>
+              <div><span class="rfm-label">Gerencia</span><span>${esc(f.gerencia) || "—"}</span></div>
+              <div><span class="rfm-label">Empresa</span><span>${esc(f.empresa) || "—"}</span></div>
+            </div>
+            <div class="table-wrap">
+              <table class="records-table rep-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Semana</th>
+                    <th>RC</th>
+                    <th>1. Evento / hallazgo</th>
+                    <th>2. ¿Dónde?</th>
+                    <th>3. ¿Cómo evitarlo?</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
+          </div>`;
+      });
+
+      results.innerHTML = html;
+      const np = groups.size;
+      const nr = matches.length;
+      count.textContent =
+        `${np} ${np === 1 ? "persona" : "personas"} · ${nr} ${
+          nr === 1 ? "reporte" : "reportes"
+        }`;
+    }
+
+    search.addEventListener("input", apply);
+    apply();
+  }
+
   $("#printBtn").addEventListener("click", () => window.print());
 
   // ---- Init ---------------------------------------------------------------
@@ -447,4 +571,5 @@
   renderAbc();
   renderCursos();
   renderPersonal();
+  renderReportes();
 })();

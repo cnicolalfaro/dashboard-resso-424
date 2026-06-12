@@ -229,6 +229,29 @@
           </table>
         </div>
       </section>
+
+      <!-- DETALLE DE REPORTES ABC-S (búsqueda por RUT) -->
+      <section class="panel" id="reportesPanel">
+        <div class="panel-header">
+          <div>
+            <h2>Detalle de reportes ABC-S</h2>
+            <p>Busca a una persona por RUT o nombre para ver todos sus reportes registrados</p>
+          </div>
+        </div>
+
+        <div class="filters">
+          <label class="field">
+            <span>Buscar por RUT o nombre</span>
+            <input id="repSearch" type="text" placeholder="Ej. 12.345.678-9 o nombre…" />
+          </label>
+        </div>
+
+        <div class="results-summary">
+          <span class="mini-chip" id="repCount">Escribe un RUT o nombre para buscar</span>
+        </div>
+
+        <div id="repResults" class="rep-results"></div>
+      </section>
     </main>
 
     <footer class="footer">

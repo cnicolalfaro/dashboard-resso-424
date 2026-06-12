@@ -516,6 +516,39 @@ h1 {
 /* Celda centrada para estado de curso en la tabla de personal */
 .records-table .cell-center { text-align: center; }
 
+/* ===== DETALLE DE REPORTES (búsqueda por RUT) ===== */
+.rep-results { display: grid; gap: 18px; }
+.rep-empty {
+  padding: 24px; text-align: center; color: var(--muted);
+  background: #fafbfe; border: 1px dashed var(--line); border-radius: 12px;
+}
+.rep-ficha {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fafbfe;
+  padding: 18px;
+}
+.rep-ficha-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.rep-nombre { font-size: 1.1rem; font-weight: 800; color: var(--sk-blue-dark); }
+.rep-sub { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+.rep-norut { color: var(--sk-red); font-weight: 600; }
+.rep-ficha-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 14px;
+}
+.rep-ficha-meta > div { display: flex; flex-direction: column; gap: 2px; }
+.rfm-label {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); font-weight: 700;
+}
+.rep-ficha-meta > div > span:last-child { font-size: .9rem; color: var(--text); }
+.rep-table { font-size: .85rem; }
+.rep-table td { vertical-align: top; }
+
 /* ===== FOOTER ===== */
 .footer { margin-top: 24px; text-align: center; color: var(--muted); font-size: .85rem; padding: 16px; }
 
