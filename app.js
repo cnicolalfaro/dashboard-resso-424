@@ -10,6 +10,27 @@
     return;
   }
 
+  // ---- Merge de evidencias (evaluación %, comentarios y fotos del Excel) --
+  // Las evidencias viven en D.evidencias = { "<n>": { eval, obs, obsAuditor,
+  // ruta, imgs:[dataURI] } } y se fusionan en cada pregunta por su número.
+  (function mergeEvidencias() {
+    const ev = D.evidencias;
+    if (!ev || !D.resso) return;
+    D.resso.forEach((g) =>
+      g.elementos.forEach((e) =>
+        (e.preguntas || []).forEach((p) => {
+          const d = ev[String(p.n)];
+          if (!d) return;
+          if (d.eval !== undefined && d.eval !== null) p.pct = d.eval;
+          if (d.obs) p.obs = d.obs;
+          if (d.obsAuditor) p.obsAuditor = d.obsAuditor;
+          if (d.ruta) p.ruta = d.ruta;
+          if (d.imgs && d.imgs.length) p.imgs = d.imgs;
+        })
+      )
+    );
+  })();
+
   const $ = (sel) => document.querySelector(sel);
 
   function pctColor(p) {
@@ -118,10 +139,20 @@
                     const v = p.pct;
                     const vShow = v === "NA" ? "N/A" : typeof v === "number" ? v + "%" : "—";
                     const vColor = typeof v === "number" ? pctColor(v) : "#9aa3b2";
+                    const pesoShow = typeof p.peso === "number"
+                      ? `<div class="preg-peso" title="Ponderado">${String(p.peso).replace(".", ",")}%</div>`
+                      : `<div class="preg-peso"></div>`;
+                    const nImg = p.imgs && p.imgs.length ? p.imgs.length : 0;
+                    const tieneEvid = !!(p.obs || p.obsAuditor || p.ruta || nImg);
+                    const evidBtn = tieneEvid
+                      ? `<button class="preg-evid" data-evid="${p.n}" title="Ver evidencia y comentarios">${nImg ? "📷 " + nImg : "💬"}</button>`
+                      : `<span class="preg-evid-empty"></span>`;
                     return `
                     <div class="preg-row">
                       <div class="preg-num">${p.n}</div>
                       <div class="preg-text">${p.texto}</div>
+                      ${pesoShow}
+                      ${evidBtn}
                       <div class="preg-score" style="color:${vColor}">${vShow}</div>
                     </div>`;
                   })
@@ -177,12 +208,114 @@
 
   // ---- Interacción: solo desplegar/colapsar preguntas --------------------
   $("#resssoGrid").addEventListener("click", (ev) => {
+    const evidBtn = ev.target.closest(".preg-evid");
+    if (evidBtn) {
+      abrirEvidencia(parseInt(evidBtn.getAttribute("data-evid"), 10));
+      return;
+    }
     const btn = ev.target.closest(".re-toggle");
     if (!btn) return;
     const id = btn.getAttribute("data-el");
     if (expanded.has(id)) expanded.delete(id);
     else expanded.add(id);
     renderResso();
+  });
+
+  // ---- Modal de evidencia (comentarios + fotos) --------------------------
+  function findPregunta(n) {
+    for (const g of D.resso) {
+      for (const e of g.elementos) {
+        for (const p of e.preguntas || []) {
+          if (p.n === n) return { p, e, g };
+        }
+      }
+    }
+    return null;
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function abrirEvidencia(n) {
+    const found = findPregunta(n);
+    if (!found) return;
+    const { p, e, g } = found;
+    const modal = $("#evidModal");
+    const v = p.pct;
+    const vShow = v === "NA" ? "N/A" : typeof v === "number" ? v + "%" : "Sin evaluar";
+    const vColor = typeof v === "number" ? pctColor(v) : "#9aa3b2";
+
+    const obsHtml = p.obs
+      ? `<div class="evid-block"><div class="evid-block-title">Evidencia / Observaciones</div><p>${escapeHtml(p.obs).replace(/\n/g, "<br>")}</p></div>`
+      : "";
+    const auditorHtml = p.obsAuditor
+      ? `<div class="evid-block evid-auditor"><div class="evid-block-title">Observaciones del Auditor</div><p>${escapeHtml(p.obsAuditor).replace(/\n/g, "<br>")}</p></div>`
+      : "";
+    const rutaHtml = p.ruta
+      ? `<div class="evid-block"><div class="evid-block-title">Ruta de evidencia</div><a class="evid-link" href="${escapeHtml(p.ruta)}" target="_blank" rel="noopener">Abrir carpeta en SharePoint ↗</a></div>`
+      : "";
+    const imgsHtml = p.imgs && p.imgs.length
+      ? `<div class="evid-block"><div class="evid-block-title">Fotografías (${p.imgs.length})</div><div class="evid-thumbs">` +
+        p.imgs
+          .map((src, i) => `<img class="evid-thumb" src="${src}" data-img="${i}" alt="Foto ${i + 1}">`)
+          .join("") +
+        `</div></div>`
+      : "";
+    const sinEvid = !obsHtml && !auditorHtml && !rutaHtml && !imgsHtml
+      ? `<div class="evid-empty">Esta pregunta no tiene evidencia ni comentarios cargados.</div>`
+      : "";
+
+    modal.querySelector(".evid-body").innerHTML = `
+      <div class="evid-head">
+        <div class="evid-tag" style="background:${g.color}">${e.id} · ${g.ciclo}</div>
+        <div class="evid-score" style="color:${vColor}">${vShow}</div>
+      </div>
+      <div class="evid-question"><strong>Pregunta ${p.n}.</strong> ${escapeHtml(p.texto)}</div>
+      ${obsHtml}
+      ${auditorHtml}
+      ${rutaHtml}
+      ${imgsHtml}
+      ${sinEvid}`;
+
+    // Lightbox de imágenes
+    modal.querySelectorAll(".evid-thumb").forEach((img) => {
+      img.addEventListener("click", () => abrirLightbox(img.getAttribute("src")));
+    });
+
+    modal.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function cerrarEvidencia() {
+    $("#evidModal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function abrirLightbox(src) {
+    const lb = $("#imgLightbox");
+    lb.querySelector("img").src = src;
+    lb.classList.add("open");
+  }
+  function cerrarLightbox() {
+    $("#imgLightbox").classList.remove("open");
+  }
+
+  $("#evidModal").addEventListener("click", (ev) => {
+    if (ev.target.closest("[data-close-evid]") || ev.target.id === "evidModal") {
+      cerrarEvidencia();
+    }
+  });
+  $("#imgLightbox").addEventListener("click", cerrarLightbox);
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      cerrarLightbox();
+      cerrarEvidencia();
+    }
   });
 
   // ---- Donut de hallazgos -------------------------------------------------
@@ -838,6 +971,22 @@
 
   $("#printBtn").addEventListener("click", () => window.print());
 
+  // ---- Navegación por secciones (menú principal → vistas) ----------------
+  function setupNav() {
+    const views = Array.prototype.slice.call(document.querySelectorAll(".view"));
+    function show(id) {
+      views.forEach((v) => { v.hidden = v.id !== id; });
+      window.scrollTo(0, 0);
+    }
+    document.querySelectorAll("[data-goto]").forEach((btn) =>
+      btn.addEventListener("click", () => show(btn.getAttribute("data-goto")))
+    );
+    document.querySelectorAll("[data-back]").forEach((btn) =>
+      btn.addEventListener("click", () => show("homeView"))
+    );
+    show("homeView");
+  }
+
   // ---- Init ---------------------------------------------------------------
   renderContract();
   renderKpis();
@@ -850,4 +999,5 @@
   renderCursos();
   renderPersonal();
   renderReportes();
+  setupNav();
 })();

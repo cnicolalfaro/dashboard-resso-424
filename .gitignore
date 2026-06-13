@@ -11,9 +11,13 @@ Evidencias escaneadas/
 data/dashboard_data.js
 data/personal_data.js
 data/reportes_data.js
+data/evidencias_data.js
 
 # Herramienta local de cifrado (no se publica)
 cifrar.html
+
+# Vista previa local sin cifrar (contiene datos en texto plano — NO publicar)
+preview.html
 
 
 # Archivos fuente y utilidades (Excel, scripts de extracción)

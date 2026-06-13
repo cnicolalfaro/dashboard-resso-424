@@ -43,10 +43,51 @@
       </div>
     </header>
 
-    <!-- INFORMACIÓN DEL CONTRATO -->
-    <section class="panel contract-panel" id="contractPanel"></section>
-
     <main>
+      <!-- ===================== MENÚ PRINCIPAL ===================== -->
+      <section class="view view-home" id="homeView">
+        <!-- Fondo decorativo (imagen o video). Coloca el archivo en assets/:
+             - Imagen:  assets/fondo.jpg
+             - Video:   assets/fondo.mp4  (opcional, se superpone a la imagen) -->
+        <div class="home-bg" aria-hidden="true">
+          <img class="home-bg-media" id="homeBgImg" src="assets/fondo.jpg" alt=""
+               onerror="this.style.display='none'" />
+          <video class="home-bg-media home-bg-video" id="homeBgVideo" autoplay muted loop playsinline
+                 preload="auto" onloadeddata="this.classList.add('is-ready')">
+            <source src="assets/fondo.mp4" type="video/mp4" />
+          </video>
+          <div class="home-bg-overlay"></div>
+        </div>
+
+        <!-- INFORMACIÓN DEL CONTRATO -->
+        <section class="panel contract-panel" id="contractPanel"></section>
+
+        <div class="menu-cards">
+          <button type="button" class="menu-card" data-goto="viewResso">
+            <span class="menu-card-ico" aria-hidden="true">📋</span>
+            <span class="menu-card-title">RESSO V10 · LV 2026</span>
+            <span class="menu-card-desc">Evaluación de cumplimiento del Sistema de Gestión (PHVA), evidencias, hallazgos y reglamentos.</span>
+            <span class="menu-card-go">Entrar →</span>
+          </button>
+          <button type="button" class="menu-card" data-goto="viewAbc">
+            <span class="menu-card-ico" aria-hidden="true">🅰️</span>
+            <span class="menu-card-title">ABC 2026</span>
+            <span class="menu-card-desc">Auditoría ABC-S — Aspectos básicos de la gestión de riesgo en seguridad.</span>
+            <span class="menu-card-go">Entrar →</span>
+          </button>
+          <button type="button" class="menu-card" data-goto="viewCursos">
+            <span class="menu-card-ico" aria-hidden="true">🎓</span>
+            <span class="menu-card-title">Cursos y Difusiones 2026</span>
+            <span class="menu-card-desc">Estado de cursos del personal y difusión de aprendizajes CODELCO.</span>
+            <span class="menu-card-go">Entrar →</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===================== VISTA: RESSO V10 LV 2026 ===================== -->
+      <section class="view" id="viewResso" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
       <!-- KPI CARDS -->
       <section class="cards" id="kpiCards"></section>
 
@@ -140,6 +181,11 @@
           </table>
         </div>
       </section>
+      </section><!-- /viewResso -->
+
+      <!-- ===================== VISTA: ABC 2026 ===================== -->
+      <section class="view" id="viewAbc" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
 
       <!-- AUDITORÍA ABC-S -->
       <section class="panel" id="abcPanel">
@@ -174,6 +220,11 @@
           </table>
         </div>
       </section>
+      </section><!-- /viewAbc -->
+
+      <!-- ===================== VISTA: CURSOS Y DIFUSIONES ===================== -->
+      <section class="view" id="viewCursos" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
 
       <!-- CUMPLIMIENTO DE CURSOS -->
       <section class="panel" id="cursosPanel">
@@ -297,11 +348,25 @@
 
         <div id="repResults" class="rep-results"></div>
       </section>
+      </section><!-- /viewCursos -->
     </main>
 
     <footer class="footer">
       RESSO SKIC 424 · SKIC S.A. — Sistema de Gestión SSO · Generado automáticamente
     </footer>
+  </div>
+
+  <!-- Modal de evidencia (comentarios + fotos por pregunta) -->
+  <div class="evid-modal" id="evidModal" aria-hidden="true">
+    <div class="evid-card" role="dialog" aria-modal="true">
+      <button class="evid-close" data-close-evid aria-label="Cerrar">✕</button>
+      <div class="evid-body"></div>
+    </div>
+  </div>
+
+  <!-- Lightbox para ampliar fotos -->
+  <div class="img-lightbox" id="imgLightbox" aria-hidden="true">
+    <img src="" alt="Evidencia ampliada">
   </div>
 
   <script src="data/datos.enc.js?v=1"></script>
