@@ -1179,6 +1179,12 @@
         .map((it) => {
           const cerrado = incCerrado(it);
           const isOpen = open.has(it.item);
+          const tieneAuditor =
+            !!norm(it.comentarioAuditor) ||
+            it.medidas.some((m) => !!norm(m.comentarioAuditor));
+          const auditorMark = tieneAuditor
+            ? '<span class="inc-aud-flag" title="Tiene comentarios del auditor">▲</span>'
+            : "";
           const estTag = cerrado
             ? '<span class="tag tag-ok">Cerrado</span>'
             : '<span class="tag tag-pending">Con pendientes</span>';
@@ -1219,7 +1225,7 @@
               )}">
                 <span class="inc-caret">▸</span>
                 <span class="inc-cat">${escapeHtml(it.categoria)}</span>
-                <span class="inc-title">${escapeHtml(it.nombre)}</span>
+                <span class="inc-title">${auditorMark}${escapeHtml(it.nombre)}</span>
                 <span class="inc-meta">${escapeHtml(it.fecha)} · ${escapeHtml(
             it.turno
           )} · ${it.medidas.length} ${
