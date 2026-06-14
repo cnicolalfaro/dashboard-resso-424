@@ -41,6 +41,9 @@
 
   // ---- Fecha de actualización -------------------------------------------
   $("#updatedAt").textContent = "Actualizado: " + D.generatedAt;
+  document
+    .querySelectorAll(".js-updated")
+    .forEach((el) => (el.textContent = "Actualizado: " + D.generatedAt));
 
   // ---- Información del contrato ------------------------------------------
   function renderContract() {
@@ -987,6 +990,328 @@
     show("homeView");
   }
 
+  // ---- Incidentes y medidas correctivas ----------------------------------
+  function renderIncidentes() {
+    const data = D.incidentes;
+    if (!data || !data.length) return;
+
+    const norm = (s) =>
+      String(s || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const estadoColor = (e) => {
+      const n = norm(e);
+      if (n.indexOf("cerrad") > -1) return "#2e8b57";
+      if (n.indexOf("proceso") > -1) return "#f0a500";
+      if (n.indexOf("pendiente") > -1) return "#e1251b";
+      if (n.indexOf("abierto") > -1) return "#e1251b";
+      return "#9aa3b2";
+    };
+
+    // Interpreta el estado de verificacion (tolera el typo "PENIDENTE").
+    const verifInfo = (v) => {
+      const n = norm(v);
+      if (!n) return { txt: "—", col: "#9aa3b2" };
+      if (n.indexOf("verificad") > -1) return { txt: "Verificada", col: "#2e8b57" };
+      if (n.indexOf("no aplica") > -1) return { txt: "No aplica", col: "#9aa3b2" };
+      if (n.indexOf("penid") > -1 || n.indexOf("pendient") > -1)
+        return { txt: "Pendiente", col: "#f0a500" };
+      return { txt: String(v), col: "#5d6b82" };
+    };
+
+    // Un incidente esta "cerrado" si tiene medidas y todas estan cerradas.
+    const incCerrado = (it) =>
+      it.medidas.length > 0 &&
+      it.medidas.every((m) => norm(m.estatus).indexOf("cerrad") > -1);
+
+    // ---- KPIs ----
+    const totalInc = data.length;
+    let totalMed = 0,
+      medCerradas = 0;
+    data.forEach((it) =>
+      it.medidas.forEach((m) => {
+        totalMed++;
+        if (norm(m.estatus).indexOf("cerrad") > -1) medCerradas++;
+      })
+    );
+    const incPend = data.filter((it) => !incCerrado(it)).length;
+    const pctCerr = totalMed ? Math.round((medCerradas / totalMed) * 100) : 0;
+
+    const kpis = [
+      { label: "Incidentes registrados", value: totalInc, accent: "#24407a" },
+      { label: "Medidas correctivas", value: totalMed, accent: "#24407a" },
+      { label: "Medidas cerradas", value: pctCerr + "%", accent: pctColor(pctCerr) },
+      { label: "Incidentes con pendientes", value: incPend, accent: incPend ? "#e1251b" : "#2e8b57" },
+    ];
+    $("#incKpis").innerHTML = kpis
+      .map(
+        (c) =>
+          `<div class="card" style="--accent:${c.accent}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`
+      )
+      .join("");
+
+    // ---- Barras por categoria ----
+    const catMap = {};
+    data.forEach((it) => {
+      const c = it.categoria || "SIN CATEGORÍA";
+      catMap[c] = (catMap[c] || 0) + 1;
+    });
+    const catArr = Object.keys(catMap)
+      .map((k) => ({ cat: k, n: catMap[k] }))
+      .sort((a, b) => b.n - a.n);
+    const maxCat = catArr.reduce((m, x) => Math.max(m, x.n), 0) || 1;
+    $("#incCatBars").innerHTML = catArr
+      .map(
+        (x) => `
+        <div class="bar-row">
+          <div class="bar-top">
+            <span class="bar-name">${escapeHtml(x.cat)}</span>
+            <span class="bar-val">${x.n}</span>
+          </div>
+          <div class="bar-track"><span class="bar-fill" style="width:${
+            (x.n / maxCat) * 100
+          }%;background:#24407a"></span></div>
+        </div>`
+      )
+      .join("");
+
+    // ---- Donut estado de medidas ----
+    const estMap = {};
+    data.forEach((it) =>
+      it.medidas.forEach((m) => {
+        const e = (m.estatus || "SIN ESTADO").toUpperCase();
+        estMap[e] = (estMap[e] || 0) + 1;
+      })
+    );
+    const estArr = Object.keys(estMap).map((k) => ({
+      label: k,
+      value: estMap[k],
+      color: estadoColor(k),
+    }));
+    const totEst = estArr.reduce((s, e) => s + e.value, 0);
+    const donut = $("#incEstadoDonut");
+    let acc = 0;
+    const segs = estArr
+      .filter((e) => e.value > 0)
+      .map((e) => {
+        const start = (acc / totEst) * 360;
+        acc += e.value;
+        const end = (acc / totEst) * 360;
+        return `${e.color} ${start}deg ${end}deg`;
+      })
+      .join(", ");
+    donut.style.background = totEst ? `conic-gradient(${segs})` : "var(--line)";
+    donut.setAttribute("data-total", totEst);
+    $("#incEstadoLegend").innerHTML = estArr
+      .map(
+        (e) => `
+        <div class="legend-item">
+          <span class="legend-dot" style="background:${e.color}"></span>
+          <span>${escapeHtml(e.label)}</span>
+          <span class="lg-val">${e.value}</span>
+        </div>`
+      )
+      .join("");
+
+    // ---- Filtros (poblar selects una vez) ----
+    const selCat = $("#incCat");
+    const selTurno = $("#incTurno");
+    if (selCat && selCat.options.length <= 1) {
+      catArr
+        .map((x) => x.cat)
+        .sort()
+        .forEach((c) => {
+          const o = document.createElement("option");
+          o.value = c;
+          o.textContent = c;
+          selCat.appendChild(o);
+        });
+    }
+    if (selTurno && selTurno.options.length <= 1) {
+      [...new Set(data.map((it) => it.turno).filter(Boolean))]
+        .sort()
+        .forEach((t) => {
+          const o = document.createElement("option");
+          o.value = t;
+          o.textContent = t;
+          selTurno.appendChild(o);
+        });
+    }
+
+    const search = $("#incSearch");
+    const results = $("#incResults");
+    const count = $("#incCount");
+    const selEstado = $("#incEstado");
+    const open = new Set();
+
+    function matchText(it, q) {
+      if (!q) return true;
+      const hay =
+        norm(it.nombre) +
+        " " +
+        norm(it.incidente) +
+        " " +
+        norm(it.categoria) +
+        " " +
+        it.medidas.map((m) => norm(m.medida) + " " + norm(m.responsable)).join(" ");
+      return hay.indexOf(q) > -1;
+    }
+
+    function apply() {
+      const q = norm(search.value.trim());
+      const fc = selCat.value;
+      const ft = selTurno.value;
+      const fe = selEstado.value;
+      const rows = data.filter((it) => {
+        if (fc && it.categoria !== fc) return false;
+        if (ft && it.turno !== ft) return false;
+        if (fe === "cerrado" && !incCerrado(it)) return false;
+        if (fe === "pendiente" && incCerrado(it)) return false;
+        return matchText(it, q);
+      });
+
+      count.textContent =
+        rows.length + (rows.length === 1 ? " incidente" : " incidentes");
+
+      results.innerHTML = rows
+        .map((it) => {
+          const cerrado = incCerrado(it);
+          const isOpen = open.has(it.item);
+          const estTag = cerrado
+            ? '<span class="tag tag-ok">Cerrado</span>'
+            : '<span class="tag tag-pending">Con pendientes</span>';
+          const medRows = it.medidas
+            .map(
+              (m, i) => {
+                const vi = verifInfo(m.verifMedidas);
+                return `
+              <tr>
+                <td class="cell-center">${i + 1}</td>
+                <td>${escapeHtml(m.medida)}</td>
+                <td>${escapeHtml(m.responsable) || "—"}</td>
+                <td class="cell-center">${escapeHtml(m.fechaCierre) || "—"}</td>
+                <td class="cell-center"><span class="inc-estado" style="--ec:${estadoColor(
+                  m.estatus
+                )}">${escapeHtml(m.estatus) || "—"}</span></td>
+                <td class="cell-center"><span class="inc-verif-badge" style="--vc:${
+                  vi.col
+                }">${escapeHtml(vi.txt)}</span></td>
+                <td>${
+                  m.comentarioAuditor
+                    ? escapeHtml(m.comentarioAuditor)
+                    : '<span class="inc-aud-empty">—</span>'
+                }</td>
+              </tr>`;
+              }
+            )
+            .join("");
+          const sinMed = !it.medidas.length
+            ? '<tr><td colspan="7" class="inc-empty">Sin medidas correctivas registradas.</td></tr>'
+            : "";
+          return `
+            <div class="inc-card${isOpen ? " open" : ""}" data-item="${escapeHtml(
+            it.item
+          )}">
+              <button type="button" class="inc-head" data-toggle="${escapeHtml(
+                it.item
+              )}">
+                <span class="inc-caret">▸</span>
+                <span class="inc-cat">${escapeHtml(it.categoria)}</span>
+                <span class="inc-title">${escapeHtml(it.nombre)}</span>
+                <span class="inc-meta">${escapeHtml(it.fecha)} · ${escapeHtml(
+            it.turno
+          )} · ${it.medidas.length} ${
+            it.medidas.length === 1 ? "medida" : "medidas"
+          }</span>
+                ${estTag}
+              </button>
+              <div class="inc-body"${isOpen ? "" : " hidden"}>
+                <div class="inc-desc"><strong>Incidente:</strong> ${escapeHtml(
+                  it.incidente
+                )}</div>
+                <div class="table-wrap">
+                  <table class="records-table inc-med-table">
+                    <thead>
+                      <tr>
+                        <th class="cell-center">N°</th>
+                        <th>Medida correctiva</th>
+                        <th>Responsable</th>
+                        <th class="cell-center">Fecha cierre</th>
+                        <th class="cell-center">Estado</th>
+                        <th class="cell-center">Verificada</th>
+                        <th>Comentario auditor</th>
+                      </tr>
+                    </thead>
+                    <tbody>${medRows}${sinMed}</tbody>
+                  </table>
+                </div>
+                ${
+                  it.verifMedidas || it.verifEficacia || it.comentarios || it.comentarioAuditor
+                    ? `<div class="inc-verif">
+                        ${
+                          it.verifMedidas
+                            ? `<span class="mini-chip" style="--vc:${
+                                verifInfo(it.verifMedidas).col
+                              }">Verif. medidas: ${escapeHtml(
+                                verifInfo(it.verifMedidas).txt
+                              )}</span>`
+                            : ""
+                        }
+                        ${
+                          it.verifEficacia
+                            ? `<span class="mini-chip" style="--vc:${
+                                verifInfo(it.verifEficacia).col
+                              }">Verif. eficacia: ${escapeHtml(
+                                verifInfo(it.verifEficacia).txt
+                              )}</span>`
+                            : ""
+                        }
+                        ${
+                          it.comentarios
+                            ? `<span class="mini-chip alt">${escapeHtml(
+                                it.comentarios
+                              )}</span>`
+                            : ""
+                        }
+                        ${
+                          it.comentarioAuditor
+                            ? `<span class="mini-chip aud"><strong>Auditor:</strong> ${escapeHtml(
+                                it.comentarioAuditor
+                              )}</span>`
+                            : ""
+                        }
+                      </div>`
+                    : ""
+                }
+              </div>
+            </div>`;
+        })
+        .join("");
+
+      if (!rows.length) {
+        results.innerHTML =
+          '<div class="inc-empty-state">No se encontraron incidentes con los filtros aplicados.</div>';
+      }
+    }
+
+    results.addEventListener("click", (ev) => {
+      const head = ev.target.closest(".inc-head");
+      if (!head) return;
+      const id = head.getAttribute("data-toggle");
+      if (open.has(id)) open.delete(id);
+      else open.add(id);
+      apply();
+    });
+
+    search.addEventListener("input", apply);
+    selCat.addEventListener("change", apply);
+    selTurno.addEventListener("change", apply);
+    selEstado.addEventListener("change", apply);
+    apply();
+  }
+
   // ---- Init ---------------------------------------------------------------
   renderContract();
   renderKpis();
@@ -999,5 +1324,6 @@
   renderCursos();
   renderPersonal();
   renderReportes();
+  renderIncidentes();
   setupNav();
 })();

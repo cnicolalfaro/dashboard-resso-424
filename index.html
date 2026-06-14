@@ -46,41 +46,55 @@
     <main>
       <!-- ===================== MENÚ PRINCIPAL ===================== -->
       <section class="view view-home" id="homeView">
-        <!-- Fondo decorativo (imagen o video). Coloca el archivo en assets/:
-             - Imagen:  assets/fondo.jpg
-             - Video:   assets/fondo.mp4  (opcional, se superpone a la imagen) -->
-        <div class="home-bg" aria-hidden="true">
-          <img class="home-bg-media" id="homeBgImg" src="assets/fondo.jpg" alt=""
-               onerror="this.style.display='none'" />
-          <video class="home-bg-media home-bg-video" id="homeBgVideo" autoplay muted loop playsinline
-                 preload="auto" onloadeddata="this.classList.add('is-ready')">
-            <source src="assets/fondo.mp4" type="video/mp4" />
-          </video>
-          <div class="home-bg-overlay"></div>
-        </div>
+        <div class="home-split">
+          <!-- IZQUIERDA: video en movimiento con el título de la empresa -->
+          <aside class="home-media" aria-hidden="true">
+            <img class="home-media-fallback" src="assets/fondo.jpg" alt=""
+                 onerror="this.style.display='none'" />
+            <video class="home-media-video" autoplay muted loop playsinline
+                   preload="auto" onloadeddata="this.classList.add('is-ready')">
+              <source src="assets/fondo.mp4" type="video/mp4" />
+            </video>
+            <div class="home-media-shade"></div>
+            <div class="home-media-content">
+              <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="home-media-logo" />
+              <p class="eyebrow eyebrow-light">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+              <h1 class="home-media-title">RESSO SKIC 424</h1>
+              <p class="home-media-lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
+              <span class="badge badge-light js-updated">Actualizado: —</span>
+            </div>
+          </aside>
 
-        <!-- INFORMACIÓN DEL CONTRATO -->
-        <section class="panel contract-panel" id="contractPanel"></section>
-
-        <div class="menu-cards">
-          <button type="button" class="menu-card" data-goto="viewResso">
-            <span class="menu-card-ico" aria-hidden="true">📋</span>
-            <span class="menu-card-title">RESSO V10 · LV 2026</span>
-            <span class="menu-card-desc">Evaluación de cumplimiento del Sistema de Gestión (PHVA), evidencias, hallazgos y reglamentos.</span>
-            <span class="menu-card-go">Entrar →</span>
-          </button>
-          <button type="button" class="menu-card" data-goto="viewAbc">
-            <span class="menu-card-ico" aria-hidden="true">🅰️</span>
-            <span class="menu-card-title">ABC 2026</span>
-            <span class="menu-card-desc">Auditoría ABC-S — Aspectos básicos de la gestión de riesgo en seguridad.</span>
-            <span class="menu-card-go">Entrar →</span>
-          </button>
-          <button type="button" class="menu-card" data-goto="viewCursos">
-            <span class="menu-card-ico" aria-hidden="true">🎓</span>
-            <span class="menu-card-title">Cursos y Difusiones 2026</span>
-            <span class="menu-card-desc">Estado de cursos del personal y difusión de aprendizajes CODELCO.</span>
-            <span class="menu-card-go">Entrar →</span>
-          </button>
+          <!-- DERECHA: información del contrato y accesos a los módulos -->
+          <div class="home-info">
+            <section class="panel contract-panel" id="contractPanel"></section>
+            <div class="menu-cards">
+              <button type="button" class="menu-card" data-goto="viewResso">
+                <span class="menu-card-ico" aria-hidden="true">📋</span>
+                <span class="menu-card-title">RESSO V10 · LV 2026</span>
+                <span class="menu-card-desc">Evaluación de cumplimiento del Sistema de Gestión (PHVA), evidencias, hallazgos y reglamentos.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+              <button type="button" class="menu-card" data-goto="viewAbc">
+                <span class="menu-card-ico" aria-hidden="true">🅰️</span>
+                <span class="menu-card-title">ABC 2026</span>
+                <span class="menu-card-desc">Auditoría ABC-S — Aspectos básicos de la gestión de riesgo en seguridad.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+              <button type="button" class="menu-card" data-goto="viewCursos">
+                <span class="menu-card-ico" aria-hidden="true">🎓</span>
+                <span class="menu-card-title">Cursos y Difusiones 2026</span>
+                <span class="menu-card-desc">Estado de cursos del personal y difusión de aprendizajes CODELCO.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+              <button type="button" class="menu-card" data-goto="viewIncidentes">
+                <span class="menu-card-ico" aria-hidden="true">⚠️</span>
+                <span class="menu-card-title">Incidentes 2026</span>
+                <span class="menu-card-desc">Registro de incidentes del contrato y seguimiento de medidas correctivas.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -349,6 +363,83 @@
         <div id="repResults" class="rep-results"></div>
       </section>
       </section><!-- /viewCursos -->
+
+      <!-- ===================== VISTA: INCIDENTES 2026 ===================== -->
+      <section class="view" id="viewIncidentes" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
+        <!-- KPIs -->
+        <section class="cards" id="incKpis"></section>
+
+        <!-- GRÁFICOS -->
+        <section class="grid two-col">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Incidentes por categoría</h2>
+                <p>Distribución de incidentes registrados según su categoría</p>
+              </div>
+            </div>
+            <div id="incCatBars" class="bars"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Estado de medidas correctivas</h2>
+                <p>Avance del cierre de las medidas comprometidas</p>
+              </div>
+            </div>
+            <div class="donut-layout">
+              <div class="donut" id="incEstadoDonut"></div>
+              <div class="legend" id="incEstadoLegend"></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- REGISTRO DE INCIDENTES -->
+        <section class="panel" id="incidentesPanel">
+          <div class="panel-header">
+            <div>
+              <h2>Registro de incidentes</h2>
+              <p>Busca y revisa cada incidente con sus medidas correctivas y responsables</p>
+            </div>
+          </div>
+
+          <div class="filters">
+            <label class="field">
+              <span>Buscar</span>
+              <input id="incSearch" type="text" placeholder="Evento, descripción, responsable…" />
+            </label>
+            <label class="field">
+              <span>Categoría</span>
+              <select id="incCat">
+                <option value="">Todas</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Turno</span>
+              <select id="incTurno">
+                <option value="">Todos</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Estado medidas</span>
+              <select id="incEstado">
+                <option value="">Todos</option>
+                <option value="cerrado">Totalmente cerrado</option>
+                <option value="pendiente">Con pendientes</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="results-summary">
+            <span class="mini-chip" id="incCount">0 incidentes</span>
+          </div>
+
+          <div id="incResults" class="inc-results"></div>
+        </section>
+      </section><!-- /viewIncidentes -->
     </main>
 
     <footer class="footer">

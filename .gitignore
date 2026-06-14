@@ -12,6 +12,7 @@ data/dashboard_data.js
 data/personal_data.js
 data/reportes_data.js
 data/evidencias_data.js
+data/incidentes_data.js
 
 # Herramienta local de cifrado (no se publica)
 cifrar.html
