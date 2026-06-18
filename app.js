@@ -89,10 +89,22 @@
     return Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
   }
 
+  // Cumplimiento documental ponderado por peso (igual que el Excel):
+  // suma de aportes (peso * eval / 100) sobre la suma total de pesos.
+  // Las preguntas N/A o sin evaluar aportan 0 pero su peso sí cuenta.
   function documentalPct() {
-    const all = [];
-    D.resso.forEach((g) => g.elementos.forEach((e) => all.push(elementPct(e))));
-    return all.length ? Math.round(all.reduce((s, v) => s + v, 0) / all.length) : 0;
+    let aporte = 0;
+    let pesoTotal = 0;
+    D.resso.forEach((g) =>
+      g.elementos.forEach((e) =>
+        (e.preguntas || []).forEach((p) => {
+          if (typeof p.peso !== "number") return;
+          pesoTotal += p.peso;
+          if (typeof p.pct === "number") aporte += (p.peso * p.pct) / 100;
+        })
+      )
+    );
+    return pesoTotal ? Math.round((aporte / pesoTotal) * 100) : 0;
   }
 
   // ---- KPI cards ----------------------------------------------------------
