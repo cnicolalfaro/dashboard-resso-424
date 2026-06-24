@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
 
@@ -398,6 +398,38 @@
           </article>
         </section>
 
+        <section class="grid">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Tendencia mensual de incidentes</h2>
+                <p>Incidentes por mes, promedio móvil de 3 meses y acumulado</p>
+              </div>
+            </div>
+            <div id="incTrendChart" class="inc-trend-chart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Patrones similares detectados</h2>
+                <p>Agrupación automática por similitud en el nombre del evento</p>
+              </div>
+            </div>
+            <div id="incPatternChart" class="inc-pattern-chart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Tendencias en medidas correctivas</h2>
+                <p>Temas más repetidos en medidas y nivel de cierre</p>
+              </div>
+            </div>
+            <div id="incMedTrendChart" class="inc-med-trend-chart"></div>
+          </article>
+        </section>
+
         <!-- REGISTRO DE INCIDENTES -->
         <section class="panel" id="incidentesPanel">
           <div class="panel-header">
@@ -436,6 +468,7 @@
 
           <div class="results-summary">
             <span class="mini-chip" id="incCount">0 incidentes</span>
+            <button type="button" id="incClearFilters" class="inc-clear-btn">Limpiar filtros gráficos</button>
           </div>
 
           <div id="incResults" class="inc-results"></div>
@@ -461,7 +494,7 @@
     <img src="" alt="Evidencia ampliada">
   </div>
 
-  <script src="data/datos.enc.js?v=1"></script>
-  <script src="auth.js?v=1"></script>
+  <script src="data/datos.enc.js?v=2"></script>
+  <script src="auth.js?v=2"></script>
 </body>
 </html>

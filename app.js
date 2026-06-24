@@ -1155,8 +1155,475 @@
     const search = $("#incSearch");
     const results = $("#incResults");
     const count = $("#incCount");
+    const clearChartsBtn = $("#incClearFilters");
     const selEstado = $("#incEstado");
     const open = new Set();
+    const chartFilter = { month: "", pattern: "", medTheme: "" };
+    let patternMembers = {};
+
+    const parseFecha = (s) => {
+      const m = String(s || "").match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+      if (!m) return null;
+      const d = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      const y = parseInt(m[3], 10);
+      const dt = new Date(y, mo, d);
+      if (dt.getFullYear() !== y || dt.getMonth() !== mo || dt.getDate() !== d)
+        return null;
+      return dt;
+    };
+
+    const monthKey = (dt) =>
+      dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0");
+
+    const monthLabel = (k) => {
+      const m = String(k).match(/^(\d{4})-(\d{2})$/);
+      if (!m) return k;
+      const y = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      const names = [
+        "Ene",
+        "Feb",
+        "Mar",
+        "Abr",
+        "May",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dic",
+      ];
+      return names[mo] + " " + y;
+    };
+
+    function buildTrend(rows) {
+      const map = {};
+      rows.forEach((it) => {
+        const dt = parseFecha(it.fecha);
+        if (!dt) return;
+        const mk = monthKey(dt);
+        map[mk] = (map[mk] || 0) + 1;
+      });
+      const keys = Object.keys(map).sort();
+      const points = keys.map((k) => ({ key: k, n: map[k] }));
+      let acc = 0;
+      points.forEach((p, i) => {
+        acc += p.n;
+        p.acc = acc;
+        const start = Math.max(0, i - 2);
+        const slice = points.slice(start, i + 1);
+        const avg = slice.reduce((s, x) => s + x.n, 0) / slice.length;
+        p.avg3 = Math.round(avg * 10) / 10;
+      });
+      return points;
+    }
+
+    function renderTrend(rows) {
+      const cont = $("#incTrendChart");
+      if (!cont) return;
+      const points = buildTrend(rows);
+      if (!points.length) {
+        cont.innerHTML =
+          '<div class="rep-empty">No hay fechas válidas para construir la tendencia.</div>';
+        return;
+      }
+
+      const total = points.reduce((s, p) => s + p.n, 0);
+      const maxN = Math.max.apply(
+        null,
+        points.map((p) => p.n).concat([1])
+      );
+      const maxAvg = Math.max.apply(
+        null,
+        points.map((p) => p.avg3).concat([1])
+      );
+      const maxY = Math.max(maxN, maxAvg);
+      const top = points.reduce((a, b) => (a.n >= b.n ? a : b));
+
+      const w = 760;
+      const h = 240;
+      const padX = 34;
+      const padY = 24;
+      const step = points.length > 1 ? (w - padX * 2) / (points.length - 1) : 0;
+      const x = (i) => padX + i * step;
+      const y = (v) => h - padY - (v / maxY) * (h - padY * 2);
+
+      const pointsN = points.map((p, i) => x(i) + "," + y(p.n)).join(" ");
+      const pointsAvg = points.map((p, i) => x(i) + "," + y(p.avg3)).join(" ");
+
+      const dotsN = points
+        .map(
+          (p, i) =>
+            `<circle cx="${x(i)}" cy="${y(p.n)}" r="3" class="inc-line-dot inc-line-dot-n" title="${monthLabel(p.key)}: ${p.n}"></circle>`
+        )
+        .join("");
+      const dotsAvg = points
+        .map(
+          (p, i) =>
+            `<circle cx="${x(i)}" cy="${y(p.avg3)}" r="2.6" class="inc-line-dot inc-line-dot-avg" title="${monthLabel(p.key)}: prom ${String(p.avg3).replace(".", ",")}"></circle>`
+        )
+        .join("");
+
+      const grid = [0.25, 0.5, 0.75, 1]
+        .map((g) => {
+          const yy = h - padY - g * (h - padY * 2);
+          return `<line x1="${padX}" y1="${yy}" x2="${w - padX}" y2="${yy}" class="inc-line-grid"></line>`;
+        })
+        .join("");
+
+      const labels = points
+        .map(
+          (p) =>
+            `<span class="inc-trend-label${chartFilter.month === p.key ? " active" : ""}" data-month="${p.key}" title="Filtrar registro por ${monthLabel(p.key)}">${monthLabel(p.key)}<small>${p.n}</small></span>`
+        )
+        .join("");
+
+      cont.innerHTML = `
+        <div class="inc-trend-kpis">
+          <span class="mini-chip">Meses con incidentes: ${points.length}</span>
+          <span class="mini-chip">Total filtrado: ${total}</span>
+          <span class="mini-chip">Mes pico: ${monthLabel(top.key)} (${top.n})</span>
+        </div>
+        <div class="inc-trend-legend">
+          <span><i class="lg-line lg-line-n"></i> Incidentes mensuales</span>
+          <span><i class="lg-line lg-line-avg"></i> Promedio móvil (3 meses)</span>
+        </div>
+        <div class="inc-trend-svg-wrap" role="img" aria-label="Curva comparativa horizontal de tendencia de incidentes">
+          <svg viewBox="0 0 ${w} ${h}" class="inc-trend-svg">
+            <line x1="${padX}" y1="${h - padY}" x2="${w - padX}" y2="${h - padY}" class="inc-line-axis"></line>
+            <line x1="${padX}" y1="${padY}" x2="${padX}" y2="${h - padY}" class="inc-line-axis"></line>
+            ${grid}
+            <polyline points="${pointsN}" class="inc-line-poly-n"></polyline>
+            <polyline points="${pointsAvg}" class="inc-line-poly-avg"></polyline>
+            ${dotsN}
+            ${dotsAvg}
+          </svg>
+        </div>
+        <div class="inc-trend-labels">${labels}</div>
+        <div class="inc-trend-note">
+          Comparación de curva mensual vs su promedio móvil para visualizar cambios y patrones en el tiempo.
+        </div>`;
+    }
+
+    const stopWords = new Set([
+      "de",
+      "la",
+      "el",
+      "los",
+      "las",
+      "por",
+      "para",
+      "con",
+      "sin",
+      "una",
+      "uno",
+      "unos",
+      "unas",
+      "del",
+      "que",
+      "al",
+      "se",
+      "en",
+      "un",
+      "su",
+      "sus",
+      "durante",
+      "desde",
+      "sobre",
+      "entre",
+      "hacia",
+      "tras",
+      "trabajador",
+      "trabajadores",
+      "equipo",
+      "camioneta",
+      "minibus",
+      "mini",
+      "bus",
+      "dano",
+      "material",
+      "nivel",
+      "evento",
+    ]);
+
+    const medidaDefs = [
+      {
+        id: "capacitacion",
+        label: "CAPACITACIÓN",
+        terms: ["taller", "capacit", "reinstru", "difusion", "boletin", "refuerza"],
+        desc: "Medidas orientadas a formar o reforzar conductas seguras en personas.",
+        ej: "Ej.: taller de percepción del riesgo, difusión del evento, refuerzo de manejo defensivo.",
+      },
+      {
+        id: "administrativas",
+        label: "ADMINISTRATIVAS",
+        terms: ["sancion", "administrativa", "nota interna", "obligatorio", "reporte"],
+        desc: "Medidas de gestión interna, control documental o acciones disciplinarias.",
+        ej: "Ej.: nota interna obligatoria, sanción administrativa, exigencia de reporte inmediato.",
+      },
+      {
+        id: "operacionales",
+        label: "OPERACIONALES",
+        terms: ["inspeccion", "control", "caminatas", "procedimiento", "planificacion"],
+        desc: "Medidas aplicadas en la ejecución diaria de tareas y supervisión en terreno.",
+        ej: "Ej.: caminatas de control, mejorar planificación, reforzar procedimiento operativo.",
+      },
+      {
+        id: "ingenieria",
+        label: "INGENIERÍA",
+        terms: ["repar", "cortar", "instalar", "manguera", "mantencion", "mejorar"],
+        desc: "Medidas técnicas sobre equipos, infraestructura o condiciones físicas del trabajo.",
+        ej: "Ej.: cortar perno sobredimensionado, reparación de líneas, instalación/mejora técnica.",
+      },
+    ];
+
+    const clasificarMedida = (txt) => {
+      const t = norm(txt || "");
+      for (let i = 0; i < medidaDefs.length; i++) {
+        if (medidaDefs[i].terms.some((k) => t.indexOf(k) > -1)) return medidaDefs[i].id;
+      }
+      return "operacionales";
+    };
+
+    const tokensFromName = (name) => {
+      const raw = norm(name || "").replace(/[^a-z0-9\s]/g, " ");
+      return raw
+        .split(/\s+/)
+        .filter((t) => t && t.length >= 4 && !stopWords.has(t) && !/^\d+$/.test(t));
+    };
+
+    const jaccard = (a, b) => {
+      let inter = 0;
+      a.forEach((x) => {
+        if (b.has(x)) inter++;
+      });
+      const uni = a.size + b.size - inter;
+      return uni ? inter / uni : 0;
+    };
+
+    function detectPatterns(rows) {
+      const byTheme = {};
+
+      const defs = [
+        {
+          label: "ART",
+          terms: ["art", "analisis", "riesgo", "trabajo"],
+        },
+        {
+          label: "MAQUINARIAS",
+          terms: [
+            "maquinaria",
+            "manitou",
+            "manipulador",
+            "camion",
+            "camioneta",
+            "vehiculo",
+            "minibus",
+            "bus",
+            "retroceso",
+            "operador",
+          ],
+        },
+        {
+          label: "AGUA / SERVICIOS",
+          terms: ["agua", "manguera", "lavamanos", "higienico", "servicio"],
+        },
+        {
+          label: "CAMPAMENTO",
+          terms: ["campamento", "pabellon"],
+        },
+        {
+          label: "CONDUCCION / TRAYECTO",
+          terms: ["trayecto", "conduccion", "manejo", "choque", "colision"],
+        },
+      ];
+
+      const pickTheme = (it) => {
+        const nameNorm = norm(it.nombre).replace(/[^a-z0-9\s]/g, " ");
+        const tk = new Set(
+          nameNorm
+            .split(/\s+/)
+            .filter((t) => t && t.length >= 3 && !stopWords.has(t))
+        );
+
+        for (let i = 0; i < defs.length; i++) {
+          if (defs[i].terms.some((t) => tk.has(t) || nameNorm.indexOf(t) > -1)) {
+            return defs[i].label;
+          }
+        }
+
+        const first = Array.from(tk)[0];
+        return first ? first.toUpperCase() : "OTROS EVENTOS";
+      };
+
+      rows.forEach((it) => {
+        const th = pickTheme(it);
+        if (!byTheme[th]) byTheme[th] = [];
+        byTheme[th].push(it);
+      });
+
+      const groups = Object.keys(byTheme)
+        .map((th) => {
+          const arr = byTheme[th];
+          const eventos = arr
+            .map((it) => it.nombre || it.incidente || "Sin detalle")
+            .filter((v, i, all) => all.indexOf(v) === i);
+          const tokensFreq = {};
+          arr.forEach((it) => {
+            const tks = tokensFromName(it.nombre);
+            tks.forEach((t) => {
+              tokensFreq[t] = (tokensFreq[t] || 0) + 1;
+            });
+          });
+          const common = Object.keys(tokensFreq)
+            .filter((t) => tokensFreq[t] >= Math.ceil(arr.length * 0.4))
+            .sort((a, b) => tokensFreq[b] - tokensFreq[a])
+            .slice(0, 3);
+          return {
+            n: arr.length,
+            categoria: th,
+            clave: common.length
+              ? "Similitud nombre: " + common.join(", ")
+              : "Similitud por nombre del evento",
+            eventoPrincipal: eventos[0] || "Sin detalle",
+            eventos: eventos.slice(0, 5),
+            ids: arr.map((it) => String(it.item)),
+          };
+        })
+        .filter((g) => g.n >= 2)
+        .sort((a, b) => b.n - a.n)
+        .slice(0, 8);
+
+      if (groups.length) return groups;
+
+      return [
+        {
+          n: rows.length,
+          categoria: "OTROS EVENTOS",
+          clave: "Sin grupos repetidos con 2 o más casos",
+          eventoPrincipal: "Revisar filtros para ampliar coincidencias",
+          eventos: rows
+            .map((it) => it.nombre || it.incidente || "Sin detalle")
+            .slice(0, 5),
+          ids: rows.map((it) => String(it.item)),
+        },
+      ];
+    }
+
+    function renderMedidasTrends(rows) {
+      const cont = $("#incMedTrendChart");
+      if (!cont) return;
+
+      const bag = {};
+      medidaDefs.forEach((d) => (bag[d.id] = { label: d.label, total: 0, cerradas: 0 }));
+
+      rows.forEach((it) => {
+        (it.medidas || []).forEach((m) => {
+          const key = clasificarMedida(m.medida || "");
+          bag[key].total += 1;
+          if (norm(m.estatus).indexOf("cerrad") > -1) bag[key].cerradas += 1;
+        });
+      });
+
+      const arr = Object.keys(bag)
+        .map((k) => {
+          const x = bag[k];
+          const pct = x.total ? Math.round((x.cerradas / x.total) * 100) : 0;
+          return { id: k, label: x.label, total: x.total, pct };
+        })
+        .filter((x) => x.total > 0)
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 6);
+
+      if (!arr.length) {
+        cont.innerHTML =
+          '<div class="rep-empty">No hay medidas para construir tendencias.</div>';
+        return;
+      }
+
+      const maxN = Math.max.apply(
+        null,
+        arr.map((x) => x.total).concat([1])
+      );
+
+      const barsHtml =
+        '<div class="inc-med-vbars">' +
+        arr
+          .map((x) => {
+            const hPct = Math.max(8, Math.round((x.total / maxN) * 100));
+            return `
+            <div class="inc-med-item${chartFilter.medTheme === x.id ? " active" : ""}" data-med-theme="${x.id}" title="${escapeHtml(x.label)}: ${x.total} medidas · ${x.pct}% cerradas. Click para filtrar registro.">
+              <div class="inc-med-n">${x.total}</div>
+              <div class="inc-med-track"><span class="inc-med-fill" style="height:${hPct}%"></span></div>
+              <div class="inc-med-label">${escapeHtml(x.label)}</div>
+              <div class="inc-med-sub">${x.pct}% cerradas</div>
+            </div>`;
+          })
+          .join("") +
+        "</div>";
+
+      const guideHtml =
+        '<div class="inc-med-guide">' +
+        '<div class="inc-med-guide-title">Cómo se clasifican las medidas</div>' +
+        medidaDefs
+          .map(
+            (d) => `
+            <div class="inc-med-guide-row">
+              <div class="inc-med-guide-tag">${escapeHtml(d.label)}</div>
+              <div class="inc-med-guide-text">
+                <div>${escapeHtml(d.desc)}</div>
+                <small>${escapeHtml(d.ej)}</small>
+              </div>
+            </div>`
+          )
+          .join("") +
+        "</div>";
+
+      cont.innerHTML = barsHtml + guideHtml;
+    }
+
+    function renderPatterns(rows) {
+      const cont = $("#incPatternChart");
+      if (!cont) return;
+      const patterns = detectPatterns(rows);
+      if (!patterns.length) {
+        cont.innerHTML =
+          '<div class="rep-empty">No se detectaron patrones repetidos con los filtros actuales.</div>';
+        return;
+      }
+      const sorted = patterns.slice().sort((a, b) => b.n - a.n);
+      patternMembers = {};
+
+      const maxN = Math.max.apply(
+        null,
+        sorted.map((p) => p.n).concat([1])
+      );
+      const rowsHtml = sorted
+        .map((p, i) => {
+          const pid = "pat_" + i + "_" + norm(p.categoria).replace(/[^a-z0-9]+/g, "_");
+          patternMembers[pid] = new Set((p.ids || []).map(String));
+          const hPct = Math.max(8, Math.round((p.n / maxN) * 100));
+          const sample = (p.eventos && p.eventos[0]) || p.eventoPrincipal || "Sin detalle";
+          const assoc = (p.eventos || []).slice(0, 5).join(" | ");
+          const tip =
+            `${p.categoria}: ${p.n} eventos` +
+            (assoc ? `. Asociados: ${assoc}` : "");
+          return `
+          <div class="inc-pv-item${chartFilter.pattern === pid ? " active" : ""}" data-pattern="${pid}" title="${escapeHtml(tip)}. Click para filtrar registro.">
+            <div class="inc-pv-n">${p.n}</div>
+            <div class="inc-pv-track">
+              <span class="inc-pv-fill" style="height:${hPct}%"></span>
+            </div>
+            <div class="inc-pv-cat">${escapeHtml(p.categoria)}</div>
+            <div class="inc-pv-sample">${escapeHtml(sample)}</div>
+          </div>`;
+        })
+        .join("");
+
+      cont.innerHTML = `<div class="inc-pattern-vbars" role="img" aria-label="Gráfico vertical de patrones similares ordenado de mayor a menor">${rowsHtml}</div>`;
+    }
 
     function matchText(it, q) {
       if (!q) return true;
@@ -1171,12 +1638,32 @@
       return hay.indexOf(q) > -1;
     }
 
+    function monthOfIncident(it) {
+      const dt = parseFecha(it.fecha);
+      return dt ? monthKey(dt) : "";
+    }
+
+    function matchChartFilters(it) {
+      if (chartFilter.month && monthOfIncident(it) !== chartFilter.month) return false;
+      if (chartFilter.pattern) {
+        const members = patternMembers[chartFilter.pattern];
+        if (!members || !members.has(String(it.item))) return false;
+      }
+      if (chartFilter.medTheme) {
+        const has = (it.medidas || []).some(
+          (m) => clasificarMedida(m.medida || "") === chartFilter.medTheme
+        );
+        if (!has) return false;
+      }
+      return true;
+    }
+
     function apply() {
       const q = norm(search.value.trim());
       const fc = selCat.value;
       const ft = selTurno.value;
       const fe = selEstado.value;
-      const rows = data.filter((it) => {
+      const baseRows = data.filter((it) => {
         if (fc && it.categoria !== fc) return false;
         if (ft && it.turno !== ft) return false;
         if (fe === "cerrado" && !incCerrado(it)) return false;
@@ -1184,8 +1671,26 @@
         return matchText(it, q);
       });
 
+      renderTrend(baseRows);
+      renderPatterns(baseRows);
+      renderMedidasTrends(baseRows);
+
+      const rows = baseRows.filter(matchChartFilters);
+
+      const activeChartFilters = [];
+      if (chartFilter.month) activeChartFilters.push("Mes: " + monthLabel(chartFilter.month));
+      if (chartFilter.pattern) activeChartFilters.push("Patrón seleccionado");
+      if (chartFilter.medTheme) {
+        const m = medidaDefs.find((d) => d.id === chartFilter.medTheme);
+        activeChartFilters.push("Medida: " + (m ? m.label : chartFilter.medTheme));
+      }
+
+      if (clearChartsBtn) clearChartsBtn.disabled = activeChartFilters.length === 0;
+
       count.textContent =
-        rows.length + (rows.length === 1 ? " incidente" : " incidentes");
+        rows.length +
+        (rows.length === 1 ? " incidente" : " incidentes") +
+        (activeChartFilters.length ? " · " + activeChartFilters.join(" | ") : "");
 
       results.innerHTML = rows
         .map((it) => {
@@ -1322,6 +1827,48 @@
       else open.add(id);
       apply();
     });
+
+    const trendBox = $("#incTrendChart");
+    if (trendBox) {
+      trendBox.addEventListener("click", (ev) => {
+        const el = ev.target.closest("[data-month]");
+        if (!el) return;
+        const mk = el.getAttribute("data-month") || "";
+        chartFilter.month = chartFilter.month === mk ? "" : mk;
+        apply();
+      });
+    }
+
+    const patternBox = $("#incPatternChart");
+    if (patternBox) {
+      patternBox.addEventListener("click", (ev) => {
+        const el = ev.target.closest("[data-pattern]");
+        if (!el) return;
+        const pid = el.getAttribute("data-pattern") || "";
+        chartFilter.pattern = chartFilter.pattern === pid ? "" : pid;
+        apply();
+      });
+    }
+
+    const medBox = $("#incMedTrendChart");
+    if (medBox) {
+      medBox.addEventListener("click", (ev) => {
+        const el = ev.target.closest("[data-med-theme]");
+        if (!el) return;
+        const mid = el.getAttribute("data-med-theme") || "";
+        chartFilter.medTheme = chartFilter.medTheme === mid ? "" : mid;
+        apply();
+      });
+    }
+
+    if (clearChartsBtn) {
+      clearChartsBtn.addEventListener("click", () => {
+        chartFilter.month = "";
+        chartFilter.pattern = "";
+        chartFilter.medTheme = "";
+        apply();
+      });
+    }
 
     search.addEventListener("input", apply);
     selCat.addEventListener("change", apply);
