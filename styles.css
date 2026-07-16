@@ -519,6 +519,24 @@ h1 {
 .tag-ok { background: rgba(46,139,87,.15); color: var(--sk-green); }
 .tag-pending { background: rgba(225,37,27,.12); color: var(--sk-red); }
 .tag-warn { background: rgba(240,165,0,.18); color: #a06f00; }
+.tag-future { background: rgba(36,64,122,.10); color: var(--sk-blue); }
+
+/* ===== PLAN DE CIERRE DE BRECHAS (reglamentos internos) ===== */
+.plan-meses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.plan-mes-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  background: #fafbfe;
+}
+.plan-mes-card.is-current { border-color: var(--sk-blue); box-shadow: 0 0 0 2px var(--sk-blue-soft); }
+.plan-mes-card .pm-title { font-weight: 700; color: var(--sk-blue-dark); margin-bottom: 6px; }
+.plan-mes-card .pm-count { font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
 
 /* ===== ABC AUDIT ===== */
 .abc-summary {
@@ -608,6 +626,10 @@ h1 {
 .curso-info h3 { margin: 0 0 4px; font-size: 1rem; color: var(--sk-blue-dark); }
 .curso-meta { margin: 0; color: var(--muted); font-size: .9rem; }
 .curso-meta strong { color: var(--text); }
+.curso-legend { display: grid; gap: 4px; margin-top: 8px; }
+.curso-legend .legend-item { font-size: .82rem; color: var(--muted); }
+.curso-legend .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+.curso-legend .lg-val { color: var(--text); font-weight: 700; }
 
 /* Celda centrada para estado de curso en la tabla de personal */
 .records-table .cell-center { text-align: center; }

@@ -84,8 +84,8 @@
               </button>
               <button type="button" class="menu-card" data-goto="viewCursos">
                 <span class="menu-card-ico" aria-hidden="true">🎓</span>
-                <span class="menu-card-title">Cursos y Difusiones 2026</span>
-                <span class="menu-card-desc">Estado de cursos del personal y difusión de aprendizajes CODELCO.</span>
+                <span class="menu-card-title">Cursos y Forms RIM 2026</span>
+                <span class="menu-card-desc">Estado de Forms RIM del personal y seguimiento de cumplimiento.</span>
                 <span class="menu-card-go">Entrar →</span>
               </button>
               <button type="button" class="menu-card" data-goto="viewIncidentes">
@@ -180,6 +180,10 @@
 
         <div class="results-summary">
           <span class="mini-chip" id="regCount">0 reglamentos</span>
+          <span class="mini-chip" id="regFormsCumplen">0 con formulario</span>
+          <span class="mini-chip alt" id="regFormsFaltan">0 faltan</span>
+          <span class="mini-chip" id="regTarjaTotal">Tarja: 0</span>
+          <span class="mini-chip" id="regFormsPct">0% avance</span>
         </div>
 
         <div class="table-wrap">
@@ -237,27 +241,72 @@
       </section>
       </section><!-- /viewAbc -->
 
-      <!-- ===================== VISTA: CURSOS Y DIFUSIONES ===================== -->
+      <!-- ===================== VISTA: CURSOS Y FORMS RIM ===================== -->
       <section class="view" id="viewCursos" hidden>
         <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
 
-      <!-- CUMPLIMIENTO DE CURSOS -->
+      <!-- CUMPLIMIENTO DE FORMS RIM -->
       <section class="panel" id="cursosPanel">
         <div class="panel-header">
           <div>
-            <h2>Cumplimiento de cursos del personal</h2>
-            <p>Porcentaje de personal activo con curso al día (cruce con evidencias escaneadas)</p>
+            <h2>Cumplimiento de Forms RIM del personal</h2>
+            <p>Porcentaje de personal activo con Forms RIM al día (cruce con evidencias escaneadas)</p>
           </div>
+        </div>
+        <div class="filters" style="grid-template-columns: 1fr;">
+          <label class="field">
+            <span>Filtrar por turno</span>
+            <select id="rimTurnoFilter">
+              <option value="">Todos los turnos</option>
+            </select>
+          </label>
         </div>
         <div class="cursos-grid" id="cursosGrid"></div>
       </section>
 
-      <!-- PERSONAL Y CURSOS -->
+      <!-- PLAN DE CIERRE DE BRECHAS: REGLAMENTOS INTERNOS -->
+      <section class="panel" id="planReglamentosPanel">
+        <div class="panel-header">
+          <div>
+            <h2>Plan de Cierre de Brechas — Reglamentos Internos de Minería</h2>
+            <p>Avance de difusión y evaluación de los 15 reglamentos aplicables (REGIN_SKIC_424_CA_007). El cumplimiento de los reglamentos con Forms RIM se guía por la columna ENTREGA.</p>
+          </div>
+        </div>
+
+        <section class="cards" id="planReglamentosKpis"></section>
+
+        <div class="panel-header" style="margin-top:22px;">
+          <div>
+            <h3 style="margin:0;">Calendario Julio–Diciembre 2026</h3>
+            <p>Programación mensual y proyección de cierre a fin de año</p>
+          </div>
+        </div>
+        <div id="planMesesGrid" class="plan-meses-grid"></div>
+
+        <div class="table-wrap" style="margin-top:18px;">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Código</th>
+                <th>Nombre del Reglamento</th>
+                <th>Mes programado</th>
+                <th>Origen</th>
+                <th>Avance</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="planReglamentosBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PERSONAL Y FORMS RIM -->
       <section class="panel" id="personalPanel">
         <div class="panel-header">
           <div>
-            <h2>Personal y cursos realizados</h2>
-            <p>Listado de personal activo y estado de cumplimiento por curso</p>
+            <h2>Personal y Forms RIM realizados</h2>
+            <p>Listado de personal activo y estado de cumplimiento por Forms RIM</p>
           </div>
         </div>
 
@@ -271,13 +320,17 @@
             <select id="perFilter">
               <option value="">Todo el personal</option>
               <option value="IRL">Pendientes de IRL</option>
-              <option value="DIFUSION">Pendientes de Difusión</option>
+              <option value="RIM">Pendientes Forms RIM</option>
+              <option value="RIM_REPROBADO">Reprobados Forms RIM</option>
             </select>
           </label>
         </div>
 
         <div class="results-summary">
           <span class="mini-chip" id="perCount">0 personas</span>
+          <span class="mini-chip" id="perRimDone">RIM 01: 0</span>
+          <span class="mini-chip alt" id="perRimMiss">RIM 035: 0</span>
+          <span class="mini-chip alt" id="perRimRepro">RIM Ingreso: 0</span>
         </div>
 
         <div class="table-wrap">
@@ -288,7 +341,9 @@
                 <th>Nombre</th>
                 <th>Cargo</th>
                 <th class="cell-center">IRL</th>
-                <th class="cell-center">Difusión Políticas</th>
+                <th class="cell-center">RIM 01</th>
+                <th class="cell-center">RIM 035</th>
+                <th class="cell-center">RIM Ingreso</th>
               </tr>
             </thead>
             <tbody id="perTableBody"></tbody>
@@ -296,73 +351,6 @@
         </div>
       </section>
 
-      <!-- DIFUSIÓN DE APRENDIZAJES CODELCO (búsqueda por RUT) -->
-      <section class="panel" id="reportesPanel">
-        <div class="panel-header">
-          <div>
-            <h2>Difusión de Aprendizajes CODELCO</h2>
-            <p>Busca a una persona por RUT o nombre para ver todos sus reportes registrados</p>
-          </div>
-        </div>
-
-        <div class="filters">
-          <label class="field">
-            <span>Buscar por RUT o nombre</span>
-            <input id="repSearch" type="text" placeholder="Ej. 12.345.678-9 o nombre…" />
-          </label>
-          <label class="field">
-            <span>Semana</span>
-            <select id="repSemana">
-              <option value="">Todas</option>
-            </select>
-          </label>
-          <div class="field">
-            <span>Turno</span>
-            <div class="ms-dropdown" id="repTurnoDrop">
-              <button type="button" class="ms-toggle" id="repTurnoToggle" aria-expanded="false">
-                <span id="repTurnoLabel">Todos</span>
-                <span class="ms-caret">▾</span>
-              </button>
-              <div class="ms-menu" id="repTurnoMenu" hidden></div>
-            </div>
-          </div>
-          <div class="field">
-            <span>RF</span>
-            <div class="ms-dropdown" id="repRfDrop">
-              <button type="button" class="ms-toggle" id="repRfToggle" aria-expanded="false">
-                <span id="repRfLabel">Todos</span>
-                <span class="ms-caret">▾</span>
-              </button>
-              <div class="ms-menu" id="repRfMenu" hidden></div>
-            </div>
-          </div>
-          <div class="field">
-            <span>Cargo</span>
-            <div class="ms-dropdown" id="repCargoDrop">
-              <button type="button" class="ms-toggle" id="repCargoToggle" aria-expanded="false">
-                <span id="repCargoLabel">Todos</span>
-                <span class="ms-caret">▾</span>
-              </button>
-              <div class="ms-menu" id="repCargoMenu" hidden></div>
-            </div>
-          </div>
-          <div class="field rep-export-field">
-            <span>Comparar con turnos</span>
-            <button id="repExport" type="button" class="btn-export">
-              Exportar sin reporte (CSV)
-            </button>
-          </div>
-        </div>
-
-        <div class="results-summary">
-          <span class="mini-chip" id="repCount">Escribe un RUT o nombre, o filtra por semana/turno</span>
-          <span class="mini-chip alt" id="repMissCount"></span>
-        </div>
-
-        <div id="repCharts" class="rep-charts"></div>
-
-        <div id="repResults" class="rep-results"></div>
-      </section>
       </section><!-- /viewCursos -->
 
       <!-- ===================== VISTA: INCIDENTES 2026 ===================== -->

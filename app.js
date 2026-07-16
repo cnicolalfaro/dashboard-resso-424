@@ -10,6 +10,112 @@
     return;
   }
 
+  const RIM_FORM_DEFS = [
+    {
+      id: "RIM_R_01_REGLAMENTO_INTERNO_DE_VENTILACION",
+      short: "RIM 01",
+      label: "Reglamento Interno de Ventilación",
+    },
+    {
+      id: "RIM_R_035_REGLAMENTO_DE_EMERGENCIA_MINA_CHUQUICAMATA",
+      short: "RIM 035",
+      label: "Reglamento de Emergencia Mina Chuquicamata",
+    },
+    {
+      id: "RIM_REGLAMENTO_CONTROL_DE_INGRESO_DE_PERSONAS_A_LA_FAENA",
+      short: "RIM Ingreso",
+      label: "Reglamento Control de Ingreso de Personas a la Faena",
+    },
+  ];
+
+  const cleanRutKey = (value) =>
+    String(value || "").toUpperCase().replace(/[^0-9K]/g, "");
+
+  const normKey = (value) =>
+    String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+  const personMatchKey = (person) =>
+    cleanRutKey(person && (person.rutKey || person.rut || "")) ||
+    normKey(person && (person.nombre || person.name || ""));
+
+  const rimStatusFromRecords = (records, formId) => {
+    const formRecords = (records || []).filter((r) => r.formulario === formId);
+    if (formRecords.some((r) => String(r.rimEstado || "").toUpperCase() === "APROBADO")) {
+      return "APROBADO";
+    }
+    if (formRecords.some((r) => String(r.rimEstado || "").toUpperCase() === "REPROBADO")) {
+      return "REPROBADO";
+    }
+    return formRecords.length ? "PENDIENTE" : "FALTA";
+  };
+
+  // Un aprobado "necesitó reevaluación" si en algún intento del cuestionario
+  // reprobó (resultadoQuiz = REPROBADO) antes de terminar con el cumplimiento
+  // final en APROBADO (rimEstado, guiado por la columna ENTREGA).
+  const rimApprovedNeedsReeval = (records, formId) => {
+    const formRecords = (records || []).filter((r) => r.formulario === formId);
+    const aprobado = formRecords.some((r) => String(r.rimEstado || "").toUpperCase() === "APROBADO");
+    if (!aprobado) return false;
+    return formRecords.some((r) => String(r.resultadoQuiz || "").toUpperCase() === "REPROBADO");
+  };
+
+  const buildRimRosterSummary = (formId, turnoFiltro) => {
+    const reportsByKey = new Map();
+    (D.reportes || []).forEach((r) => {
+      const key = cleanRutKey(r.rutKey) || normKey(r.nombre);
+      if (!key) return;
+      if (!reportsByKey.has(key)) reportsByKey.set(key, []);
+      reportsByKey.get(key).push(r);
+    });
+
+    const roster = [];
+    const seen = new Set();
+    (D.turnos || []).forEach((p) => {
+      if (turnoFiltro && p.turno !== turnoFiltro) return;
+      const key = personMatchKey(p);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      roster.push({ key, person: p });
+    });
+
+    const summary = {
+      total: roster.length,
+      aprobados: 0,
+      aprobadosReeval: 0,
+      reprobados: 0,
+      faltan: 0,
+    };
+
+    roster.forEach(({ key, person }) => {
+      const records = reportsByKey.get(key) || [];
+      const status = rimStatusFromRecords(records, formId);
+      if (status === "APROBADO") {
+        summary.aprobados += 1;
+        if (rimApprovedNeedsReeval(records, formId)) summary.aprobadosReeval += 1;
+      }
+      else if (status === "REPROBADO") summary.reprobados += 1;
+      else summary.faltan += 1;
+      if (!person) summary.faltan += 0;
+    });
+
+    summary.aprobadosDirectos = summary.aprobados - summary.aprobadosReeval;
+    summary.pct = summary.total ? Math.round((summary.aprobados / summary.total) * 1000) / 10 : 0;
+    return summary;
+  };
+
+  // Paleta exclusiva para las donas de cumplimiento RIM: nunca en rojo,
+  // el avance bajo se ve como un verde más claro en vez de una alerta.
+  const rimPctColor = (p) => {
+    if (p >= 90) return "#1f7a43";
+    if (p >= 50) return "#2e8b57";
+    return "#7bc79a";
+  };
+
   // ---- Merge de evidencias (evaluación %, comentarios y fotos del Excel) --
   // Las evidencias viven en D.evidencias = { "<n>": { eval, obs, obsAuditor,
   // ruta, imgs:[dataURI] } } y se fusionan en cada pregunta por su número.
@@ -504,38 +610,207 @@
   // ---- Cursos: gráficos circulares de cumplimiento -----------------------
   function renderCursos() {
     const cont = $("#cursosGrid");
-    if (!cont || !D.cursos) return;
-    cont.innerHTML = D.cursos
+    if (!cont) return;
+
+    const turnoSelect = $("#rimTurnoFilter");
+    if (turnoSelect && turnoSelect.options.length <= 1) {
+      const turnos = [...new Set((D.turnos || []).map((p) => p.turno).filter(Boolean))].sort();
+      turnos.forEach((t) => {
+        const o = document.createElement("option");
+        o.value = t;
+        o.textContent = t;
+        turnoSelect.appendChild(o);
+      });
+      turnoSelect.addEventListener("change", () => {
+        renderCursos();
+        renderPlanReglamentos();
+      });
+    }
+    const turnoFiltro = turnoSelect ? turnoSelect.value : "";
+
+    const rimCourses = RIM_FORM_DEFS.map((form) => {
+      const summary = buildRimRosterSummary(form.id, turnoFiltro);
+      return {
+        nombre: `${form.short} · ${form.label}`,
+        total: summary.total,
+        cumplen: summary.aprobados,
+        directos: summary.aprobadosDirectos,
+        reevaluados: summary.aprobadosReeval,
+        faltan: summary.faltan,
+        pct: summary.pct,
+      };
+    });
+
+    const REEVAL_COLOR = "#20b2aa";
+
+    cont.innerHTML = rimCourses
       .map((c) => {
         const pct = typeof c.pct === "number" ? c.pct : 0;
-        const color = pctColor(pct);
-        const deg = (pct / 100) * 360;
+        const color = rimPctColor(pct);
+        const total = c.total || 0;
+        const degDirectos = total ? (c.directos / total) * 360 : 0;
+        const degReeval = total ? (c.reevaluados / total) * 360 : 0;
+        const degFin = degDirectos + degReeval;
+        const donutBg = c.reevaluados
+          ? `conic-gradient(${color} 0deg ${degDirectos}deg, ${REEVAL_COLOR} ${degDirectos}deg ${degFin}deg, var(--line) ${degFin}deg 360deg)`
+          : `conic-gradient(${color} 0deg ${degFin}deg, var(--line) ${degFin}deg 360deg)`;
+        const reevalLegend = c.reevaluados
+          ? `<div class="legend-item"><span class="legend-dot" style="background:${REEVAL_COLOR}"></span>Aprobados en reevaluación <span class="lg-val">${c.reevaluados}</span></div>`
+          : "";
         return `
         <div class="curso-card">
-          <div class="curso-donut" style="background:conic-gradient(${color} 0deg ${deg}deg, var(--line) ${deg}deg 360deg)">
+          <div class="curso-donut" style="background:${donutBg}">
             <div class="curso-donut-hole">
               <span class="cd-pct" style="color:${color}">${pct}%</span>
             </div>
           </div>
           <div class="curso-info">
             <h3>${c.nombre}</h3>
-            <p class="curso-meta"><strong>${c.cumplen}</strong> de <strong>${c.total}</strong> cumplen</p>
+            <p class="curso-meta"><strong>${c.cumplen}</strong> de <strong>${c.total}</strong> cumplen, <strong>${c.faltan || 0}</strong> faltan</p>
+            <div class="curso-legend">
+              <div class="legend-item"><span class="legend-dot" style="background:${color}"></span>Aprobados a la primera <span class="lg-val">${c.directos}</span></div>
+              ${reevalLegend}
+            </div>
           </div>
         </div>`;
       })
       .join("");
   }
 
+  // ---- Plan de cierre de brechas: reglamentos internos de minería --------
+  // Calendario Jul-Dic con avance real (Forms RIM + tarja, guiado por ENTREGA)
+  // para los 3 reglamentos con formulario, y avance por difusión documental
+  // para el resto. Proyecta el cierre a fin de año.
+  function renderPlanReglamentos() {
+    const kpis = $("#planReglamentosKpis");
+    const mesesGrid = $("#planMesesGrid");
+    const body = $("#planReglamentosBody");
+    if (!kpis || !mesesGrid || !body || !D.reglamentos) return;
+
+    const mesNombres = {
+      7: "Julio", 8: "Agosto", 9: "Septiembre",
+      10: "Octubre", 11: "Noviembre", 12: "Diciembre",
+    };
+
+    // "Hoy" del proyecto: se toma de D.generatedAt para que el plan no
+    // dependa del reloj del navegador de quien mira el dashboard.
+    let hoyMes = 7;
+    const gm = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(D.generatedAt || "");
+    if (gm && Number(gm[3]) === 2026) hoyMes = Number(gm[2]);
+
+    const turnoSelect = $("#rimTurnoFilter");
+    const turnoFiltro = turnoSelect ? turnoSelect.value : "";
+
+    const items = D.reglamentos.map((r) => {
+      // Para los reglamentos sin Forms RIM, la difusión digital recién
+      // ocurre en su mes programado: no se dan por cumplidos antes de tiempo.
+      const avance = r.rimFormId
+        ? buildRimRosterSummary(r.rimFormId, turnoFiltro).pct
+        : r.mesIndex <= hoyMes && r.difundido
+        ? 100
+        : 0;
+      let estado = "Programado";
+      if (avance >= 90) estado = "Cumplido";
+      else if (r.mesIndex === hoyMes) estado = "En curso";
+      else if (r.mesIndex < hoyMes) estado = "Atrasado";
+      return { ...r, avance, estado };
+    });
+
+    const total = items.length;
+    const cumplidos = items.filter((it) => it.estado === "Cumplido").length;
+    const enCurso = items.filter((it) => it.estado === "En curso").length;
+    const atrasados = items.filter((it) => it.estado === "Atrasado").length;
+    const pctGlobal = total ? Math.round((cumplidos / total) * 1000) / 10 : 0;
+
+    kpis.innerHTML = `
+      <div class="card" style="border-left-color:var(--sk-blue)">
+        <div class="label">Reglamentos aplicables</div>
+        <div class="value">${total}</div>
+      </div>
+      <div class="card" style="border-left-color:var(--sk-green)">
+        <div class="label">Cumplidos</div>
+        <div class="value">${cumplidos}</div>
+      </div>
+      <div class="card" style="border-left-color:#f0a500">
+        <div class="label">En curso (${mesNombres[hoyMes] || "—"})</div>
+        <div class="value">${enCurso}</div>
+      </div>
+      <div class="card" style="border-left-color:var(--sk-red)">
+        <div class="label">Atrasados</div>
+        <div class="value">${atrasados}</div>
+      </div>
+      <div class="card" style="border-left-color:var(--sk-blue-dark)">
+        <div class="label">Avance global</div>
+        <div class="value">${pctGlobal}%</div>
+      </div>`;
+
+    mesesGrid.innerHTML = Object.keys(mesNombres)
+      .map((mIdxStr) => {
+        const mIdx = Number(mIdxStr);
+        const delMes = items.filter((it) => it.mesIndex === mIdx);
+        const cumplenMes = delMes.filter((it) => it.estado === "Cumplido").length;
+        const pctMes = delMes.length ? Math.round((cumplenMes / delMes.length) * 100) : 0;
+        const cls = mIdx === hoyMes ? "plan-mes-card is-current" : "plan-mes-card";
+        return `
+        <div class="${cls}">
+          <div class="pm-title">${mesNombres[mIdx]}</div>
+          <div class="pm-count">${cumplenMes} / ${delMes.length} reglamentos</div>
+          <div class="bar-track"><span class="bar-fill" style="width:${pctMes}%"></span></div>
+        </div>`;
+      })
+      .join("");
+
+    body.innerHTML = items
+      .map((it, i) => {
+        const tagCls =
+          it.estado === "Cumplido" ? "tag-ok" :
+          it.estado === "En curso" ? "tag-warn" :
+          it.estado === "Atrasado" ? "tag-pending" : "tag-future";
+        return `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${it.codigo}</strong></td>
+          <td>${it.nombre}</td>
+          <td>${mesNombres[it.mesIndex] || "—"}</td>
+          <td>${it.rimFormId ? "Forms RIM" : "Difusión documental"}</td>
+          <td><strong>${it.avance}%</strong></td>
+          <td><span class="tag ${tagCls}">${it.estado}</span></td>
+        </tr>`;
+      })
+      .join("");
+  }
+
   // ---- Tabla de personal y cursos (estilo SKIONLINE) ---------------------
   function renderPersonal() {
-    if (!D.personal || !D.cursos) return;
+    if (!D.personal) return;
     const search = $("#perSearch");
     const filter = $("#perFilter");
     const tbody = $("#perTableBody");
     const count = $("#perCount");
     if (!tbody) return;
 
-    const cursos = D.cursos;
+    const cursos = (D.cursos || []).filter((c) => c.id !== "DIFUSION");
+    const reportsByPerson = new Map();
+    (D.reportes || []).forEach((r) => {
+      const key = cleanRutKey(r.rutKey) || normKey(r.nombre);
+      if (!key) return;
+      if (!reportsByPerson.has(key)) reportsByPerson.set(key, []);
+      reportsByPerson.get(key).push(r);
+    });
+
+    function getRimStatus(person, formId) {
+      const key = personMatchKey(person);
+      const records = reportsByPerson.get(key) || [];
+      return rimStatusFromRecords(records, formId);
+    }
+
+    function getRimSummary(person) {
+      const statuses = RIM_FORM_DEFS.map((form) => getRimStatus(person, form.id));
+      return {
+        pending: statuses.some((s) => s === "PENDIENTE"),
+        repro: statuses.some((s) => s === "REPROBADO"),
+      };
+    }
 
     function apply() {
       const q = (search.value || "").trim().toLowerCase();
@@ -546,7 +821,12 @@
           (p.nombre && p.nombre.toLowerCase().includes(q)) ||
           (p.rut && p.rut.toLowerCase().includes(q)) ||
           (p.cargo && p.cargo.toLowerCase().includes(q));
-        const matchF = !f || p.cursos[f] === false;
+        const rimSummary = getRimSummary(p);
+        const matchF =
+          !f ||
+          (f === "IRL" && p.cursos.IRL === false) ||
+          (f === "RIM" && rimSummary.pending) ||
+          (f === "RIM_REPROBADO" && rimSummary.repro);
         return matchQ && matchF;
       });
 
@@ -562,425 +842,47 @@
               }</td>`;
             })
             .join("");
+          const rimCeldas = RIM_FORM_DEFS.map((form) => {
+            const status = getRimStatus(p, form.id);
+            const label =
+              status === "APROBADO"
+                ? "Cumple"
+                : status === "REPROBADO"
+                ? "Reprobado"
+                : "Pendiente";
+            return `<td class="cell-center"><span class="tag ${
+              status === "APROBADO" ? "tag-ok" : "tag-pending"
+            }">${label}</span></td>`;
+          }).join("");
           return `
           <tr>
             <td>${i + 1}</td>
             <td><strong>${p.nombre}</strong></td>
             <td>${p.cargo || "—"}</td>
             ${celdas}
+            ${rimCeldas}
           </tr>`;
         })
         .join("");
 
       count.textContent =
         rows.length + (rows.length === 1 ? " persona" : " personas");
+
+      const approvedByForm = RIM_FORM_DEFS.map((form) => ({
+        short: form.short,
+        summary: buildRimRosterSummary(form.id),
+      }));
+
+      const rimDone = $("#perRimDone");
+      const rimMiss = $("#perRimMiss");
+      const rimRepro = $("#perRimRepro");
+      if (rimDone) rimDone.textContent = `${approvedByForm[0].short}: ${approvedByForm[0].summary.aprobados} cumplen / ${approvedByForm[0].summary.faltan} faltan`;
+      if (rimMiss) rimMiss.textContent = `${approvedByForm[1].short}: ${approvedByForm[1].summary.aprobados} cumplen / ${approvedByForm[1].summary.faltan} faltan`;
+      if (rimRepro) rimRepro.textContent = `${approvedByForm[2].short}: ${approvedByForm[2].summary.aprobados} cumplen / ${approvedByForm[2].summary.faltan} faltan`;
     }
 
     search.addEventListener("input", apply);
     filter.addEventListener("change", apply);
-    apply();
-  }
-
-  // ---- Detalle de reportes ABC-S (búsqueda por RUT o nombre) -------------
-  function renderReportes() {
-    if (!D.reportes) return;
-    const search = $("#repSearch");
-    const results = $("#repResults");
-    const count = $("#repCount");
-    const selSemana = $("#repSemana");
-    const missCount = $("#repMissCount");
-    const exportBtn = $("#repExport");
-    if (!search || !results) return;
-
-    const esc = (s) =>
-      String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-
-    // Normaliza texto: minúsculas, sin acentos
-    const norm = (s) =>
-      String(s || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-    // Solo dígitos y K para comparar RUT
-    const rutDigits = (s) =>
-      String(s || "").toUpperCase().replace(/[^0-9K]/g, "");
-
-    // Clave de nombre: tokens (>1 letra) ordenados, para cruzar con turnos
-    const nameKey = (s) =>
-      norm(s)
-        .replace(/[^a-z0-9]+/g, " ")
-        .trim()
-        .split(" ")
-        .filter((t) => t.length > 1)
-        .sort()
-        .join(" ");
-
-    // Conjuntos de quienes SÍ entregaron reporte (por RUT y por nombre)
-    const reportRutSet = new Set();
-    const reportNameSet = new Set();
-    D.reportes.forEach((r) => {
-      if (r.rutKey) reportRutSet.add(r.rutKey);
-      reportNameSet.add(nameKey(r.nombre));
-    });
-
-    // Pobla los selects una sola vez
-    if (selSemana && selSemana.options.length <= 1) {
-      [...new Set(D.reportes.map((r) => r.semana).filter(Boolean))].forEach((s) => {
-        const o = document.createElement("option");
-        o.value = s;
-        o.textContent = s;
-        selSemana.appendChild(o);
-      });
-    }
-    // Multi-selects (Turno y RF) con casillas
-    const closeAllMenus = () => {
-      document
-        .querySelectorAll("#reportesPanel .ms-menu")
-        .forEach((m) => (m.hidden = true));
-      document
-        .querySelectorAll("#reportesPanel .ms-toggle")
-        .forEach((t) => t.setAttribute("aria-expanded", "false"));
-    };
-    function makeMultiSelect(prefix, values, allLabel) {
-      const toggle = $("#" + prefix + "Toggle");
-      const label = $("#" + prefix + "Label");
-      const menu = $("#" + prefix + "Menu");
-      const selected = new Set();
-      if (!toggle || !menu) return { get: () => [] };
-      function updateLabel() {
-        if (selected.size === 0) label.textContent = allLabel;
-        else if (selected.size === 1) label.textContent = [...selected][0];
-        else label.textContent = selected.size + " seleccionados";
-      }
-      menu.innerHTML = values
-        .map(
-          (v) =>
-            `<label class="ms-opt"><input type="checkbox" value="${esc(
-              v
-            )}" /><span>${esc(v)}</span></label>`
-        )
-        .join("");
-      menu.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
-        cb.addEventListener("change", () => {
-          if (cb.checked) selected.add(cb.value);
-          else selected.delete(cb.value);
-          updateLabel();
-          apply();
-        });
-      });
-      toggle.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const willOpen = menu.hidden;
-        closeAllMenus();
-        menu.hidden = !willOpen;
-        toggle.setAttribute("aria-expanded", String(willOpen));
-      });
-      menu.addEventListener("click", (e) => e.stopPropagation());
-      updateLabel();
-      return { get: () => [...selected] };
-    }
-    document.addEventListener("click", closeAllMenus);
-
-    const turnosVals = (() => {
-      const s = new Set();
-      (D.turnos || []).forEach((p) => p.turno && s.add(p.turno));
-      D.reportes.forEach((r) => r.turno && s.add(r.turno));
-      return [...s].sort();
-    })();
-    const rfVals = (() => {
-      const s = new Set();
-      D.reportes.forEach((r) => r.rc && s.add(r.rc));
-      return [...s].sort();
-    })();
-    const cargoVals = (() => {
-      const s = new Set();
-      D.reportes.forEach((r) => r.cargoTarja && s.add(r.cargoTarja));
-      (D.turnos || []).forEach((p) => p.cargo && s.add(p.cargo));
-      return [...s].sort();
-    })();
-    const turnoMS = makeMultiSelect("repTurno", turnosVals, "Todos");
-    const rfMS = makeMultiSelect("repRf", rfVals, "Todos");
-    const cargoMS = makeMultiSelect("repCargo", cargoVals, "Todos");
-
-    // Personas que están en turnos (tarja) pero NO entregaron reporte
-    function missingList() {
-      const turnos = turnoMS.get();
-      const cargos = cargoMS.get();
-      return (D.turnos || []).filter((p) => {
-        if (turnos.length && turnos.indexOf(p.turno) === -1) return false;
-        if (cargos.length && cargos.indexOf(p.cargo) === -1) return false;
-        if (p.rutKey && reportRutSet.has(p.rutKey)) return false;
-        if (reportNameSet.has(nameKey(p.nombre))) return false;
-        return true;
-      });
-    }
-
-    // Paleta para los gráficos de respuestas
-    const chartColors = [
-      "#24407a", "#2e8b57", "#e1251b", "#f0a500", "#5b8def",
-      "#8e5bd0", "#00a3a3", "#d0608e", "#7a7a24", "#c0392b",
-    ];
-
-    // Gráficos: respuestas de los trabajadores + % de cumplimiento
-    function renderRepCharts(dataset) {
-      const charts = $("#repCharts");
-      if (!charts) return;
-
-      const totalR = dataset.length;
-
-      // Arma barras a partir de un conteo {clave: n}
-      function buildBars(counts) {
-        const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-        const maxV = entries.length ? entries[0][1] : 1;
-        return entries.length
-          ? entries
-              .map((e, i) => {
-                const pct = totalR ? Math.round((e[1] / totalR) * 100) : 0;
-                const w = Math.round((e[1] / maxV) * 100);
-                const color = chartColors[i % chartColors.length];
-                return `
-              <div class="bar-row">
-                <div class="bar-top">
-                  <span class="bar-name">${esc(e[0])}</span>
-                  <span class="bar-val">${e[1]} · ${pct}%</span>
-                </div>
-                <div class="bar-track"><span class="bar-fill" style="width:${w}%;background:${color}"></span></div>
-              </div>`;
-              })
-              .join("")
-          : '<div class="rep-empty">Sin datos para esos filtros.</div>';
-      }
-
-      // Distribución de respuestas (campo p1: evento / hallazgo)
-      const counts = {};
-      dataset.forEach((r) => {
-        const k = (r.p1 || "—").toString().trim().toUpperCase() || "—";
-        counts[k] = (counts[k] || 0) + 1;
-      });
-      const barsHtml = buildBars(counts);
-
-      // Distribución por RF (campo rc)
-      const rfCounts = {};
-      dataset.forEach((r) => {
-        const k = (r.rc || "S/RF").toString().trim().toUpperCase() || "S/RF";
-        rfCounts[k] = (rfCounts[k] || 0) + 1;
-      });
-      const rfBarsHtml = buildBars(rfCounts);
-
-      // Cumplimiento: en turno con reporte vs. sin reporte (respeta filtro de turno y cargo)
-      const turnosSel = turnoMS.get();
-      const cargosSel = cargoMS.get();
-      const totalTurnos = (D.turnos || []).filter(
-        (p) =>
-          (!turnosSel.length || turnosSel.indexOf(p.turno) !== -1) &&
-          (!cargosSel.length || cargosSel.indexOf(p.cargo) !== -1)
-      ).length;
-      const missing = missingList().length;
-      const delivered = Math.max(totalTurnos - missing, 0);
-      const cmpl = totalTurnos ? Math.round((delivered / totalTurnos) * 100) : 0;
-      const okColor = "#2e8b57";
-      const missColor = "#e1251b";
-      const donutBg = totalTurnos
-        ? `conic-gradient(${okColor} 0deg ${cmpl * 3.6}deg, ${missColor} ${cmpl * 3.6}deg 360deg)`
-        : "var(--line)";
-
-      charts.innerHTML = `
-        <div class="rep-chart-card">
-          <div class="rep-chart-title">Respuestas de los trabajadores</div>
-          <div class="rep-bars">${barsHtml}</div>
-        </div>
-        <div class="rep-chart-card">
-          <div class="rep-chart-title">Riesgos Fatales (RF) reportados</div>
-          <div class="rep-bars">${rfBarsHtml}</div>
-        </div>
-        <div class="rep-chart-card">
-          <div class="rep-chart-title">Porcentaje de cumplimiento</div>
-          <div class="rep-cmpl">
-            <div class="rep-donut" style="background:${donutBg}">
-              <div class="rep-donut-val">${cmpl}%<small>cumple</small></div>
-            </div>
-            <div class="rep-cmpl-legend">
-              <div class="legend-item"><span class="legend-dot" style="background:${okColor}"></span>Con reporte <b>${delivered}</b></div>
-              <div class="legend-item"><span class="legend-dot" style="background:${missColor}"></span>Sin reporte <b>${missing}</b></div>
-              <div class="legend-item"><span class="legend-dot" style="background:var(--muted)"></span>Total en turno <b>${totalTurnos}</b></div>
-            </div>
-          </div>
-        </div>`;
-    }
-
-    function apply() {
-      const raw = (search.value || "").trim();
-      const semana = selSemana ? selSemana.value : "";
-      const turnos = turnoMS.get();
-      const rfs = rfMS.get();
-      const cargos = cargoMS.get();
-
-      // Chip comparativo: en turno sin reporte
-      if (missCount) {
-        const n = missingList().length;
-        missCount.textContent =
-          n + (n === 1 ? " en turno sin reporte" : " en turno sin reporte");
-      }
-
-      // Gráficos: overview por semana/turno/RF (ignora la búsqueda de texto)
-      const overview = D.reportes.filter((r) => {
-        if (semana && r.semana !== semana) return false;
-        if (turnos.length && turnos.indexOf(r.turno) === -1) return false;
-        if (rfs.length && rfs.indexOf(r.rc) === -1) return false;
-        if (cargos.length && cargos.indexOf(r.cargoTarja) === -1) return false;
-        return true;
-      });
-      renderRepCharts(overview);
-
-      if (!raw && !semana && !turnos.length && !rfs.length && !cargos.length) {
-        results.innerHTML = "";
-        count.textContent = "Escribe un RUT o nombre, o filtra por semana/turno";
-        return;
-      }
-
-      const qRut = rutDigits(raw);
-      const qName = norm(raw);
-      const looksRut = /^[0-9]/.test(raw.replace(/[.\-\s]/g, "")) && qRut.length >= 4;
-
-      const matches = D.reportes.filter((r) => {
-        if (raw) {
-          if (looksRut) {
-            if (!(r.rutKey && r.rutKey.indexOf(qRut) !== -1)) return false;
-          } else if (norm(r.nombre).indexOf(qName) === -1) {
-            return false;
-          }
-        }
-        if (semana && r.semana !== semana) return false;
-        if (turnos.length && turnos.indexOf(r.turno) === -1) return false;
-        if (rfs.length && rfs.indexOf(r.rc) === -1) return false;
-        if (cargos.length && cargos.indexOf(r.cargoTarja) === -1) return false;
-        return true;
-      });
-
-      if (matches.length === 0) {
-        results.innerHTML =
-          '<div class="rep-empty">Sin reportes para esos filtros.</div>';
-        count.textContent = "0 reportes";
-        return;
-      }
-
-      // Agrupa por persona (rutKey si existe, si no por nombre normalizado)
-      const groups = new Map();
-      matches.forEach((r) => {
-        const key = r.rutKey || "n:" + norm(r.nombre);
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(r);
-      });
-
-      let html = "";
-      groups.forEach((reps) => {
-        const f = reps[0];
-        const rutTxt = f.rutMostrar
-          ? f.rutMostrar
-          : '<span class="rep-norut">sin RUT en tarja</span>';
-        const turnoTxt = f.turno ? esc(f.turno) : "—";
-        const filas = reps
-          .map(
-            (r) => `
-            <tr>
-              <td>${esc(r.fecha)}</td>
-              <td>${esc(r.semana)}</td>
-              <td><strong>${esc(r.rc)}</strong></td>
-              <td>${esc(r.p1)}</td>
-              <td>${esc(r.p2)}</td>
-              <td>${esc(r.p3)}</td>
-            </tr>`
-          )
-          .join("");
-        html += `
-          <div class="rep-ficha">
-            <div class="rep-ficha-head">
-              <div>
-                <div class="rep-nombre">${esc(f.nombre)}</div>
-                <div class="rep-sub">RUT ${rutTxt}</div>
-              </div>
-              <span class="mini-chip">${reps.length} ${
-          reps.length === 1 ? "reporte" : "reportes"
-        }</span>
-            </div>
-            <div class="rep-ficha-meta">
-              <div><span class="rfm-label">Turno</span><span>${turnoTxt}</span></div>
-              <div><span class="rfm-label">Cargo</span><span>${esc(f.cargo) || "—"}</span></div>
-              <div><span class="rfm-label">Gerencia</span><span>${esc(f.gerencia) || "—"}</span></div>
-              <div><span class="rfm-label">Empresa</span><span>${esc(f.empresa) || "—"}</span></div>
-            </div>
-            <div class="table-wrap">
-              <table class="records-table rep-table">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Semana</th>
-                    <th>RF</th>
-                    <th>1. Evento / hallazgo</th>
-                    <th>2. ¿Dónde?</th>
-                    <th>3. ¿Cómo evitarlo?</th>
-                  </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-              </table>
-            </div>
-          </div>`;
-      });
-
-      results.innerHTML = html;
-      const np = groups.size;
-      const nr = matches.length;
-      count.textContent =
-        `${np} ${np === 1 ? "persona" : "personas"} · ${nr} ${
-          nr === 1 ? "reporte" : "reportes"
-        }`;
-    }
-
-    // Exporta CSV: personas en turnos sin reporte (respeta el filtro de turno)
-    function exportMissing() {
-      const miss = missingList();
-      const turnos = turnoMS.get();
-      if (miss.length === 0) {
-        alert("No hay personas en turno sin reporte para exportar.");
-        return;
-      }
-      const rows = [["RUT", "Nombre", "Turno", "Cargo"]];
-      miss.forEach((p) => {
-        rows.push([p.rutMostrar || "", p.nombre || "", p.turno || "", p.cargo || ""]);
-      });
-      const csv = rows
-        .map((r) =>
-          r
-            .map((c) => {
-              const v = String(c == null ? "" : c);
-              return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
-            })
-            .join(";")
-        )
-        .join("\r\n");
-      const blob = new Blob(["\ufeff" + csv], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const suf = turnos.length
-        ? "_" + turnos.join("-").replace(/[^0-9A-Za-z]+/g, "")
-        : "_todos";
-      a.href = url;
-      a.download = "en_turno_sin_reporte" + suf + ".csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    search.addEventListener("input", apply);
-    if (selSemana) selSemana.addEventListener("change", apply);
-    if (exportBtn) exportBtn.addEventListener("click", exportMissing);
     apply();
   }
 
@@ -1887,8 +1789,8 @@
   renderReglamentos();
   renderAbc();
   renderCursos();
+  renderPlanReglamentos();
   renderPersonal();
-  renderReportes();
   renderIncidentes();
   setupNav();
 })();
