@@ -5,7 +5,7 @@ para el contrato **SKIC 424** (CC-101, División Chuquicamata — Codelco).
 
 ## Contenido
 
-- **Cumplimiento RESSO** por ciclo PHVA (Plan · Do · Check · Act) con las 39 preguntas.
+- **Cumplimiento RESSO** por ciclo PHVA (Plan · Do · Check · Act) con las 40 preguntas del Instrumento de Auditoría RESSO V10.
 - **KPIs**: cumplimiento documental, terreno y total.
 - **Hallazgos** documentales y en terreno.
 - **Reglamentos internos** de minería aplicables (con buscador).

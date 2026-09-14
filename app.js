@@ -213,11 +213,27 @@
     return pesoTotal ? Math.round((aporte / pesoTotal) * 100) : 0;
   }
 
+  // Cumplimiento terreno ponderado por peso, igual criterio que documentalPct()
+  // pero sobre D.ressoTerreno (checklist de revisión en campo).
+  function terrenoPct() {
+    if (!D.ressoTerreno) return (D.kpis && D.kpis.cumplimientoTerreno) || 0;
+    let aporte = 0;
+    let pesoTotal = 0;
+    D.ressoTerreno.forEach((s) =>
+      (s.items || []).forEach((it) => {
+        if (typeof it.peso !== "number") return;
+        pesoTotal += it.peso;
+        if (typeof it.pct === "number") aporte += (it.peso * it.pct) / 100;
+      })
+    );
+    return pesoTotal ? Math.round((aporte / pesoTotal) * 100) : 0;
+  }
+
   // ---- KPI cards ----------------------------------------------------------
   function renderKpis() {
     const k = D.kpis;
     const doc = documentalPct();
-    const terreno = k.cumplimientoTerreno;
+    const terreno = terrenoPct();
     const total = Math.round((doc + terreno) / 2);
     const expClass =
       "exp-" + (k.nivelExposicion || "").toLowerCase().replace(/[^a-z]/g, "");
@@ -308,6 +324,61 @@
       .join("");
   }
 
+  // % de una sección terreno: promedio de sus ítems con valor; si ninguno
+  // tiene valor, usa el % de la sección (0 mientras no se audite en campo).
+  function seccionPct(s) {
+    if (!s.items || s.items.length === 0) return s.pct;
+    const nums = s.items
+      .map((it) => it.pct)
+      .filter((v) => typeof v === "number");
+    if (nums.length === 0) return s.pct;
+    return Math.round(nums.reduce((sum, v) => sum + v, 0) / nums.length);
+  }
+
+  // ---- Revisión Terreno (checklist por categoría, solo lectura) ----------
+  const expandedTerreno = new Set();
+  function renderRessoTerreno() {
+    const grid = $("#ressoTerrenoGrid");
+    if (!grid || !D.ressoTerreno) return;
+    $("#ressoTerrenoPct").textContent = terrenoPct() + "%";
+    grid.innerHTML = D.ressoTerreno
+      .map((seccion) => {
+        const sp = seccionPct(seccion);
+        const isOpen = expandedTerreno.has(seccion.nombre);
+        const itemsHtml = (seccion.items || [])
+          .map((it) => {
+            const v = it.pct;
+            const vShow = v === "NA" ? "N/A" : typeof v === "number" ? v + "%" : "—";
+            const vColor = typeof v === "number" ? pctColor(v) : "#9aa3b2";
+            const pesoShow = typeof it.peso === "number"
+              ? `<div class="preg-peso" title="Ponderado">${String(it.peso).replace(".", ",")}%</div>`
+              : `<div class="preg-peso"></div>`;
+            const grupoShow = it.grupo ? `<span class="preg-grupo">${it.grupo}: </span>` : "";
+            return `
+            <div class="preg-row">
+              <div class="preg-num">${it.numero}</div>
+              <div class="preg-text">${grupoShow}${it.texto}</div>
+              ${pesoShow}
+              <span class="preg-evid-empty"></span>
+              <div class="preg-score" style="color:${vColor}">${vShow}</div>
+            </div>`;
+          })
+          .join("");
+        return `
+          <div class="resso-el">
+            <div class="re-top">
+              <button class="re-toggle" data-terr="${seccion.nombre}" aria-expanded="${isOpen}">${isOpen ? "▾" : "▸"}</button>
+              <span class="re-name">${seccion.nombre}</span>
+              <span class="re-count">${(seccion.items || []).length} ítems</span>
+              <span class="re-val">${sp}%</span>
+            </div>
+            <div class="re-bar"><span style="width:${sp}%;background:${pctColor(sp)}"></span></div>
+            <div class="preg-list${isOpen ? " open" : ""}">${itemsHtml}</div>
+          </div>`;
+      })
+      .join("");
+  }
+
   // ---- Bar chart por elemento --------------------------------------------
   function renderBars() {
     const elementos = [];
@@ -341,6 +412,16 @@
     else expanded.add(id);
     renderResso();
   });
+
+  $("#ressoTerrenoGrid") &&
+    $("#ressoTerrenoGrid").addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".re-toggle");
+      if (!btn) return;
+      const id = btn.getAttribute("data-terr");
+      if (expandedTerreno.has(id)) expandedTerreno.delete(id);
+      else expandedTerreno.add(id);
+      renderRessoTerreno();
+    });
 
   // ---- Modal de evidencia (comentarios + fotos) --------------------------
   function findPregunta(n) {
@@ -1783,6 +1864,7 @@
   renderContract();
   renderKpis();
   renderResso();
+  renderRessoTerreno();
   renderBars();
   renderDonut();
   renderAccess();

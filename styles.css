@@ -321,6 +321,7 @@ h1 {
   text-align: center;
 }
 .preg-text { font-size: .76rem; color: var(--text); line-height: 1.35; }
+.preg-grupo { font-weight: 700; color: var(--sk-blue); }
 .preg-peso {
   font-size: .72rem; font-weight: 700; text-align: center;
   color: var(--muted); background: var(--bg);
