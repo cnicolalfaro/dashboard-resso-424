@@ -555,7 +555,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": "NA",
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B5%20-%20Gestion%20de%20Subcontratos/Pregunta%2028?d=wd44b157be9a448d8b5cc91bb2f891a80&csf=1&web=1&e=hvTybp",
               "comentarios": []
             },
             {
@@ -564,7 +564,7 @@ window.DASHBOARD_DATA = {
               "peso": 1,
               "pct": "NA",
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B5%20-%20Gestion%20de%20Subcontratos/Pregunta%2029?d=w670ec9adbda741719570e2c0c141c72f&csf=1&web=1&e=psXyca",
               "comentarios": []
             }
           ]
