@@ -456,7 +456,7 @@ window.DASHBOARD_DATA = {
               "n": 22,
               "texto": "¿La empresa cuenta con la identificación de los GES y Programa Vigilancia Médica y es consistente con la evaluación higiénica levantada con el Organismo Administrador respectivo?",
               "peso": 3,
-              "pct": 80,
+              "pct": 100,
               "responsable": "PAULINA / ADRI",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2022?d=w76717a5dc1a74316b9a0e8966bba88ac&csf=1&web=1&e=G5nH2b",
               "comentarios": [
@@ -470,7 +470,7 @@ window.DASHBOARD_DATA = {
               "n": 23,
               "texto": "¿Se da cumplimiento al ciclo de higiene, dejando respaldos de programa de Higiene Industrial, Implementación de Controles y Planes de Acción, Operación, capacitación y trazabilidad en terreno? ¿Cuenta la empresa contratista con Mapas de Riesgo de Higiene Industrial en el lugar donde realiza sus actividades?",
               "peso": 3,
-              "pct": 80,
+              "pct": 100,
               "responsable": "SALUD",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2023?d=wa6ddbeaaf3b54a089815803958eb0fe0&csf=1&web=1&e=W7EsdB",
               "comentarios": [
@@ -528,7 +528,7 @@ window.DASHBOARD_DATA = {
               "n": 27,
               "texto": "¿Se cumple y se dispone de evidencias de evaluación periódica de verificación de las condiciones del sitio de trabajo?",
               "peso": 2,
-              "pct": 50,
+              "pct": 80,
               "responsable": "ANGIE/ TAMARA",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B4%20-%20Preparacion%20del%20Entorno%20y%20Respuesta%20a%20Emergencias/Pregunta%2027?d=wf697f4d7428f4a9ba66b8fd570000127&csf=1&web=1&e=2zkMcL",
               "comentarios": [
