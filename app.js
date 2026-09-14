@@ -191,14 +191,22 @@
   }
 
   function groupPct(grupo) {
+    // Si el Excel trae el % oficial del ciclo (tabla RESULTADOS GLOBALES), se usa
+    // directamente; si no, se recurre al promedio de sus elementos.
+    if (typeof grupo.pct === "number") return Math.round(grupo.pct);
     const vals = grupo.elementos.map(elementPct);
     return Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
   }
 
-  // Cumplimiento documental ponderado por peso (igual que el Excel):
-  // suma de aportes (peso * eval / 100) sobre la suma total de pesos.
-  // Las preguntas N/A o sin evaluar aportan 0 pero su peso sí cuenta.
+  // Cumplimiento documental: si cada grupo trae su Pond./% oficial (tabla
+  // RESULTADOS GLOBALES del Excel), se usa esa combinación exacta (coincide con
+  // el 80,90% del Excel aunque los Pond. de los ciclos no sumen 100 entre sí).
+  // Si no, cae al cálculo ponderado por pregunta (peso * eval / 100).
   function documentalPct() {
+    if (D.resso.every((g) => typeof g.pond === "number" && typeof g.pct === "number")) {
+      const total = D.resso.reduce((s, g) => s + (g.pond * g.pct) / 100, 0);
+      return total;
+    }
     let aporte = 0;
     let pesoTotal = 0;
     D.resso.forEach((g) =>
@@ -210,7 +218,7 @@
         })
       )
     );
-    return pesoTotal ? Math.round((aporte / pesoTotal) * 100) : 0;
+    return pesoTotal ? (aporte / pesoTotal) * 100 : 0;
   }
 
   // Cumplimiento terreno ponderado por peso, igual criterio que documentalPct()
@@ -226,7 +234,7 @@
         if (typeof it.pct === "number") aporte += (it.peso * it.pct) / 100;
       })
     );
-    return pesoTotal ? Math.round((aporte / pesoTotal) * 100) : 0;
+    return pesoTotal ? (aporte / pesoTotal) * 100 : 0;
   }
 
   // ---- KPI cards ----------------------------------------------------------
@@ -238,8 +246,8 @@
     const expClass =
       "exp-" + (k.nivelExposicion || "").toLowerCase().replace(/[^a-z]/g, "");
     const cards = [
-      { label: "Cumplimiento documental", value: doc + "%", accent: pctColor(doc) },
-      { label: "Cumplimiento terreno", value: terreno + "%", accent: pctColor(terreno) },
+      { label: "Cumplimiento documental", value: Math.round(doc) + "%", accent: pctColor(doc) },
+      { label: "Cumplimiento terreno", value: Math.round(terreno) + "%", accent: pctColor(terreno) },
       { label: "Cumplimiento total auditoría", value: total + "%", accent: "#24407a" },
       { label: "Nivel de exposición", pill: true, value: k.nivelExposicion, expClass, accent: "#24407a" },
     ];
@@ -313,7 +321,7 @@
           <div class="resso-card">
             <div class="resso-card-head" style="background:${grupo.color}">
               <div>
-                <div class="rc-ciclo">${grupo.id} · ${grupo.ciclo}</div>
+                <div class="rc-ciclo">${grupo.id} · ${grupo.ciclo}${typeof grupo.pond === "number" ? ` · Pond. ${grupo.pond}%` : ""}</div>
                 <h3>${grupo.titulo}</h3>
               </div>
               <div class="rc-pct">${prom}%</div>
@@ -340,7 +348,7 @@
   function renderRessoTerreno() {
     const grid = $("#ressoTerrenoGrid");
     if (!grid || !D.ressoTerreno) return;
-    $("#ressoTerrenoPct").textContent = terrenoPct() + "%";
+    $("#ressoTerrenoPct").textContent = Math.round(terrenoPct()) + "%";
     grid.innerHTML = D.ressoTerreno
       .map((seccion) => {
         const sp = seccionPct(seccion);
