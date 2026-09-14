@@ -153,7 +153,7 @@ window.DASHBOARD_DATA = {
               "n": 7,
               "texto": "¿La Matriz de Riesgos de la empresa, esta alineada a su mapa de procesos y se encuentra validada y actualizada periódicamente por la empresa?",
               "peso": 2,
-              "pct": 50,
+              "pct": 80,
               "responsable": "GESTIÓN",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -171,7 +171,7 @@ window.DASHBOARD_DATA = {
               "n": 8,
               "texto": "¿La Matriz considera el levantamiento de Riesgos de Fatalidad y establece el tratamiento de riesgos en función de la jerarquía de controles?",
               "peso": 2,
-              "pct": 90,
+              "pct": 80,
               "responsable": "GESTIÓN",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -196,7 +196,7 @@ window.DASHBOARD_DATA = {
               "n": 9,
               "texto": "¿La empresa considera la identificación y cumplimiento del marco legal en el desempeño de sus actividades, considerando al menos, una metodología formal para su aplicación, la actualización periódica y la gestión de brechas, según corresponda?",
               "peso": 2,
-              "pct": 70,
+              "pct": 80,
               "responsable": "CONSTANZA",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -243,7 +243,7 @@ window.DASHBOARD_DATA = {
               "n": 11,
               "texto": "¿Se cumple y se dispone de evidencias de Inducciones, Información de Riesgos Laborales (IRL), capacitaciones y acreditaciones necesarias para el cumplimiento de los cargos?",
               "peso": 2,
-              "pct": 90,
+              "pct": 80,
               "responsable": "MAX TORRES / CONSTANZA",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -261,7 +261,7 @@ window.DASHBOARD_DATA = {
               "n": 12,
               "texto": "¿Los supervisores están formados en ejecución y verificación de controles críticos?",
               "peso": 2,
-              "pct": 90,
+              "pct": 80,
               "responsable": "CONSTANZA Y MAX",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -279,7 +279,7 @@ window.DASHBOARD_DATA = {
               "n": 13,
               "texto": "¿La Política Corporativa y la Carta de Valores se dio a conocer a todos los trabajadores(as) de la empresa contratista y subcontratista? ¿Se cuenta con evidencia de ello?",
               "peso": 1,
-              "pct": 50,
+              "pct": 80,
               "responsable": "CONSTANZA",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -304,7 +304,7 @@ window.DASHBOARD_DATA = {
               "n": 14,
               "texto": "¿Los procedimientos están vigentes, difundidos y disponibles, estos son accesibles en las áreas de interacción del contrato?",
               "peso": 2,
-              "pct": 60,
+              "pct": 80,
               "responsable": "GESTION/ TERRENO",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -322,7 +322,7 @@ window.DASHBOARD_DATA = {
               "n": 15,
               "texto": "¿Se evalúa el nivel de conocimiento sobre los métodos de trabajo seguro y sus controles claves, aplicables a sus procesos?",
               "peso": 2,
-              "pct": 60,
+              "pct": 80,
               "responsable": "GESTION",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -336,7 +336,7 @@ window.DASHBOARD_DATA = {
               "n": 16,
               "texto": "¿Los cambios en condiciones operacionales, se evalúan mediante SIGO-P-030 (Gestión del Cambio)? ¿Cuentan con respaldos de su aplicabilidad?",
               "peso": 1,
-              "pct": 0,
+              "pct": 50,
               "responsable": "GESTION",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -379,7 +379,7 @@ window.DASHBOARD_DATA = {
               "n": 18,
               "texto": "¿Los trabajadores en terreno muestran conocimiento en relación con controles operativos implementados?",
               "peso": 3,
-              "pct": 0,
+              "pct": "NA",
               "responsable": "N/A",
               "link": "LINK DIRECTO",
               "comentarios": [
@@ -393,7 +393,7 @@ window.DASHBOARD_DATA = {
               "n": 19,
               "texto": "¿Se cumple y se dispone de evidencias de las actividades definidas en el Programa Mensual de Actividades (PAM), de acuerdo a lo programado?",
               "peso": 3,
-              "pct": 70,
+              "pct": 100,
               "responsable": "ADRIANA/PAULINA",
               "link": "Pregunta 19",
               "comentarios": [
@@ -415,7 +415,7 @@ window.DASHBOARD_DATA = {
               "n": 20,
               "texto": "¿Se cumple y se dispone de evidencias de las actividades Diálogos de Desempeño (DdD), Confirmaciones de Proceso (CdP), Confirmaciones de Rol (CdR), ¿de acuerdo a lo programado?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "",
               "link": "",
               "comentarios": [
@@ -433,7 +433,7 @@ window.DASHBOARD_DATA = {
               "n": 21,
               "texto": "¿Se aplican herramientas de control: ART, permisos, checklists y coordinación de trabajos simultáneos? ¿Se utiliza Tarjeta Verde ante desviaciones o ausencia de condiciones seguras?",
               "peso": 3,
-              "pct": 70,
+              "pct": 100,
               "responsable": "ADRIANA/PAULINA/CONSTANZA",
               "link": "Pregunta 20",
               "comentarios": []
@@ -442,7 +442,7 @@ window.DASHBOARD_DATA = {
               "n": 22,
               "texto": "¿La empresa cuenta con la identificación de los GES y Programa Vigilancia Médica y es consistente con la evaluación higiénica levantada con el Organismo Administrador respectivo?",
               "peso": 3,
-              "pct": 50,
+              "pct": 80,
               "responsable": "PAULINA / ADRI",
               "link": "Pregunta 21",
               "comentarios": [
@@ -456,7 +456,7 @@ window.DASHBOARD_DATA = {
               "n": 23,
               "texto": "¿Se da cumplimiento al ciclo de higiene, dejando respaldos de programa de Higiene Industrial, Implementación de Controles y Planes de Acción, Operación, capacitación y trazabilidad en terreno? ¿Cuenta la empresa contratista con Mapas de Riesgo de Higiene Industrial en el lugar donde realiza sus actividades?",
               "peso": 3,
-              "pct": 50,
+              "pct": 80,
               "responsable": "SALUD",
               "link": "Pregunta 22",
               "comentarios": [
@@ -470,7 +470,7 @@ window.DASHBOARD_DATA = {
               "n": 24,
               "texto": "¿La empresa cuenta con procedimiento de capacitación, en el cual incluye un programa de operadores de baja experiencia laboral (BEL)?",
               "peso": 1,
-              "pct": 0,
+              "pct": 80,
               "responsable": "SALUD",
               "link": "Pregunta 23",
               "comentarios": [
@@ -491,7 +491,7 @@ window.DASHBOARD_DATA = {
               "n": 25,
               "texto": "¿La empresa cuenta con un plan de emergencia que considere la comunicación, coordinación y acciones y se difundió a sus trabajadores(as)? ¿El Plan de Emergencias está alineado a CODELCO?",
               "peso": 2,
-              "pct": 50,
+              "pct": 80,
               "responsable": "",
               "link": "",
               "comentarios": []
@@ -500,7 +500,7 @@ window.DASHBOARD_DATA = {
               "n": 26,
               "texto": "¿La empresa cuenta con un programa de simulacros de emergencias que afecten a su servicio?",
               "peso": 2,
-              "pct": 50,
+              "pct": 80,
               "responsable": "CLAUDIO",
               "link": "Pregunta 25",
               "comentarios": [
@@ -539,7 +539,7 @@ window.DASHBOARD_DATA = {
               "n": 28,
               "texto": "¿Los subcontratos están formalizados, son informados al Administrador de Contrato CODELCO, vía LOD o carta contractual? ¿Se encuentran categorizados y con documentación al día?",
               "peso": 2,
-              "pct": 0,
+              "pct": "NA",
               "responsable": "",
               "link": "",
               "comentarios": []
@@ -548,7 +548,7 @@ window.DASHBOARD_DATA = {
               "n": 29,
               "texto": "¿La empresa verifica el cumplimiento del RESSO en sus subcontratos? ¿Cuenta con respaldos de su ejecución?",
               "peso": 1,
-              "pct": 0,
+              "pct": "NA",
               "responsable": "",
               "link": "",
               "comentarios": []
@@ -572,7 +572,7 @@ window.DASHBOARD_DATA = {
               "n": 30,
               "texto": "¿Se difunden los reportes de incidentes Divisionales y Corporativos, en especial los que apliquen a su servicio? Si aplica, ¿la empresa realiza una evaluación de aplicabilidad?",
               "peso": 3,
-              "pct": 80,
+              "pct": 100,
               "responsable": "",
               "link": "",
               "comentarios": []
@@ -599,7 +599,7 @@ window.DASHBOARD_DATA = {
               "n": 32,
               "texto": "¿Existe respaldo de las acciones de auditorías internas/externas, tienen trazabilidad de cierre? Además, ¿Existe seguimiento a desviaciones recurrentes para evitar repetitividad?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "terreno",
               "link": "Pregunta 31",
               "comentarios": [
@@ -617,7 +617,7 @@ window.DASHBOARD_DATA = {
               "n": 33,
               "texto": "¿Se evalúa la eficacia de los controles principales y críticos en terreno? ¿Es consistente con la evaluación de indicadores definida en el punto N° 3 de esta lista de verificación?",
               "peso": 2,
-              "pct": 50,
+              "pct": 80,
               "responsable": "constanza",
               "link": "Pregunta 32",
               "comentarios": [
@@ -651,7 +651,7 @@ window.DASHBOARD_DATA = {
               "n": 35,
               "texto": "¿La empresa entrega las estadísticas de información de riesgos profesionales en el formato requerido por CODELCO?",
               "peso": 3,
-              "pct": 80,
+              "pct": 100,
               "responsable": "gestion",
               "link": "Pregunta 34",
               "comentarios": []
@@ -684,7 +684,7 @@ window.DASHBOARD_DATA = {
               "n": 37,
               "texto": "¿Los incidentes se investigan según metodología corporativa? ¿Las acciones correctivas son verificadas en terreno, se encuentran cerradas en plazo y se privilegian controles de alta jerarquía?",
               "peso": 5,
-              "pct": 60,
+              "pct": 100,
               "responsable": "claudio",
               "link": "Pregunta 36",
               "comentarios": [
@@ -698,7 +698,7 @@ window.DASHBOARD_DATA = {
               "n": 38,
               "texto": "¿La EECC evaluó los riesgos de un potencial accidente grave o fatal? ¿De lo anterior se realizó un simulacro documental, implementando las medidas dentro de los plazos?",
               "peso": 5,
-              "pct": 50,
+              "pct": 80,
               "responsable": "GESTION",
               "link": "Pregunta 37",
               "comentarios": [
@@ -728,7 +728,7 @@ window.DASHBOARD_DATA = {
               "n": 40,
               "texto": "Se cumple y se dispone de evidencias de actividades definidas en el “Estándar de Seguridad Conductual” de acuerdo a lo programado (N° Observadores, cierre de ciclo, conductas preocupantes y plan de acción)?",
               "peso": 1,
-              "pct": 50,
+              "pct": 80,
               "responsable": "constanza",
               "link": "Pregunta 39",
               "comentarios": []
