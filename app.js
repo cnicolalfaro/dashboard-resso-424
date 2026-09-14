@@ -176,37 +176,58 @@
   }
 
   // ---- Cálculo de porcentajes (preguntas → elemento → grupo) -------------
-  // Los porcentajes provienen exclusivamente del Excel (data/dashboard_data.js).
+  // Los porcentajes se calculan siempre ponderados por peso (peso * pct / 100),
+  // de abajo hacia arriba, desde las preguntas individuales. No se usa la tabla
+  // "RESULTADOS GLOBALES" del Excel como atajo: sus Pond. por ciclo no suman
+  // 100% entre sí (25+55+17+17=114%), así que calculamos todo directamente
+  // desde el peso real de cada pregunta para evitar arrastrar ese error.
   const expanded = new Set();
 
-  // % de un elemento: promedio de sus preguntas con valor; si ninguna pregunta
-  // tiene valor, usa el % del elemento cargado desde el Excel (e.pct).
+  function pesoPonderado(preguntas) {
+    let aporte = 0;
+    let pesoTotal = 0;
+    (preguntas || []).forEach((p) => {
+      if (typeof p.peso !== "number") return;
+      pesoTotal += p.peso;
+      if (typeof p.pct === "number") aporte += (p.peso * p.pct) / 100;
+    });
+    return { aporte, pesoTotal };
+  }
+
+  // % de un elemento: promedio ponderado por peso de sus preguntas; si ninguna
+  // pregunta tiene valor, usa el % del elemento cargado desde el Excel (e.pct).
   function elementPct(e) {
     if (!e.preguntas || e.preguntas.length === 0) return e.pct;
-    const nums = e.preguntas
-      .map((p) => p.pct)
-      .filter((v) => typeof v === "number");
-    if (nums.length === 0) return e.pct;
-    return Math.round(nums.reduce((s, v) => s + v, 0) / nums.length);
+    const { aporte, pesoTotal } = pesoPonderado(e.preguntas);
+    if (!pesoTotal) return e.pct;
+    return Math.round((aporte / pesoTotal) * 100);
   }
 
+  // % de un grupo (ciclo): promedio ponderado por peso de TODAS sus preguntas
+  // (no promedio simple de sus elementos), consistente con documentalPct().
   function groupPct(grupo) {
-    // Si el Excel trae el % oficial del ciclo (tabla RESULTADOS GLOBALES), se usa
-    // directamente; si no, se recurre al promedio de sus elementos.
-    if (typeof grupo.pct === "number") return Math.round(grupo.pct);
-    const vals = grupo.elementos.map(elementPct);
-    return Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
+    const preguntas = [];
+    grupo.elementos.forEach((e) => preguntas.push(...(e.preguntas || [])));
+    const { aporte, pesoTotal } = pesoPonderado(preguntas);
+    return pesoTotal ? Math.round((aporte / pesoTotal) * 100) : 0;
   }
 
-  // Cumplimiento documental: si cada grupo trae su Pond./% oficial (tabla
-  // RESULTADOS GLOBALES del Excel), se usa esa combinación exacta (coincide con
-  // el 80,90% del Excel aunque los Pond. de los ciclos no sumen 100 entre sí).
-  // Si no, cae al cálculo ponderado por pregunta (peso * eval / 100).
+  // Peso total de un grupo (ciclo), calculado desde sus propias preguntas
+  // (para mostrar el "Pond." real del ciclo sin depender de tablas separadas).
+  function groupPeso(grupo) {
+    let total = 0;
+    grupo.elementos.forEach((e) =>
+      (e.preguntas || []).forEach((p) => {
+        if (typeof p.peso === "number") total += p.peso;
+      })
+    );
+    return Math.round(total * 100) / 100;
+  }
+
+  // Cumplimiento documental ponderado por peso: suma de aportes (peso * eval / 100)
+  // sobre la suma total de pesos de las 40 preguntas. Las preguntas N/A o sin
+  // evaluar aportan 0 pero su peso sí cuenta.
   function documentalPct() {
-    if (D.resso.every((g) => typeof g.pond === "number" && typeof g.pct === "number")) {
-      const total = D.resso.reduce((s, g) => s + (g.pond * g.pct) / 100, 0);
-      return total;
-    }
     let aporte = 0;
     let pesoTotal = 0;
     D.resso.forEach((g) =>
@@ -288,7 +309,7 @@
                       ? `<div class="preg-peso" title="Ponderado">${String(p.peso).replace(".", ",")}%</div>`
                       : `<div class="preg-peso"></div>`;
                     const nImg = p.imgs && p.imgs.length ? p.imgs.length : 0;
-                    const tieneEvid = !!(p.obs || p.obsAuditor || p.ruta || nImg);
+                    const tieneEvid = !!(p.obs || p.obsAuditor || p.ruta || nImg || p.responsable || (p.comentarios && p.comentarios.length));
                     const evidBtn = tieneEvid
                       ? `<button class="preg-evid" data-evid="${p.n}" title="Ver evidencia y comentarios">${nImg ? "📷 " + nImg : "💬"}</button>`
                       : `<span class="preg-evid-empty"></span>`;
@@ -321,7 +342,7 @@
           <div class="resso-card">
             <div class="resso-card-head" style="background:${grupo.color}">
               <div>
-                <div class="rc-ciclo">${grupo.id} · ${grupo.ciclo}${typeof grupo.pond === "number" ? ` · Pond. ${grupo.pond}%` : ""}</div>
+                <div class="rc-ciclo">${grupo.id} · ${grupo.ciclo} · Pond. ${groupPeso(grupo)}%</div>
                 <h3>${grupo.titulo}</h3>
               </div>
               <div class="rc-pct">${prom}%</div>
@@ -463,6 +484,16 @@
     const obsHtml = p.obs
       ? `<div class="evid-block"><div class="evid-block-title">Evidencia / Observaciones</div><p>${escapeHtml(p.obs).replace(/\n/g, "<br>")}</p></div>`
       : "";
+    const responsableHtml = p.responsable
+      ? `<div class="evid-block"><div class="evid-block-title">Responsable</div><p>${escapeHtml(p.responsable)}${p.link ? ` · <a class="evid-link" href="${escapeHtml(p.link)}" target="_blank" rel="noopener">${escapeHtml(p.link)} ↗</a>` : ""}</p></div>`
+      : "";
+    const comentariosHtml = p.comentarios && p.comentarios.length
+      ? `<div class="evid-block"><div class="evid-block-title">Seguimiento</div>` +
+        p.comentarios
+          .map((c) => `<p><strong>${escapeHtml(c.fecha)}:</strong> ${escapeHtml(c.texto).replace(/\n/g, "<br>")}</p>`)
+          .join("") +
+        `</div>`
+      : "";
     const auditorHtml = p.obsAuditor
       ? `<div class="evid-block evid-auditor"><div class="evid-block-title">Observaciones del Auditor</div><p>${escapeHtml(p.obsAuditor).replace(/\n/g, "<br>")}</p></div>`
       : "";
@@ -476,7 +507,7 @@
           .join("") +
         `</div></div>`
       : "";
-    const sinEvid = !obsHtml && !auditorHtml && !rutaHtml && !imgsHtml
+    const sinEvid = !obsHtml && !responsableHtml && !comentariosHtml && !auditorHtml && !rutaHtml && !imgsHtml
       ? `<div class="evid-empty">Esta pregunta no tiene evidencia ni comentarios cargados.</div>`
       : "";
 
@@ -486,7 +517,9 @@
         <div class="evid-score" style="color:${vColor}">${vShow}</div>
       </div>
       <div class="evid-question"><strong>Pregunta ${p.n}.</strong> ${escapeHtml(p.texto)}</div>
+      ${responsableHtml}
       ${obsHtml}
+      ${comentariosHtml}
       ${auditorHtml}
       ${rutaHtml}
       ${imgsHtml}
