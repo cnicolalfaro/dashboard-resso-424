@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instrumento RESSO V10 · SKIC 424</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=4" />
+</head>
+<body>
+
+  <div class="page-shell" id="appShell">
+
+    <!-- ENCABEZADO -->
+    <header class="hero">
+      <div class="hero-brand">
+        <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="brand-logo" />
+        <div>
+          <p class="eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+          <h1>Instrumento RESSO V10</h1>
+          <p class="lead">Revisión documental — 40 preguntas del Sistema de Gestión (PLAN · DO · CHECK · ACT).</p>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <span class="badge" id="updatedAt">Actualizado: —</span>
+        <button id="printBtn" class="hero-btn no-print" type="button">Imprimir / PDF</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- KPI CARDS -->
+      <section class="cards" id="kpiCards"></section>
+
+      <!-- CUMPLIMIENTO RESSO -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Cumplimiento RESSO — Ciclo PHVA</h2>
+            <p>Evaluación por elemento del Sistema de Gestión (PLAN · DO · CHECK · ACT)</p>
+          </div>
+        </div>
+        <div class="resso-grid" id="resssoGrid"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      RESSO SKIC 424 · SKIC S.A. — Instrumento RESSO V10 · Generado automáticamente
+    </footer>
+  </div>
+
+  <!-- Modal de evidencia (comentarios + responsable por pregunta) -->
+  <div class="evid-modal" id="evidModal" aria-hidden="true">
+    <div class="evid-card" role="dialog" aria-modal="true">
+      <button class="evid-close" data-close-evid aria-label="Cerrar">✕</button>
+      <div class="evid-body"></div>
+    </div>
+  </div>
+
+  <!-- Lightbox para ampliar fotos -->
+  <div class="img-lightbox" id="imgLightbox" aria-hidden="true">
+    <img src="" alt="Evidencia ampliada">
+  </div>
+
+  <!-- data/instrumento_data.js (público, sin contraseña) se carga con
+       timestamp único para evitar servir una copia cacheada vieja. -->
+  <script>
+    function loadScriptFresh(src) {
+      return new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = src + "?t=" + Date.now() + Math.random();
+        s.onload = resolve;
+        s.onerror = function () { reject(new Error("No se pudo cargar " + src)); };
+        document.body.appendChild(s);
+      });
+    }
+    (async function () {
+      await loadScriptFresh("data/instrumento_data.js");
+      await loadScriptFresh("instrumento.js");
+    })();
+  </script>
+</body>
+</html>
