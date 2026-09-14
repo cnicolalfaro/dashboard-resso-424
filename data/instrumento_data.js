@@ -6,6 +6,20 @@ window.DASHBOARD_DATA = {
   "kpis": {
     "nivelExposicion": "Moderado"
   },
+  "historialDocumental": [
+    {
+      "mes": "Julio 2026",
+      "pct": 38
+    },
+    {
+      "mes": "Agosto 2026 (corte 28-08)",
+      "pct": 62.6
+    },
+    {
+      "mes": "Septiembre 2026 (corte 03-09)",
+      "pct": 73.8
+    }
+  ],
   "resso": [
     {
       "id": "A",

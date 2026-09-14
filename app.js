@@ -408,6 +408,26 @@
       .join("");
   }
 
+  // ---- Evolución documental (histórico mensual + hoy en vivo) -------------
+  function renderHistorial() {
+    const el = $("#historialBars");
+    if (!el || !D.historialDocumental) return;
+    const puntos = [...D.historialDocumental, { mes: "Hoy", pct: documentalPct() }];
+    el.innerHTML = puntos
+      .map((p) => {
+        const pct = Math.round(p.pct * 10) / 10;
+        return `
+        <div class="bar-row">
+          <div class="bar-top">
+            <span class="bar-name">${p.mes}</span>
+            <span class="bar-val">${pct}%</span>
+          </div>
+          <div class="bar-track"><span class="bar-fill" style="width:${pct}%;background:${pctColor(pct)}"></span></div>
+        </div>`;
+      })
+      .join("");
+  }
+
   // ---- Bar chart por elemento --------------------------------------------
   function renderBars() {
     const elementos = [];
@@ -1904,6 +1924,7 @@
   // ---- Init ---------------------------------------------------------------
   renderContract();
   renderKpis();
+  renderHistorial();
   renderResso();
   renderRessoTerreno();
   renderBars();
