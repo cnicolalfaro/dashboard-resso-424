@@ -24,7 +24,7 @@ window.DASHBOARD_DATA = {
               "peso": 5,
               "pct": 100,
               "responsable": "CONSTANZA / TAMARA / ANGIE",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2001?d=we89ea7708f29436ba640a46bed9c69f9&csf=1&web=1&e=7WXh4D",
               "comentarios": [
                 {
                   "fecha": "OBS AGOSTO 28",
@@ -46,7 +46,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 90,
               "responsable": "CONSTANZA",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2002?d=w3040416d18b646f2867c3e118616984e&csf=1&web=1&e=Ct9QBx",
               "comentarios": [
                 {
                   "fecha": "OBS AGOSTO 28",
@@ -68,7 +68,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 90,
               "responsable": "CONSTANZA",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2003?d=w53bff7d9ad4f43c69b048b7b09ef717a&csf=1&web=1&e=aB9jbn",
               "comentarios": [
                 {
                   "fecha": "OBS AGOSTO 28",
@@ -90,7 +90,7 @@ window.DASHBOARD_DATA = {
               "peso": 5,
               "pct": 80,
               "responsable": "GESTIÓN",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2004?d=w28a4b11b989f4bf6b2e1918164364797&csf=1&web=1&e=N45V62",
               "comentarios": [
                 {
                   "fecha": "OBS AGOSTO 28",
@@ -112,7 +112,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 80,
               "responsable": "TERRENO",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2005?d=wac38ea5b97e041509f1e5a7024d399f6&csf=1&web=1&e=2BmWgE",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -130,7 +130,7 @@ window.DASHBOARD_DATA = {
               "peso": 0.5,
               "pct": 80,
               "responsable": "GESTIÓN",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2006?d=w5aef91cfc23e45d7b3c2543ea89e069b&csf=1&web=1&e=OKEgO4",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -155,7 +155,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "GESTIÓN",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A2%20-%20Evaluacion%20de%20Riesgos/Pregunta%2007?d=w75c693734f204565980cf2d31b9eb6e6&csf=1&web=1&e=e3lrLr",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -173,7 +173,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "GESTIÓN",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A2%20-%20Evaluacion%20de%20Riesgos/Pregunta%2008?d=wb6ea0f7bc25f4accbd814bd25e6e21b1&csf=1&web=1&e=B5vN2B",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -198,7 +198,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "CONSTANZA",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A3%20-%20Marco%20Regulatorio%20y%20Cumplimiento/Pregunta%2009?d=wb0dea66d1cc5481aa3eff3f64de12c80&csf=1&web=1&e=2bWxsW",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -216,7 +216,7 @@ window.DASHBOARD_DATA = {
               "peso": 0.5,
               "pct": 80,
               "responsable": "Constanza",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A3%20-%20Marco%20Regulatorio%20y%20Cumplimiento/Pregunta%2010?d=wa91b981960b9419fa7181e46780818ed&csf=1&web=1&e=mLvjIz",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -245,7 +245,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "MAX TORRES / CONSTANZA",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B1%20-%20Competencias%20y%20Formacion/Pregunta%2011?d=w6cb4ef9b92644c8f93c8b273fbdbcba8&csf=1&web=1&e=evvj78",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -263,7 +263,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "CONSTANZA Y MAX",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B1%20-%20Competencias%20y%20Formacion/Pregunta%2012?d=w5566b67a88964b9485610ec67c7f1e55&csf=1&web=1&e=SV4sDF",
               "comentarios": [
                 {
                   "fecha": "OBS AGOSTO 28",
@@ -281,7 +281,7 @@ window.DASHBOARD_DATA = {
               "peso": 1,
               "pct": 80,
               "responsable": "CONSTANZA",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B1%20-%20Competencias%20y%20Formacion/Pregunta%2013?d=w11beb68a91b045a5b7c06fe8dd2da4d6&csf=1&web=1&e=xxu4Rn",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -306,7 +306,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "GESTION/ TERRENO",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B2%20-%20Documentos%20Operativos%20y%20Procedimientos/Pregunta%2014?d=w81445315c9af467693a8d8e61c44c284&csf=1&web=1&e=98z7rM",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -324,7 +324,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "GESTION",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B2%20-%20Documentos%20Operativos%20y%20Procedimientos/Pregunta%2015?d=w231cea8baa054d2d9f069d4847d34062&csf=1&web=1&e=O8AsUc",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -338,7 +338,7 @@ window.DASHBOARD_DATA = {
               "peso": 1,
               "pct": 50,
               "responsable": "GESTION",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B2%20-%20Documentos%20Operativos%20y%20Procedimientos/Pregunta%2016?d=wc50fc69303264db6b1622601129d3651&csf=1&web=1&e=wd1zcv",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -363,7 +363,7 @@ window.DASHBOARD_DATA = {
               "peso": 5,
               "pct": 80,
               "responsable": "TERRENO",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B2%20-%20Documentos%20Operativos%20y%20Procedimientos/Pregunta%2016?d=wc50fc69303264db6b1622601129d3651&csf=1&web=1&e=wd1zcv",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -381,7 +381,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": "NA",
               "responsable": "N/A",
-              "link": "LINK DIRECTO",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2018?d=w063802ee5c974035a99383b4c352268c&csf=1&web=1&e=rsDuT1",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -395,7 +395,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 100,
               "responsable": "ADRIANA/PAULINA",
-              "link": "Pregunta 19",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2019?d=wea034ab5e7de48b281e6b03109f8f7bc&csf=1&web=1&e=yGGMyM",
               "comentarios": [
                 {
                   "fecha": "OBS AGOSTO 28",
@@ -417,7 +417,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 100,
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2020?d=w741f848afce24cffa92fa1cc0b88edcc&csf=1&web=1&e=TfAI14",
               "comentarios": [
                 {
                   "fecha": "OBS AGOSTO 28",
@@ -435,7 +435,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 100,
               "responsable": "ADRIANA/PAULINA/CONSTANZA",
-              "link": "Pregunta 20",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2021?d=w2c72e593b683435fa7cdb5b859a7b359&csf=1&web=1&e=zdoXCL",
               "comentarios": []
             },
             {
@@ -444,7 +444,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 80,
               "responsable": "PAULINA / ADRI",
-              "link": "Pregunta 21",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2022?d=w76717a5dc1a74316b9a0e8966bba88ac&csf=1&web=1&e=G5nH2b",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -458,7 +458,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 80,
               "responsable": "SALUD",
-              "link": "Pregunta 22",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2023?d=wa6ddbeaaf3b54a089815803958eb0fe0&csf=1&web=1&e=W7EsdB",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -472,7 +472,7 @@ window.DASHBOARD_DATA = {
               "peso": 1,
               "pct": 80,
               "responsable": "SALUD",
-              "link": "Pregunta 23",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2024?d=wdf40249108274cbfabe1e5b07ca21eee&csf=1&web=1&e=FnbXZJ",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -493,7 +493,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B4%20-%20Preparacion%20del%20Entorno%20y%20Respuesta%20a%20Emergencias/Pregunta%2025?d=w70a0f2fc93934b46892e8a69e7760afd&csf=1&web=1&e=vFegLs",
               "comentarios": []
             },
             {
@@ -502,7 +502,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "CLAUDIO",
-              "link": "Pregunta 25",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B4%20-%20Preparacion%20del%20Entorno%20y%20Respuesta%20a%20Emergencias/Pregunta%2026?d=w7468d3c55d4348a391a63abc0e2f2620&csf=1&web=1&e=qIR8kJ",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -516,7 +516,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 50,
               "responsable": "ANGIE/ TAMARA",
-              "link": "Pregunta 26",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B4%20-%20Preparacion%20del%20Entorno%20y%20Respuesta%20a%20Emergencias/Pregunta%2027?d=wf697f4d7428f4a9ba66b8fd570000127&csf=1&web=1&e=2zkMcL",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -574,7 +574,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 100,
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C1%20-%20Aseguramiento%20y%20Auditoria/Pregunta%2030?d=w3508b244b30b4c52941fad3fd7a4cdb9&csf=1&web=1&e=vwA7oc",
               "comentarios": []
             },
             {
@@ -583,7 +583,7 @@ window.DASHBOARD_DATA = {
               "peso": 5,
               "pct": 80,
               "responsable": "gestión",
-              "link": "Pregunta 30",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C1%20-%20Aseguramiento%20y%20Auditoria/Pregunta%2031?d=w7490fafb9e7c4222afbbb5328602a2cf&csf=1&web=1&e=LeQ3D8",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -601,7 +601,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 100,
               "responsable": "terreno",
-              "link": "Pregunta 31",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C1%20-%20Aseguramiento%20y%20Auditoria/Pregunta%2032?d=wfe8b7ae2491b470fa6805471cd6bf1d0&csf=1&web=1&e=eXcD95",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -619,7 +619,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 80,
               "responsable": "constanza",
-              "link": "Pregunta 32",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C1%20-%20Aseguramiento%20y%20Auditoria/Pregunta%2033?d=w7ddcc83c2b3047d49399169233fb7560&csf=1&web=1&e=cDRBbX",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 1ERO",
@@ -644,7 +644,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 100,
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C2%20-%20Indicadores%20y%20Gestion%20de%20Informacion/Pregunta%2034?d=wa5bad2cba19e4d6b9dc82c51143cb58e&csf=1&web=1&e=6tfcGH",
               "comentarios": []
             },
             {
@@ -653,7 +653,7 @@ window.DASHBOARD_DATA = {
               "peso": 3,
               "pct": 100,
               "responsable": "gestion",
-              "link": "Pregunta 34",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C2%20-%20Indicadores%20y%20Gestion%20de%20Informacion/Pregunta%2035?d=w17ff0a0ded7d4b239fa23b89d4a98170&csf=1&web=1&e=jrwaA6",
               "comentarios": []
             }
           ]
@@ -677,7 +677,7 @@ window.DASHBOARD_DATA = {
               "peso": 2,
               "pct": 100,
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D1%20-%20Gestion%20de%20Incidentes/Pregunta%2036?d=w2c6a28f2d52a47529d0e73e5bfbf79e5&csf=1&web=1&e=c4vF2w",
               "comentarios": []
             },
             {
@@ -686,7 +686,7 @@ window.DASHBOARD_DATA = {
               "peso": 5,
               "pct": 100,
               "responsable": "claudio",
-              "link": "Pregunta 36",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D1%20-%20Gestion%20de%20Incidentes/Pregunta%2037?d=wd34b3f4127944d599d106be1af1e0e44&csf=1&web=1&e=rSge1J",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -700,7 +700,7 @@ window.DASHBOARD_DATA = {
               "peso": 5,
               "pct": 80,
               "responsable": "GESTION",
-              "link": "Pregunta 37",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D1%20-%20Gestion%20de%20Incidentes/Pregunta%2038?d=wbe3accdb77a54a1b8954d7dc9c30ec32&csf=1&web=1&e=K1FzxN",
               "comentarios": [
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
@@ -721,7 +721,7 @@ window.DASHBOARD_DATA = {
               "peso": 4,
               "pct": 80,
               "responsable": "",
-              "link": "",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D2%20-%20Actualizacion%20del%20Sistema%20Preventivo/Pregunta%2039?d=w678e16e258264e5888d3a5c2581b671c&csf=1&web=1&e=HrGRUJ",
               "comentarios": []
             },
             {
@@ -730,7 +730,7 @@ window.DASHBOARD_DATA = {
               "peso": 1,
               "pct": 80,
               "responsable": "constanza",
-              "link": "Pregunta 39",
+              "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D2%20-%20Actualizacion%20del%20Sistema%20Preventivo/Pregunta%2040?d=we6b04c798b3c42d79937cd2d0e2acd4c&csf=1&web=1&e=EWw5vT",
               "comentarios": []
             }
           ]
