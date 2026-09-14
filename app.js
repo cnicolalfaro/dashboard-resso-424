@@ -262,13 +262,13 @@
   function renderKpis() {
     const k = D.kpis;
     const doc = documentalPct();
-    const terreno = terrenoPct();
-    const total = Math.round((doc + terreno) / 2);
+    // Terreno omitido por ahora (solo interesa lo documental): el total
+    // auditoría es igual al documental mientras no se audite en campo.
+    const total = Math.round(doc);
     const expClass =
       "exp-" + (k.nivelExposicion || "").toLowerCase().replace(/[^a-z]/g, "");
     const cards = [
       { label: "Cumplimiento documental", value: Math.round(doc) + "%", accent: pctColor(doc) },
-      { label: "Cumplimiento terreno", value: Math.round(terreno) + "%", accent: pctColor(terreno) },
       { label: "Cumplimiento total auditoría", value: total + "%", accent: "#24407a" },
       { label: "Nivel de exposición", pill: true, value: k.nivelExposicion, expClass, accent: "#24407a" },
     ];
