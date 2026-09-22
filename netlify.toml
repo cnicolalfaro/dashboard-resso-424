@@ -25,3 +25,8 @@
   for = "/data/*"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/homologacion-rf-rc/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

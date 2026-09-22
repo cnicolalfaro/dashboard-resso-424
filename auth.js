@@ -54,7 +54,7 @@
     if (gate) gate.remove();
     if (shell) shell.style.display = "";
     var s = document.createElement("script");
-    s.src = "app.js?v=6";
+    s.src = "app.js?v=7";
     document.body.appendChild(s);
   }
 

@@ -116,27 +116,6 @@
     return "#7bc79a";
   };
 
-  // ---- Merge de evidencias (evaluación %, comentarios y fotos del Excel) --
-  // Las evidencias viven en D.evidencias = { "<n>": { eval, obs, obsAuditor,
-  // ruta, imgs:[dataURI] } } y se fusionan en cada pregunta por su número.
-  (function mergeEvidencias() {
-    const ev = D.evidencias;
-    if (!ev || !D.resso) return;
-    D.resso.forEach((g) =>
-      g.elementos.forEach((e) =>
-        (e.preguntas || []).forEach((p) => {
-          const d = ev[String(p.n)];
-          if (!d) return;
-          if (d.eval !== undefined && d.eval !== null) p.pct = d.eval;
-          if (d.obs) p.obs = d.obs;
-          if (d.obsAuditor) p.obsAuditor = d.obsAuditor;
-          if (d.ruta) p.ruta = d.ruta;
-          if (d.imgs && d.imgs.length) p.imgs = d.imgs;
-        })
-      )
-    );
-  })();
-
   const $ = (sel) => document.querySelector(sel);
 
   function pctColor(p) {

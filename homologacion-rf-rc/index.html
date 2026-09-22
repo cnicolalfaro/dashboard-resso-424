@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homologación RF·RC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;
+  --surface:#eef1f8;
+  --surface-alt:#eef1f8;
+  --surface-2:#eaf0fa;
+  --text:#1f2733;
+  --text-dim:#5d6b82;
+  --line:#b9c4dc;
+  --codelco:#e1251b;
+  --codelco-soft:#fbe3e1;
+  --skic:#24407a;
+  --skic-soft:#eaf0fa;
+  --accent:#24407a;
+  --ok:#2e8b57;      --ok-soft:#e1f3e9;
+  --warn:#f0a500;    --warn-soft:#fdf1d9;
+  --bad:#e1251b;     --bad-soft:#fbe3e1;
+  --shadow: 0 8px 24px rgba(31,60,116,.08);
+  --radius: 14px;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Open Sans', 'Segoe UI', Calibri, Arial, sans-serif !important;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Open Sans',system-ui,sans-serif;
+  padding-inline:20px;
+  padding-block:28px 60px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.disp{font-family:'Big Shoulders Display',system-ui,sans-serif}
+
+/* ---------- header ---------- */
+header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:28px}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-dim);display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+h1{
+  font-family:'Big Shoulders Display',sans-serif;font-weight:800;
+  font-size:clamp(32px,5.4vw,54px);line-height:.98;margin:0;letter-spacing:-.01em;
+  text-wrap:balance;
+}
+h1 .rc{color:var(--skic)}
+h1 .rf{color:var(--codelco)}
+.subtitle{color:var(--text-dim);font-size:14.5px;max-width:46ch;margin-top:8px;line-height:1.5}
+.meta-chip{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);
+  border:1px solid var(--line);border-radius:100px;padding:6px 12px;white-space:nowrap;
+}
+
+/* ---------- stat tiles ---------- */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:32px}
+@media (max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{
+  background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;box-shadow:var(--shadow);
+}
+.stat .n{font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:38px;line-height:1;letter-spacing:-.01em}
+.stat .l{font-size:12.5px;color:var(--text-dim);margin-top:6px}
+.stat .l2{font-size:11px;color:var(--text-dim);margin-top:2px;opacity:.75}
+.stat.ok .n{color:var(--ok)}
+.stat.warn .n{color:var(--warn)}
+.stat.bad .n{color:var(--bad)}
+.stat.accent .n{color:var(--accent)}
+
+/* ---------- section shell ---------- */
+section{margin-bottom:34px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.sec-head h2{
+  font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:22px;margin:0;
+  text-transform:uppercase;letter-spacing:.02em;
+}
+.sec-head p{color:var(--text-dim);font-size:13px;margin:0}
+
+/* ---------- distribution bar ---------- */
+.distbar{display:flex;height:10px;border-radius:100px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+.distbar span{height:100%}
+.dist-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;font-size:12.5px;color:var(--text-dim)}
+.dist-legend .k{display:inline-flex;align-items:center;gap:6px}
+.dist-legend .sw{width:9px;height:9px;border-radius:2px}
+
+/* ---------- RF cumplimiento grid ---------- */
+.rfcumpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.rfcumpcard{
+  background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:7px;
+}
+.rfcumpcard .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rfcumpcard .rf-id{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--codelco);font-weight:700}
+.rfcumpcard .rf-n{font-size:12.5px;font-weight:600;line-height:1.3}
+.rf-nodata-note{font-size:12.5px;color:var(--text-dim);margin-top:12px}
+
+/* ---------- RC grid ---------- */
+.rcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.rccard{
+  background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;
+  cursor:pointer;transition:border-color .15s, transform .1s;box-shadow:var(--shadow);
+  text-align:left;font:inherit;color:inherit;
+}
+.rccard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.rccard.active{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:-1px}
+.rccard .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.rccard .rc-id{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--skic);font-weight:600}
+.rccard .n{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim)}
+.rccard .name{font-size:14px;font-weight:600;margin-bottom:8px;line-height:1.25;min-height:2.4em}
+.rccard .arrow{font-size:11px;color:var(--text-dim);margin:2px 0 8px;display:flex;align-items:center;gap:5px}
+.rccard .arrow b{color:var(--codelco);font-family:'IBM Plex Mono',monospace;font-weight:600}
+.rccard .mini{display:flex;height:5px;border-radius:100px;overflow:hidden;background:var(--surface-2)}
+.rccard .mini span{height:100%}
+.rccard .cardcump{margin-top:9px}
+.rccard .cardcump .cump-badge{font-size:10.5px}
+.rccard .cardcump .no-autodiag{font-size:10px}
+
+/* ---------- callout: casos a revisar ---------- */
+.callout{
+  background:var(--bad-soft);border:1px solid color-mix(in srgb, var(--bad) 35%, var(--line));
+  border-radius:var(--radius);padding:16px 18px;
+}
+.callout .chead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.callout .chead .ico{
+  width:26px;height:26px;border-radius:50%;background:var(--bad);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none;
+}
+.callout .chead h3{margin:0;font-size:15px;font-weight:700}
+.callout ul{margin:0;padding-left:0;list-style:none;display:grid;gap:8px}
+.callout li{
+  background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 12px;
+  font-size:13px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.callout li .lab b{color:var(--text)}
+.callout li .cnt{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);white-space:nowrap}
+
+/* ---------- explorer controls ---------- */
+.controls{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow);
+}
+.controls input[type=search]{
+  flex:1 1 220px;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px 12px;
+  font:14px 'IBM Plex Sans';background:var(--bg);color:var(--text);
+}
+.controls select{
+  border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:13px 'IBM Plex Sans';
+  background:var(--bg);color:var(--text);
+}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  border:1px solid var(--line);background:var(--bg);color:var(--text-dim);border-radius:100px;
+  padding:6px 12px;font-size:12.5px;cursor:pointer;user-select:none;font-family:'IBM Plex Mono',monospace;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.chip .sw{width:8px;height:8px;border-radius:50%}
+.chip[aria-pressed=true]{border-color:currentColor;font-weight:600}
+.chip.f-ok[aria-pressed=true]{color:var(--ok);background:var(--ok-soft)}
+.chip.f-warn[aria-pressed=true]{color:var(--warn);background:var(--warn-soft)}
+.chip.f-bad[aria-pressed=true]{color:var(--bad);background:var(--bad-soft)}
+.clearbtn{
+  border:1px solid var(--line);background:transparent;color:var(--text-dim);border-radius:9px;
+  padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:'IBM Plex Sans';
+}
+.clearbtn:hover{border-color:var(--accent);color:var(--accent)}
+.result-count{font-size:12.5px;color:var(--text-dim);margin-bottom:10px}
+.result-count b{color:var(--text)}
+
+/* ---------- table ---------- */
+.tablewrap{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);
+}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{
+  text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--text-dim);padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface-2);
+  position:sticky;top:0;
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+td.q{max-width:0;width:100%}
+td.q .qt{display:block;line-height:1.4}
+td.rc{white-space:nowrap;font-family:'IBM Plex Mono',monospace;color:var(--skic);font-weight:600;font-size:12px}
+td.ctrl{white-space:nowrap;font-family:'IBM Plex Mono',monospace;font-size:12px}
+td.ctrl b{color:var(--codelco)}
+td.ctrl .cn{display:block;font-family:'IBM Plex Sans';color:var(--text-dim);font-size:11.5px;margin-top:2px;white-space:normal}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;border-radius:100px;padding:3px 9px;font-size:11px;
+  font-family:'IBM Plex Mono',monospace;font-weight:600;white-space:nowrap;
+}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)}
+.badge .sw{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+.tfoot{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;gap:10px;flex-wrap:wrap}
+.pager{display:flex;gap:6px;align-items:center}
+.pager button{
+  border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:7px;
+  padding:6px 10px;font-size:12.5px;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+}
+.pager button:disabled{opacity:.4;cursor:default}
+.pager .pg{font-size:12.5px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace}
+
+@media (max-width:700px){
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tbody tr{border-bottom:1px solid var(--line);padding:12px;display:grid;gap:6px}
+  tbody td{border:none;padding:0}
+  td.rc::before{content:'RC   ';color:var(--text-dim)}
+  td.ctrl::before{content:'RF   ';color:var(--text-dim)}
+}
+
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--text-dim);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* ================= detail module ================= */
+.backbtn{
+  display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);
+  color:var(--text);border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:'IBM Plex Sans';
+  box-shadow:var(--shadow);margin-bottom:20px;
+}
+.backbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+.bridge{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:stretch;margin-bottom:8px;
+}
+@media (max-width:720px){.bridge{grid-template-columns:1fr}}
+.bpanel{
+  border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);border:1px solid var(--line);
+  display:flex;flex-direction:column;gap:8px;
+}
+.bpanel.skic{background:var(--skic-soft);border-color:color-mix(in srgb, var(--skic) 30%, var(--line))}
+.bpanel.codelco{background:var(--codelco-soft);border-color:color-mix(in srgb, var(--codelco) 30%, var(--line))}
+.bpanel .who{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.bpanel.skic .who{color:var(--skic)}
+.bpanel.codelco .who{color:var(--codelco)}
+.bpanel .code{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:30px;line-height:1}
+.bpanel.skic .code{color:var(--skic)}
+.bpanel.codelco .code{color:var(--codelco)}
+.bpanel .name{font-size:16px;font-weight:600;line-height:1.3}
+.bpanel .sub{font-size:12.5px;color:var(--text-dim)}
+.bpanel .chiprow{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.bpanel .tag{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid currentColor;border-radius:100px;
+  padding:3px 9px;opacity:.85;
+}
+.bridge-mid{display:flex;align-items:center;justify-content:center;color:var(--text-dim)}
+.bridge-mid svg{width:34px;height:34px}
+@media (max-width:720px){.bridge-mid{transform:rotate(90deg);margin:-4px 0}}
+
+.detail-stats{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 28px}
+.detail-stats .pill{
+  display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);
+  border-radius:100px;padding:7px 13px;font-size:12.5px;box-shadow:var(--shadow);
+}
+.detail-stats .pill b{font-family:'IBM Plex Mono',monospace}
+.detail-stats .pill .sw{width:8px;height:8px;border-radius:50%}
+
+.rfblock{margin-bottom:26px}
+.rfblock-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.rfblock-head .badge-rf{
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:#fff;background:var(--codelco);
+  border-radius:7px;padding:4px 9px;
+}
+.rfblock-head h3{margin:0;font-size:16px;font-weight:600}
+.rfblock-head .role{font-size:11.5px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;border:1px solid var(--line);border-radius:100px;padding:2px 9px}
+
+.ctrl-acc{border:1px solid var(--line);border-radius:11px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden;margin-bottom:8px}
+.ctrl-acc summary{
+  list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:10px;justify-content:space-between;
+  font-size:13.5px;
+}
+.ctrl-acc summary::-webkit-details-marker{display:none}
+.ctrl-acc summary .left{display:flex;align-items:center;gap:10px;min-width:0}
+.ctrl-acc summary .code{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--codelco);white-space:nowrap}
+.ctrl-acc summary .cname{font-weight:600;white-space:normal}
+.ctrl-acc summary .chev{color:var(--text-dim);transition:transform .15s;flex:none}
+.ctrl-acc[open] summary .chev{transform:rotate(90deg)}
+.ctrl-acc summary .qn{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);white-space:nowrap;
+  border:1px solid var(--line);border-radius:100px;padding:2px 9px;
+}
+@media (max-width:600px){
+  .ctrl-acc summary{flex-wrap:wrap}
+  .ctrl-acc summary .left{flex-wrap:wrap}
+  .rfblock-head{flex-wrap:wrap}
+}
+.ctrl-acc .body{padding:0 14px 14px;border-top:1px solid var(--line)}
+.ctrl-acc .obj{font-size:12px;color:var(--text-dim);padding:10px 0 4px;line-height:1.5}
+.ctrl-acc .qlist{display:grid;gap:6px;margin-top:6px}
+.ctrl-acc .qrow{
+  display:flex;justify-content:space-between;gap:10px;align-items:flex-start;background:var(--surface-2);
+  border-radius:8px;padding:8px 10px;font-size:12.5px;
+}
+.ctrl-acc .qrow .qi{font-family:'IBM Plex Mono',monospace;color:var(--skic);font-size:11px;flex:none;padding-top:1px}
+.ctrl-acc .qrow .qt2{flex:1}
+
+.subgroup{margin:12px 0}
+.subgroup:first-child{margin-top:2px}
+.subgroup-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.subgroup-head .req{font-size:12.5px;font-weight:600;color:var(--text)}
+.sg-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.04em;text-transform:uppercase;
+  border-radius:100px;padding:2px 8px;font-weight:700;flex:none;
+}
+.sg-tag.alta{background:var(--skic-soft);color:var(--skic)}
+.sg-tag.media{background:var(--surface-2);color:var(--text-dim);border:1px solid var(--line)}
+.sg-tag.general{background:var(--surface-2);color:var(--text-dim);border:1px solid var(--line)}
+.subgroup-head .gen{font-size:12.5px;color:var(--text-dim);font-style:italic}
+
+.cmp-req{
+  display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-dim);margin-top:2px;
+}
+.cmp-req .sg-tag{font-size:9.5px;padding:1px 7px}
+
+.gaps-box{
+  background:var(--bad-soft);border:1px solid color-mix(in srgb, var(--bad) 35%, var(--line));
+  border-radius:var(--radius);padding:16px 18px;margin-top:8px;
+}
+.gaps-box .chead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.gaps-box .chead .ico{
+  width:26px;height:26px;border-radius:50%;background:var(--bad);color:#fff;flex:none;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;
+}
+.gaps-box h3{margin:0;font-size:14.5px;font-weight:700}
+.gaps-box .note{font-size:12.5px;color:var(--text-dim);margin:0 0 12px 36px}
+.gaps-list{display:grid;gap:7px}
+.gap-item{
+  background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;
+}
+.gap-item .top2{display:flex;gap:8px;align-items:baseline}
+.gap-item .code{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--bad)}
+.gap-item .cname{font-weight:600}
+.gap-item .obj{color:var(--text-dim);margin-top:3px;line-height:1.4}
+.no-gaps{
+  display:flex;align-items:center;gap:8px;color:var(--ok);font-size:13px;font-weight:600;
+  background:var(--ok-soft);border:1px solid color-mix(in srgb, var(--ok) 35%, var(--line));
+  border-radius:11px;padding:12px 14px;
+}
+
+.rc-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+.rc-link:hover{color:var(--accent)}
+
+/* ---------- view tabs (detail module) ---------- */
+.viewtabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.viewtab{
+  border:1px solid var(--line);background:var(--surface);color:var(--text-dim);border-radius:9px;
+  padding:8px 14px;font-size:13px;cursor:pointer;font-family:'IBM Plex Sans';font-weight:600;
+}
+.viewtab[aria-selected=true]{border-color:var(--accent);color:var(--accent);background:var(--surface)}
+
+/* ---------- comparativo (3 columns, lado a lado) ---------- */
+.cmp-head{display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr;gap:0;margin-bottom:8px}
+.cmp-head .lab{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  padding:8px 11px;border-radius:9px 9px 0 0;font-weight:600;
+}
+.cmp-head .lab.skic{background:var(--skic-soft);color:var(--skic)}
+.cmp-head .lab.codelco{background:var(--codelco-soft);color:var(--codelco);text-align:center}
+.cmp-head .lab.target{background:var(--warn-soft);color:var(--warn);text-align:right}
+.cmp-list{display:flex;flex-direction:column;gap:6px}
+.cmp-row{
+  display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr;gap:0;align-items:stretch;
+  border-radius:10px;overflow:hidden;box-shadow:var(--shadow);
+}
+.cmp-col{padding:11px 12px;font-size:12.5px;line-height:1.45;display:flex;flex-direction:column;gap:4px}
+.cmp-left{background:var(--skic-soft)}
+.cmp-center{background:var(--codelco-soft)}
+.cmp-target{background:var(--warn-soft)}
+.cmp-item{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--skic);font-weight:700}
+.cmp-q{color:var(--text);font-size:13px}
+.cmp-rf{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--codelco);font-weight:700}
+.cmp-cn{color:var(--text);font-size:12.5px}
+.cmp-center .badge{align-self:flex-start;margin-top:2px}
+.cmp-target .req{color:var(--text);font-weight:600;font-size:12.5px}
+.cmp-target .ev{color:var(--text-dim);font-size:11.5px;line-height:1.4}
+.cmp-target .gen{color:var(--text-dim);font-size:12px;font-style:italic}
+.cmp-mid{display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--text-dim)}
+.cmp-mid svg{width:15px;height:15px}
+@media (max-width:900px){
+  .cmp-head, .cmp-row{grid-template-columns:1fr}
+  .cmp-mid{display:none}
+  .cmp-head .lab.codelco, .cmp-head .lab.target{text-align:left;border-radius:0}
+  .cmp-head .lab.target{border-radius:0 0 9px 9px}
+  .cmp-row{gap:1px}
+}
+.cmp-empty{color:var(--text-dim);font-size:13px;padding:16px;text-align:center}
+
+/* ---------- cumplimiento (autodiagnóstico CODELCO) ---------- */
+.cump-badge{
+  display:inline-flex;align-items:center;gap:5px;border-radius:100px;padding:3px 9px;font-size:10.5px;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap;
+}
+.cump-badge .sw{width:6px;height:6px;border-radius:50%;background:currentColor}
+.cump-badge.cumple{background:var(--ok-soft);color:var(--ok)}
+.cump-badge.parcial{background:var(--warn-soft);color:var(--warn)}
+.cump-badge.no_cumple{background:var(--bad-soft);color:var(--bad)}
+.cump-badge.no_aplica{background:var(--surface-2);color:var(--text-dim);border:1px solid var(--line)}
+.cump-badge.sin_dato{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad)}
+.cump-obs{font-size:11px;color:var(--text-dim);margin-top:3px;line-height:1.4;font-style:italic}
+.rfblock-head .cump-badge, .ctrl-acc summary .cump-badge{flex:none}
+.no-autodiag{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--bad);
+  background:var(--bad-soft);border:1px solid var(--bad);
+  border-radius:100px;padding:3px 9px;white-space:nowrap;
+}
+.gap-item .cump-badge{margin-top:6px}
+.detail-stats .pill.cump-pill{border-color:color-mix(in srgb, var(--accent) 30%, var(--line))}
+.sin-datos-note{font-size:12px;color:var(--text-dim);margin-top:4px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<div id="view-home">
+
+  <header class="top">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>SIGDO KOPPERS ICC · GERENCIA HSEC</div>
+      <h1>Homologación <span class="rf">RF</span>·<span class="rc">RC</span></h1>
+    </div>
+    <div class="meta-chip">Contrato 4600029025 · MATRIZ IPER</div>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <section id="rf-cump-section">
+    <div class="sec-head">
+      <h2>Cumplimiento CODELCO por RF</h2>
+      <p id="rf-cump-sub">Autodiagnóstico cargado por CODELCO para cada Riesgo de Fatalidad, según el archivo entregado</p>
+    </div>
+    <div class="rfcumpgrid" id="rfcumpgrid"></div>
+    <p class="rf-nodata-note" id="rf-nodata-note"></p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Mapa de homologación</h2>
+      <p>Las 20 RC de SKIC y su RF principal en CODELCO · clic para filtrar el detalle</p>
+    </div>
+    <div class="rcgrid" id="rcgrid"></div>
+  </section>
+
+  <section id="revisar-section">
+    <div class="sec-head">
+      <h2>Casos a revisar</h2>
+      <p>Asociaciones "forzadas": única categoría CODELCO disponible, de otra escala o contexto</p>
+    </div>
+    <div class="callout">
+      <div class="chead"><span class="ico">!</span><h3>43 preguntas con asociación forzada — validar con criterio de ingeniería antes de usarlas como evidencia cruzada formal</h3></div>
+      <ul id="forzada-list"></ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Explorador de preguntas</h2>
+      <p>Las 1211 preguntas del checklist SKIC, cada una con su control RF de CODELCO</p>
+    </div>
+
+    <div class="controls">
+      <input type="search" id="search" placeholder="Buscar en la pregunta, RF o control… (ej. “arnés”, RF02, CCP1)">
+      <select id="rcSelect"><option value="">Todas las RC</option></select>
+      <div class="chip-row" id="fuerzaChips">
+        <button class="chip f-ok" data-f="Fuerte" aria-pressed="false"><span class="sw" style="background:var(--ok)"></span>Fuerte</button>
+        <button class="chip f-warn" data-f="Moderada" aria-pressed="false"><span class="sw" style="background:var(--warn)"></span>Moderada</button>
+        <button class="chip f-bad" data-f="Forzada" aria-pressed="false"><span class="sw" style="background:var(--bad)"></span>Forzada</button>
+      </div>
+      <button class="clearbtn" id="clearBtn">Limpiar filtros</button>
+    </div>
+
+    <div class="result-count" id="resultCount"></div>
+
+    <div class="tablewrap">
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th style="width:64px">RC</th><th style="width:64px">Ítem</th><th>Pregunta</th><th style="width:190px">RF · Control</th><th style="width:104px">Fuerza</th></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="tfoot">
+        <span class="pg" id="pgInfo"></span>
+        <div class="pager">
+          <button id="prevBtn">← Anterior</button>
+          <span class="pg" id="pgNum"></span>
+          <button id="nextBtn">Siguiente →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Fuentes: RF_CODELCO (31 riesgos de fatalidad) · RC_SKIC.xlsx (20 riesgos críticos)</span>
+    <span>Generado para revisión HSEC — punto de partida, no auditoría final</span>
+  </footer>
+
+</div><!-- /view-home -->
+
+<div id="view-detail" hidden>
+  <button class="backbtn" id="backBtn" type="button">← Volver al mapa de homologación</button>
+
+  <div class="bridge">
+    <div class="bpanel skic">
+      <span class="who">SKIC · Riesgo Crítico</span>
+      <span class="code mono" id="d-rc-code"></span>
+      <span class="name" id="d-rc-name"></span>
+      <span class="sub" id="d-rc-n"></span>
+    </div>
+    <div class="bridge-mid">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+    <div class="bpanel codelco">
+      <span class="who">CODELCO · Riesgo(s) de Fatalidad</span>
+      <span class="code mono" id="d-rf-code"></span>
+      <span class="name" id="d-rf-name"></span>
+      <span class="sub">RF asociado(s) a este riesgo crítico, en orden de relevancia</span>
+    </div>
+  </div>
+
+  <div class="detail-stats" id="d-stats"></div>
+  <div id="d-sindatos"></div>
+
+  <section>
+    <div class="sec-head">
+      <h2 id="d-section-title">Comparativo pregunta a pregunta</h2>
+      <p id="d-section-sub">Cada pregunta del checklist SKIC junto al control CODELCO que le sirve de evidencia, lado a lado</p>
+    </div>
+    <div class="viewtabs" role="tablist">
+      <button class="viewtab" id="tab-compare" type="button" aria-selected="true">↔ Comparativo lado a lado</button>
+      <button class="viewtab" id="tab-blocks" type="button" aria-selected="false">☰ Agrupado por control</button>
+    </div>
+
+    <div id="d-compare">
+      <div class="cmp-head"><span class="lab skic">SKIC · Riesgo Crítico</span><span></span><span class="lab codelco">CODELCO · Control RF</span><span></span><span class="lab target">Pregunta dirigida (requisito puntual)</span></div>
+      <div class="cmp-list" id="d-compare-list"></div>
+    </div>
+
+    <div id="d-blocks" hidden></div>
+  </section>
+
+  <section id="d-gaps-section">
+    <div class="sec-head">
+      <h2>Controles sin similitud</h2>
+      <p>Controles del RF asociado para los que ninguna pregunta de este RC entrega evidencia directa — requieren evidencia propia</p>
+    </div>
+    <div id="d-gaps"></div>
+  </section>
+</div><!-- /view-detail -->
+
+</div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  "use strict";
+  var D = window.APP_DATA;
+  var cols = D.crosswalk_cols; // rc,item,pregunta,rf,control,control_name,fuerza
+  var rows = D.crosswalk;
+  var summary = D.summary;
+
+  function idx(c){ return cols.indexOf(c); }
+  var I_RC=idx('rc'), I_ITEM=idx('item'), I_Q=idx('pregunta'), I_RF=idx('rf'), I_CTRL=idx('control'), I_CN=idx('control_name'), I_F=idx('fuerza'), I_REQ=idx('requisito'), I_REQCONF=idx('requisito_conf'), I_REQEV=idx('requisito_evidencia'), I_CUMP=idx('cumplimiento'), I_CUMPEST=idx('cumplimiento_estado');
+
+  var fClass = {Fuerte:'ok', Moderada:'warn', Forzada:'bad'};
+
+  var CUMP_LABEL = {cumple:'Cumple', parcial:'Cumple parcial', no_cumple:'No cumple', no_aplica:'No aplica'};
+  function pct(v){ return Math.round(v*100)+'%'; }
+  function cumpBadge(estado, val){
+    if(!estado) return '';
+    var lab = CUMP_LABEL[estado] || estado;
+    var pctTxt = (typeof val === 'number') ? ' · '+pct(val) : '';
+    return '<span class="cump-badge '+estado+'"><span class="sw"></span>'+lab+pctTxt+'</span>';
+  }
+  function estadoFromAvg(avg){
+    if(avg==null || typeof avg !== 'number') return '';
+    if(avg>=0.999) return 'cumple';
+    if(avg<=0.001) return 'no_cumple';
+    return 'parcial';
+  }
+
+  // ---------- dedupe for "unique question" counts (some RC-1/2 rows share item with multiple refs) ----------
+  var uniqueKeys = {};
+  rows.forEach(function(r){ uniqueKeys[r[I_RC]+'|'+r[I_ITEM]] = true; });
+  var totalUnique = Object.keys(uniqueKeys).length;
+
+  var counts = {Fuerte:0, Moderada:0, Forzada:0};
+  rows.forEach(function(r){ counts[r[I_F]] = (counts[r[I_F]]||0)+1; });
+  var totalRows = rows.length;
+
+  // ---------- stat tiles ----------
+  var gc = D.global_cumplimiento || {};
+  var statsHtml = ''
+    + tile(String(totalUnique).replace(/\B(?=(\d{3})+(?!\d))/g,'.'), 'preguntas cruzadas', '')
+    + tile('20', 'riesgos críticos SKIC', '')
+    + tile(Math.round(100*counts.Fuerte/totalRows)+'%', 'con match directo o palabra clave', 'ok')
+    + tile(counts.Forzada, 'asociaciones forzadas a revisar', 'bad')
+    + (typeof gc.avg === 'number'
+        ? tile(pct(gc.avg), 'cumplimiento CODELCO promedio', 'accent', gc.rf_con_datos+' de '+gc.rf_total+' RF con autodiagnóstico cargado')
+        : '');
+  document.getElementById('stats').innerHTML = statsHtml;
+  function tile(n,l,cls,l2){ return '<div class="stat '+cls+'"><div class="n disp">'+n+'</div><div class="l">'+l+'</div>'+(l2?'<div class="l2">'+l2+'</div>':'')+'</div>'; }
+
+  // ---------- RF cumplimiento grid ----------
+  var rfDetails = gc.rf_details || [];
+  if(rfDetails.length){
+    document.getElementById('rfcumpgrid').innerHTML = rfDetails.map(function(r){
+      return '<div class="rfcumpcard">'+
+        '<div class="top"><span class="rf-id">'+r.rf+'</span>'+cumpBadge(estadoFromAvg(r.avg), r.avg)+'</div>'+
+        '<div class="rf-n">'+escapeHtml(r.rf_n)+'</div>'+
+      '</div>';
+    }).join('');
+    var sinDatosN = gc.rf_total - gc.rf_con_datos;
+    document.getElementById('rf-nodata-note').textContent = sinDatosN > 0
+      ? 'Los otros '+sinDatosN+' RF de los '+gc.rf_total+' Riesgos de Fatalidad de CODELCO aún no tienen un autodiagnóstico cargado en este cruce (algunos por formato de archivo distinto al estándar, otros sin archivo recibido) — sus controles se muestran sin porcentaje en el detalle.'
+      : '';
+  } else {
+    document.getElementById('rf-cump-section').hidden = true;
+  }
+
+  // ---------- RC grid ----------
+  var rcgrid = document.getElementById('rcgrid');
+  var rcSelect = document.getElementById('rcSelect');
+  summary.forEach(function(s){
+    var total = s.fuerte + s.moderada + s.forzada;
+    var pf = total? (100*s.fuerte/total):0, pm = total?(100*s.moderada/total):0, pz = total?(100*s.forzada/total):0;
+    var card = document.createElement('button');
+    card.className = 'rccard'; card.type='button'; card.dataset.rc = s.rc;
+    var cardCump = (typeof s.cumplimiento_avg === 'number')
+      ? cumpBadge(estadoFromAvg(s.cumplimiento_avg), s.cumplimiento_avg)
+      : '<span class="no-autodiag" title="Ningún RF asociado a este RC tiene autodiagnóstico CODELCO cargado">Sin autodiagnóstico</span>';
+    card.innerHTML =
+      '<div class="top"><span class="rc-id">'+s.rc+'</span><span class="n">'+s.n+' preg.</span></div>'+
+      '<div class="name">'+s.rcn+'</div>'+
+      '<div class="arrow">↳ <b>'+ (s.principal || 'múltiple') +'</b> '+ (s.principal_n||'') +'</div>'+
+      '<div class="mini"><span style="width:'+pf+'%;background:var(--ok)"></span><span style="width:'+pm+'%;background:var(--warn)"></span><span style="width:'+pz+'%;background:var(--bad)"></span></div>'+
+      '<div class="cardcump">'+cardCump+'</div>';
+    card.addEventListener('click', function(){ showDetail(s.rc); });
+    rcgrid.appendChild(card);
+
+    var opt = document.createElement('option');
+    opt.value = s.rc; opt.textContent = s.rc+' · '+s.rcn;
+    rcSelect.appendChild(opt);
+  });
+
+  // ---------- casos a revisar ----------
+  var forz = {};
+  rows.forEach(function(r){
+    if(r[I_F]!=='Forzada') return;
+    var key = r[I_RC]+'||'+r[I_RF]+'-'+r[I_CTRL]+'||'+r[I_CN];
+    forz[key] = (forz[key]||0)+1;
+  });
+  var forzList = Object.keys(forz).map(function(k){
+    var p = k.split('||'); return {rc:p[0], ctrl:p[1], name:p[2], n:forz[k]};
+  }).sort(function(a,b){return b.n-a.n});
+  document.getElementById('forzada-list').innerHTML = forzList.map(function(f){
+    return '<li><span class="lab"><b>'+f.rc+'</b> → '+f.ctrl+' <span style="color:var(--text-dim)">— '+f.name+'</span></span><span class="cnt">'+f.n+' preg.</span></li>';
+  }).join('');
+
+  // ---------- explorer ----------
+  var state = { q:'', rc:'', fz:new Set(), page:0 };
+  var PAGE_SIZE = 40;
+
+  var searchEl = document.getElementById('search');
+  var rcSelectEl = document.getElementById('rcSelect');
+  var tbody = document.getElementById('tbody');
+  var resultCount = document.getElementById('resultCount');
+  var pgInfo = document.getElementById('pgInfo');
+  var pgNum = document.getElementById('pgNum');
+
+  searchEl.addEventListener('input', function(){ state.q = this.value.trim().toLowerCase(); state.page=0; applyFilters(); });
+  rcSelectEl.addEventListener('change', function(){
+    state.rc = this.value; state.page=0;
+    document.querySelectorAll('.rccard').forEach(function(c){ c.classList.toggle('active', c.dataset.rc===state.rc && state.rc!=='') });
+    applyFilters();
+  });
+  document.querySelectorAll('.chip[data-f]').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      var f = chip.dataset.f;
+      var pressed = chip.getAttribute('aria-pressed')==='true';
+      chip.setAttribute('aria-pressed', pressed?'false':'true');
+      if(pressed) state.fz.delete(f); else state.fz.add(f);
+      state.page=0; applyFilters();
+    });
+  });
+  document.getElementById('clearBtn').addEventListener('click', function(){
+    state = {q:'', rc:'', fz:new Set(), page:0};
+    searchEl.value=''; rcSelectEl.value='';
+    document.querySelectorAll('.chip[data-f]').forEach(function(c){c.setAttribute('aria-pressed','false')});
+    document.querySelectorAll('.rccard').forEach(function(c){c.classList.remove('active')});
+    applyFilters();
+  });
+  document.getElementById('prevBtn').addEventListener('click', function(){ if(state.page>0){state.page--; render();} });
+  document.getElementById('nextBtn').addEventListener('click', function(){ state.page++; render(); });
+  tbody.addEventListener('click', function(e){
+    var t = e.target.closest('.rc-link');
+    if(t) showDetail(t.dataset.rc);
+  });
+
+  var filtered = rows;
+  function applyFilters(){
+    filtered = rows.filter(function(r){
+      if(state.rc && r[I_RC]!==state.rc) return false;
+      if(state.fz.size && !state.fz.has(r[I_F])) return false;
+      if(state.q){
+        var hay = (r[I_Q]+' '+r[I_RF]+' '+r[I_CTRL]+' '+r[I_CN]).toLowerCase();
+        if(hay.indexOf(state.q)===-1) return false;
+      }
+      return true;
+    });
+    render();
+  }
+
+  function render(){
+    var totalPages = Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
+    if(state.page>=totalPages) state.page = totalPages-1;
+    var start = state.page*PAGE_SIZE;
+    var pageRows = filtered.slice(start, start+PAGE_SIZE);
+
+    resultCount.innerHTML = '<b>'+filtered.length+'</b> de '+rows.length+' filas de cruce';
+
+    tbody.innerHTML = pageRows.map(function(r){
+      var cls = fClass[r[I_F]] || 'warn';
+      return '<tr>'+
+        '<td class="rc rc-link" data-rc="'+r[I_RC]+'">'+r[I_RC]+'</td>'+
+        '<td class="rc mono">'+r[I_ITEM]+'</td>'+
+        '<td class="q"><span class="qt">'+escapeHtml(r[I_Q])+'</span></td>'+
+        '<td class="ctrl"><b>'+r[I_RF]+'</b>-'+r[I_CTRL]+'<span class="cn">'+escapeHtml(r[I_CN])+'</span></td>'+
+        '<td><span class="badge '+cls+'"><span class="sw"></span>'+r[I_F]+'</span></td>'+
+      '</tr>';
+    }).join('');
+
+    pgInfo.textContent = filtered.length ? ('Mostrando '+(start+1)+'–'+Math.min(start+PAGE_SIZE, filtered.length)) : 'Sin resultados';
+    pgNum.textContent = 'Página '+(state.page+1)+' / '+totalPages;
+    document.getElementById('prevBtn').disabled = state.page<=0;
+    document.getElementById('nextBtn').disabled = state.page>=totalPages-1;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // ---------- detail module (RC ⇄ RF) ----------
+  var viewHome = document.getElementById('view-home');
+  var viewDetail = document.getElementById('view-detail');
+  var summaryByRc = {};
+  summary.forEach(function(s){ summaryByRc[s.rc] = s; });
+
+  function pill(n, l, cls){
+    return '<span class="pill"><span class="sw" style="background:var(--'+cls+')"></span><b>'+n+'</b> '+l+'</span>';
+  }
+
+  function showDetail(rcCode){
+    var d = D.detail[rcCode];
+    var s = summaryByRc[rcCode];
+    if(!d || !s) return;
+
+    document.getElementById('d-rc-code').textContent = d.rc;
+    document.getElementById('d-rc-name').textContent = d.rcn;
+    document.getElementById('d-rc-n').textContent = d.n + ' preguntas del checklist SKIC';
+
+    var rfCodes = (d.rf_blocks||[]).map(function(b){ return b.rf; });
+    document.getElementById('d-rf-code').textContent = rfCodes.join(' · ') || '—';
+    var rfNames = (d.rf_blocks||[]).map(function(b){ return b.rf+' — '+b.rf_n; });
+    document.getElementById('d-rf-name').innerHTML = rfNames.map(function(t){ return escapeHtml(t); }).join('<br>');
+
+    var rcCumpPill = '';
+    if(typeof d.cumplimiento_avg === 'number'){
+      var rcEstado = estadoFromAvg(d.cumplimiento_avg);
+      var rcSw = rcEstado==='cumple' ? 'ok' : (rcEstado==='no_cumple' ? 'bad' : 'warn');
+      rcCumpPill = '<span class="pill cump-pill"><span class="sw" style="background:var(--'+rcSw+')"></span><b>'+pct(d.cumplimiento_avg)+'</b> cumplimiento CODELCO (autodiagnóstico'+(d.cumplimiento_n?', '+d.cumplimiento_n+' ítem(s)':'')+')</span>';
+    }
+    document.getElementById('d-stats').innerHTML =
+      pill(d.n, 'preguntas cruzadas', 'accent') +
+      pill(d.fuerte, 'match fuerte', 'ok') +
+      pill(d.moderada, 'match moderado', 'warn') +
+      (d.forzada ? pill(d.forzada, 'asociación forzada', 'bad') : '') +
+      rcCumpPill;
+
+    var sinDatos = d.rfs_sin_autodiagnostico || [];
+    document.getElementById('d-sindatos').innerHTML = sinDatos.length
+      ? '<p class="sin-datos-note">Sin autodiagnóstico CODELCO cargado para: '+sinDatos.join(', ')+' — no hay % de cumplimiento disponible para '+(sinDatos.length>1?'esos RF':'ese RF')+'.</p>'
+      : '';
+
+    var arrowSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    var rcRows = rows.filter(function(r){ return r[I_RC]===rcCode; });
+    document.getElementById('d-compare-list').innerHTML = rcRows.length ? rcRows.map(function(r){
+      var cls = fClass[r[I_F]] || 'warn';
+      var req = r[I_REQ], reqConf = r[I_REQCONF], reqEv = r[I_REQEV];
+      var cumpVal = r[I_CUMP], cumpEst = r[I_CUMPEST];
+      var cumpHtml = cumpBadge(cumpEst, typeof cumpVal==='number' ? cumpVal : null);
+      var targetHtml = req
+        ? '<span class="sg-tag '+reqConf+'">'+(reqConf==='alta'?'Requisito específico':'Requisito probable')+'</span>'+
+          '<span class="req">'+escapeHtml(req)+'</span>'+
+          (reqEv ? '<span class="ev">'+escapeHtml(reqEv)+'</span>' : '')+
+          (cumpHtml ? '<div style="margin-top:2px">'+cumpHtml+'</div>' : '')
+        : '<span class="sg-tag general">General</span><span class="gen">Aplica al control en su conjunto — sin requisito puntual identificado</span>';
+      return '<div class="cmp-row">'+
+        '<div class="cmp-col cmp-left"><span class="cmp-item">'+escapeHtml(r[I_ITEM])+'</span><span class="cmp-q">'+escapeHtml(r[I_Q])+'</span></div>'+
+        '<div class="cmp-mid">'+arrowSvg+'</div>'+
+        '<div class="cmp-col cmp-center"><span class="cmp-rf">'+r[I_RF]+'-'+r[I_CTRL]+'</span><span class="cmp-cn">'+escapeHtml(r[I_CN])+'</span><span class="badge '+cls+'"><span class="sw"></span>'+r[I_F]+'</span></div>'+
+        '<div class="cmp-mid">'+arrowSvg+'</div>'+
+        '<div class="cmp-col cmp-target">'+targetHtml+'</div>'+
+      '</div>';
+    }).join('') : '<div class="cmp-empty">Sin preguntas cruzadas para este RC.</div>';
+
+    document.getElementById('d-blocks').innerHTML = (d.rf_blocks||[]).map(function(b, bi){
+      var role = (b.rf === s.principal) ? 'RF principal' : 'RF secundario';
+      var rfCump = b.tiene_autodiagnostico
+        ? (typeof b.cumplimiento_avg==='number' ? cumpBadge(estadoFromAvg(b.cumplimiento_avg), b.cumplimiento_avg) : '')
+        : '<span class="no-autodiag" title="No hay autodiagnóstico CODELCO cargado para este RF">Sin autodiagnóstico CODELCO</span>';
+      return '<div class="rfblock">'+
+        '<div class="rfblock-head">'+
+          '<span class="badge-rf">'+b.rf+'</span>'+
+          '<h3>'+escapeHtml(b.rf_n)+'</h3>'+
+          '<span class="role">'+role+' · '+b.n_preguntas+' preg.</span>'+
+          rfCump+
+        '</div>'+
+        b.controles.map(function(c, ci){
+          var code = c.code || 'sin control específico';
+          var qn = c.preguntas.length;
+          var ctrlCump = (typeof c.cumplimiento_avg==='number') ? cumpBadge(estadoFromAvg(c.cumplimiento_avg), c.cumplimiento_avg) : '';
+          return '<details class="ctrl-acc"'+(bi===0 && ci===0 ? ' open' : '')+'>'+
+            '<summary><span class="left"><span class="code">'+escapeHtml(code)+'</span><span class="cname">'+escapeHtml(c.name||'(agrupado por sub-tema)')+'</span></span>'+
+              '<span style="display:flex;align-items:center;gap:8px">'+ctrlCump+'<span class="qn">'+qn+' preg.</span><span class="chev">▶</span></span>'+
+            '</summary>'+
+            '<div class="body">'+
+              (c.objetivo ? '<div class="obj">'+escapeHtml(c.objetivo)+'</div>' : '')+
+              (function(){
+                var sgs = c.subgrupos || [];
+                var qrow = function(p){
+                  var cls = fClass[p.fuerza] || 'warn';
+                  return '<div class="qrow"><span class="qi mono">'+escapeHtml(p.item)+'</span><span class="qt2">'+escapeHtml(p.pregunta)+' <span class="badge '+cls+'" style="margin-left:6px">'+p.fuerza+'</span></span></div>';
+                };
+                // no meaningful sub-item found anywhere in this control: skip the grouping noise, show a flat list like before
+                if(sgs.length <= 1){
+                  return '<div class="qlist">'+c.preguntas.map(qrow).join('')+'</div>';
+                }
+                return sgs.map(function(sg){
+                  var qlistHtml = '<div class="qlist">'+sg.preguntas.map(qrow).join('')+'</div>';
+                  var sgCump = sg.cumplimiento_estado ? cumpBadge(sg.cumplimiento_estado, typeof sg.cumplimiento==='number'?sg.cumplimiento:null) : '';
+                  if(sg.requisito){
+                    return '<div class="subgroup">'+
+                      '<div class="subgroup-head"><span class="sg-tag '+sg.conf+'">'+(sg.conf==='alta'?'Requisito específico':'Requisito probable')+'</span><span class="req">'+escapeHtml(sg.requisito)+'</span>'+sgCump+'</div>'+
+                      qlistHtml+
+                    '</div>';
+                  }
+                  return '<div class="subgroup">'+
+                    '<div class="subgroup-head"><span class="sg-tag general">General</span><span class="gen">Aplica al control en su conjunto — sin un requisito específico identificado</span></div>'+
+                    qlistHtml+
+                  '</div>';
+                }).join('');
+              })()+
+            '</div>'+
+          '</details>';
+        }).join('') +
+      '</div>';
+    }).join('') || '<p style="color:var(--text-dim)">Sin RF asociado.</p>';
+
+    var gapsHtml = (d.rf_blocks||[]).map(function(b){
+      if(!b.gaps || !b.gaps.length) return '';
+      return '<div class="gaps-box">'+
+        '<div class="chead"><span class="ico">!</span><h3>'+b.rf+' — '+b.gaps.length+' control(es) sin pregunta asociada</h3></div>'+
+        '<p class="note">Estos controles de "'+escapeHtml(b.rf_n)+'" no tienen ninguna pregunta del checklist SKIC que los cubra — se necesita evidencia adicional propia.</p>'+
+        '<div class="gaps-list">'+b.gaps.map(function(g){
+          var gCumpHtml = (typeof g.cumplimiento_avg === 'number')
+            ? cumpBadge(estadoFromAvg(g.cumplimiento_avg), g.cumplimiento_avg)
+            : '';
+          return '<div class="gap-item"><div class="top2"><span class="code">'+escapeHtml(g.code)+'</span><span class="cname">'+escapeHtml(g.name)+'</span>'+(gCumpHtml?'<div style="margin-top:4px">'+gCumpHtml+'</div>':'')+'</div>'+
+            (g.objetivo ? '<div class="obj">'+escapeHtml(g.objetivo)+'</div>' : '')+
+          '</div>';
+        }).join('')+
+        '</div>'+
+      '</div>';
+    }).join('');
+    document.getElementById('d-gaps').innerHTML = gapsHtml ||
+      '<div class="no-gaps">✓ Todos los controles del/los RF asociado(s) tienen al menos una pregunta de evidencia en este RC.</div>';
+
+    setDetailTab('compare');
+    viewHome.hidden = true;
+    viewDetail.hidden = false;
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  }
+
+  function backToHome(){
+    viewDetail.hidden = true;
+    viewHome.hidden = false;
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  }
+  document.getElementById('backBtn').addEventListener('click', backToHome);
+
+  // ---------- detail view tabs: comparativo vs. agrupado por control ----------
+  var tabCompare = document.getElementById('tab-compare');
+  var tabBlocks = document.getElementById('tab-blocks');
+  var elCompare = document.getElementById('d-compare');
+  var elBlocks = document.getElementById('d-blocks');
+  var secTitle = document.getElementById('d-section-title');
+  var secSub = document.getElementById('d-section-sub');
+  function setDetailTab(which){
+    var isCompare = which === 'compare';
+    tabCompare.setAttribute('aria-selected', isCompare ? 'true' : 'false');
+    tabBlocks.setAttribute('aria-selected', isCompare ? 'false' : 'true');
+    elCompare.hidden = !isCompare;
+    elBlocks.hidden = isCompare;
+    secTitle.textContent = isCompare ? 'Comparativo pregunta a pregunta' : 'Cruce de preguntas por control';
+    secSub.textContent = isCompare
+      ? 'Cada pregunta del checklist SKIC junto al control CODELCO que le sirve de evidencia, lado a lado'
+      : 'Cada control RF con las preguntas del checklist SKIC que le sirven de evidencia — abre un control para verlas';
+  }
+  tabCompare.addEventListener('click', function(){ setDetailTab('compare'); });
+  tabBlocks.addEventListener('click', function(){ setDetailTab('blocks'); });
+
+  applyFilters();
+})();
+</script>
+</body>
+</html>
