@@ -55,6 +55,11 @@
     if (shell) shell.style.display = "";
     var s = document.createElement("script");
     s.src = "app.js?v=7";
+    s.onload = function () {
+      var incidents = document.createElement("script");
+      incidents.src = "incidentes-v2.js?v=7";
+      document.body.appendChild(incidents);
+    };
     document.body.appendChild(s);
   }
 

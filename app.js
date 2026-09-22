@@ -1027,8 +1027,9 @@
 
   // ---- Incidentes y medidas correctivas ----------------------------------
   function renderIncidentes() {
-    const data = D.incidentes;
-    if (!data || !data.length) return;
+    if (window.INCIDENTS_V2) return;
+    const rawInc = Array.isArray(D.incidentes) ? D.incidentes : [];
+    if (!rawInc.length) return;
 
     const norm = (s) =>
       String(s || "")
@@ -1044,6 +1045,47 @@
       if (n.indexOf("abierto") > -1) return "#e1251b";
       return "#9aa3b2";
     };
+
+    // Normalizacion excel-v4: unifica claves y tipos para evitar variaciones
+    // entre exportes del consolidado de incidentes.
+    const data = rawInc
+      .map((it, i) => {
+        const medidasRaw = Array.isArray(it.medidas)
+          ? it.medidas
+          : Array.isArray(it.medidasCorrectivas)
+          ? it.medidasCorrectivas
+          : [];
+        const medidas = medidasRaw.map((m) => ({
+          medida: String(m.medida || m.descripcion || m.accion || "").trim(),
+          responsable: String(m.responsable || m.owner || "").trim(),
+          fechaCierre: String(m.fechaCierre || m.fecha || "").trim(),
+          estatus: String(m.estatus || m.estado || m.status || "Pendiente").trim(),
+          verifMedidas: String(m.verifMedidas || m.verificacion || "").trim(),
+          comentarioAuditor: String(m.comentarioAuditor || m.auditor || "").trim(),
+        }));
+        return {
+          item: String(it.item || it.id || i + 1),
+          nombre: String(it.nombre || it.evento || it.titulo || "Incidente sin titulo").trim(),
+          incidente: String(it.incidente || it.descripcion || it.detalle || "").trim(),
+          categoria: String(it.categoria || it.tipo || "SIN CATEGORIA").trim(),
+          turno: String(it.turno || it.jornada || "SIN TURNO").trim(),
+          fecha: String(it.fecha || it.fechaEvento || "").trim(),
+          verifMedidas: String(it.verifMedidas || "").trim(),
+          verifEficacia: String(it.verifEficacia || "").trim(),
+          comentarios: String(it.comentarios || "").trim(),
+          comentarioAuditor: String(it.comentarioAuditor || "").trim(),
+          medidas,
+        };
+      })
+      .filter((it) => it.nombre || it.incidente || it.medidas.length);
+
+    if (!data.length) return;
+
+    const source = $("#incExcelSource");
+    if (source) {
+      source.textContent =
+        "Origen: " + INCIDENT_EXCEL_SOURCE + " · normalización excel-v4";
+    }
 
     // Interpreta el estado de verificacion (tolera el typo "PENIDENTE").
     const verifInfo = (v) => {
@@ -1142,7 +1184,7 @@
     $("#incEstadoLegend").innerHTML = estArr
       .map(
         (e) => `
-        <div class="legend-item">
+        <div class="legend-item inc-legend-item" data-est="${escapeHtml(e.label)}" title="Filtrar por estado ${escapeHtml(e.label)}">
           <span class="legend-dot" style="background:${e.color}"></span>
           <span>${escapeHtml(e.label)}</span>
           <span class="lg-val">${e.value}</span>
@@ -1181,7 +1223,7 @@
     const clearChartsBtn = $("#incClearFilters");
     const selEstado = $("#incEstado");
     const open = new Set();
-    const chartFilter = { month: "", pattern: "", medTheme: "" };
+    const chartFilter = { month: "", pattern: "", medTheme: "", donutState: "" };
     let patternMembers = {};
 
     const parseFecha = (s) => {
@@ -1303,6 +1345,17 @@
         )
         .join("");
 
+      const yearLines = points
+        .map((p, i) => {
+          if (!i) return "";
+          const prevYear = String(points[i - 1].key).slice(0, 4);
+          const year = String(p.key).slice(0, 4);
+          if (year === prevYear) return "";
+          const xx = x(i) - step / 2;
+          return `<line x1="${xx}" y1="${padY}" x2="${xx}" y2="${h - padY}" class="inc-year-line"></line>`;
+        })
+        .join("");
+
       cont.innerHTML = `
         <div class="inc-trend-kpis">
           <span class="mini-chip">Meses con incidentes: ${points.length}</span>
@@ -1318,6 +1371,7 @@
             <line x1="${padX}" y1="${h - padY}" x2="${w - padX}" y2="${h - padY}" class="inc-line-axis"></line>
             <line x1="${padX}" y1="${padY}" x2="${padX}" y2="${h - padY}" class="inc-line-axis"></line>
             ${grid}
+            ${yearLines}
             <polyline points="${pointsN}" class="inc-line-poly-n"></polyline>
             <polyline points="${pointsAvg}" class="inc-line-poly-avg"></polyline>
             ${dotsN}
@@ -1678,7 +1732,114 @@
         );
         if (!has) return false;
       }
+      if (chartFilter.donutState) {
+        const hasState = (it.medidas || []).some(
+          (m) => String(m.estatus || "SIN ESTADO").toUpperCase() === chartFilter.donutState
+        );
+        if (!hasState) return false;
+      }
       return true;
+    }
+
+    function renderTaxonomy(rows) {
+      const host = $("#incTaxonomyBody");
+      if (!host) return;
+      const bag = {};
+      rows.forEach((it) => {
+        const key = it.categoria || "SIN CATEGORIA";
+        if (!bag[key]) bag[key] = { categoria: key, incidentes: 0, abiertas: 0, medidas: 0 };
+        bag[key].incidentes += 1;
+        let tieneAbierta = false;
+        (it.medidas || []).forEach((m) => {
+          bag[key].medidas += 1;
+          if (norm(m.estatus).indexOf("cerrad") === -1) {
+            bag[key].abiertas += 1;
+            tieneAbierta = true;
+          }
+        });
+        if (!it.medidas.length) {
+          bag[key].abiertas += 1;
+          tieneAbierta = true;
+        }
+        if (tieneAbierta) bag[key].incidentesPend = (bag[key].incidentesPend || 0) + 1;
+      });
+
+      const arr = Object.values(bag).sort((a, b) => b.incidentes - a.incidentes);
+      host.innerHTML = arr
+        .map(
+          (x) => `
+          <div class="inc-tax-card">
+            <div class="inc-tax-title">${escapeHtml(x.categoria)}</div>
+            <div class="inc-tax-metrics">
+              <span class="mini-chip">${x.incidentes} incidentes</span>
+              <span class="mini-chip alt">${x.abiertas} pendientes</span>
+              <span class="mini-chip">${x.medidas} medidas</span>
+            </div>
+          </div>`
+        )
+        .join("");
+    }
+
+    function renderFollowup(rows) {
+      const body = $("#incFollowupBody");
+      if (!body) return;
+      const pend = [];
+      rows.forEach((it) => {
+        if (!it.medidas.length) {
+          pend.push({
+            item: it.item,
+            nombre: it.nombre,
+            medida: "Sin medidas registradas",
+            responsable: "—",
+            fechaCierre: "—",
+            estado: "Pendiente",
+          });
+          return;
+        }
+        it.medidas.forEach((m) => {
+          if (norm(m.estatus).indexOf("cerrad") > -1) return;
+          pend.push({
+            item: it.item,
+            nombre: it.nombre,
+            medida: m.medida || "—",
+            responsable: m.responsable || "—",
+            fechaCierre: m.fechaCierre || "—",
+            estado: m.estatus || "Pendiente",
+          });
+        });
+      });
+
+      if (!pend.length) {
+        body.innerHTML =
+          '<tr><td colspan="6" class="inc-empty">No hay medidas pendientes con los filtros aplicados.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = pend
+        .map(
+          (p, i) => `
+          <tr class="inc-followup-row" data-jump-item="${escapeHtml(p.item)}">
+            <td class="cell-center">${i + 1}</td>
+            <td>${escapeHtml(p.nombre)}</td>
+            <td>${escapeHtml(p.medida)}</td>
+            <td>${escapeHtml(p.responsable)}</td>
+            <td class="cell-center">${escapeHtml(p.fechaCierre)}</td>
+            <td class="cell-center"><span class="inc-estado" style="--ec:${estadoColor(
+              p.estado
+            )}">${escapeHtml(p.estado)}</span></td>
+          </tr>`
+        )
+        .join("");
+    }
+
+    function openIncidentByItem(itemId) {
+      open.add(String(itemId));
+      apply();
+      const cards = Array.prototype.slice.call(
+        results.querySelectorAll(".inc-card")
+      );
+      const card = cards.find((x) => x.getAttribute("data-item") === String(itemId));
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function apply() {
@@ -1697,8 +1858,10 @@
       renderTrend(baseRows);
       renderPatterns(baseRows);
       renderMedidasTrends(baseRows);
+      renderTaxonomy(baseRows);
 
       const rows = baseRows.filter(matchChartFilters);
+      renderFollowup(rows);
 
       const activeChartFilters = [];
       if (chartFilter.month) activeChartFilters.push("Mes: " + monthLabel(chartFilter.month));
@@ -1707,8 +1870,16 @@
         const m = medidaDefs.find((d) => d.id === chartFilter.medTheme);
         activeChartFilters.push("Medida: " + (m ? m.label : chartFilter.medTheme));
       }
+      if (chartFilter.donutState) {
+        activeChartFilters.push("Estado donut: " + chartFilter.donutState);
+      }
 
       if (clearChartsBtn) clearChartsBtn.disabled = activeChartFilters.length === 0;
+
+      document.querySelectorAll(".inc-legend-item").forEach((el) => {
+        const est = el.getAttribute("data-est") || "";
+        el.classList.toggle("active", !!est && est === chartFilter.donutState);
+      });
 
       count.textContent =
         rows.length +
@@ -1889,7 +2060,30 @@
         chartFilter.month = "";
         chartFilter.pattern = "";
         chartFilter.medTheme = "";
+        chartFilter.donutState = "";
         apply();
+      });
+    }
+
+    const donutLegend = $("#incEstadoLegend");
+    if (donutLegend) {
+      donutLegend.addEventListener("click", (ev) => {
+        const row = ev.target.closest("[data-est]");
+        if (!row) return;
+        const est = row.getAttribute("data-est") || "";
+        chartFilter.donutState = chartFilter.donutState === est ? "" : est;
+        apply();
+      });
+    }
+
+    const followupBody = $("#incFollowupBody");
+    if (followupBody) {
+      followupBody.addEventListener("click", (ev) => {
+        const row = ev.target.closest("[data-jump-item]");
+        if (!row) return;
+        const itemId = row.getAttribute("data-jump-item");
+        if (!itemId) return;
+        openIncidentByItem(itemId);
       });
     }
 
