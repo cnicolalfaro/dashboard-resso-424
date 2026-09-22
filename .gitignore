@@ -23,6 +23,9 @@ preview.html
 # Archivos fuente y utilidades (Excel, scripts de extracción)
 fuentes/
 
+# Excel originales de autodiagnóstico CODELCO (privados, no publicar)
+RF CODELCO/
+
 # Temporales y del sistema
 *.tmp
 *.log
