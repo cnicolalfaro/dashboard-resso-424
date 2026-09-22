@@ -1588,7 +1588,8 @@ h1 {
   border-color: #d5deeb;
   box-shadow: 0 4px 14px rgba(31, 60, 116, .06);
 }
-.inc-chart-grid > .inc-exec-panel { min-height: 285px; padding: 18px; }
+.inc-chart-grid { align-items: stretch; }
+.inc-chart-grid > .inc-exec-panel { height: 310px; min-height: 310px; padding: 18px; overflow: hidden; }
 .inc-exec-head { margin-bottom: 14px; }
 .inc-exec-head h2, .inc-catalog-header h2 { font-size: 1rem; font-weight: 800; }
 .inc-exec-head p, .inc-catalog-header p { font-size: .72rem; line-height: 1.4; }
@@ -1598,6 +1599,7 @@ h1 {
 .inc-open-bars { grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); gap: 12px; padding-inline: 4px; }
 .inc-open-bar { grid-template-rows: 23px 120px 42px; min-width: 0; padding: 0 2px; border-radius: 6px; }
 .inc-open-bar:hover { background: #f6f8fc; }
+.inc-open-bar.active { background: #eef3fb; box-shadow: inset 0 0 0 1px #9fb4d8; }
 .inc-open-bar strong { font-size: .69rem; color: var(--sk-blue-dark); }
 .inc-open-bar small { align-self: start; min-height: 29px; overflow: hidden; font-size: .58rem; line-height: 1.18; color: #53627a; overflow-wrap: anywhere; }
 .inc-open-track { width: 78%; height: 120px; margin-inline: auto; border: 1px solid #e0e7f1; background: #f0f4f9; }
@@ -1614,9 +1616,31 @@ h1 {
 .inc-year-dot.year-2026 { stroke: var(--sk-red) !important; }
 .inc-year-value { paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
 .inc-exec-months button { min-height: 29px; font-size: .61rem; }
-.inc-section-heading { padding: 2px 2px 0; }
+.inc-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 18px;
+  background: #fff;
+  border: 1px solid #d5deeb;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(31, 60, 116, .06);
+}
 .inc-section-heading h2 { font-size: 1.04rem; }
 .inc-section-heading p { font-size: .72rem; }
+.inc-reset-btn {
+  min-height: 34px;
+  border: 1px solid #b8c8df;
+  border-radius: 6px;
+  padding: 6px 11px;
+  background: #fff;
+  color: var(--sk-blue);
+  font: 700 .65rem 'Open Sans', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.inc-reset-btn:hover { border-color: var(--sk-blue); background: var(--sk-blue-soft); }
 .inc-followup-panel { padding: 0; }
 .inc-followup-head { padding: 16px 18px 10px; }
 .inc-followup-head h3 { font-size: .94rem; }
