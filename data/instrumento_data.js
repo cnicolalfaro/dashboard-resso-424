@@ -2,7 +2,7 @@
 // Generado automáticamente desde data/dashboard_data.js — no editar a mano.
 // Regenerar con: node fuentes/sync_instrumento_data.js
 window.DASHBOARD_DATA = {
-  "generatedAt": "14/07/2026 10:30",
+  "generatedAt": "23/09/2026 17:00",
   "kpis": {
     "nivelExposicion": "Moderado"
   },
@@ -58,7 +58,7 @@ window.DASHBOARD_DATA = {
               "n": 2,
               "texto": "¿El Plan/Programa de Trabajo está aprobado por la empresa y suscrito por el Organismo Administrador? ¿Además, es difundido y está alineado a los lineamientos establecidos en SIGO-M-001 SIGO?",
               "peso": 2,
-              "pct": 90,
+              "pct": 100,
               "responsable": "CONSTANZA",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2002?d=w3040416d18b646f2867c3e118616984e&csf=1&web=1&e=Ct9QBx",
               "comentarios": [
@@ -102,7 +102,7 @@ window.DASHBOARD_DATA = {
               "n": 4,
               "texto": "¿La empresa realiza el levantamiento, caracterización y análisis de peligros y evaluación de riesgos, en función de la metodología corporativa, considerando riesgos específicos del área/lugar del contrato, riesgos naturales e histórico de accidentes de la empresa?",
               "peso": 5,
-              "pct": 80,
+              "pct": 100,
               "responsable": "GESTIÓN",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A1%20-%20Programa%20de%20Trabajo%20y%20Planificacion/Pregunta%2004?d=w28a4b11b989f4bf6b2e1918164364797&csf=1&web=1&e=N45V62",
               "comentarios": [
@@ -210,7 +210,7 @@ window.DASHBOARD_DATA = {
               "n": 9,
               "texto": "¿La empresa considera la identificación y cumplimiento del marco legal en el desempeño de sus actividades, considerando al menos, una metodología formal para su aplicación, la actualización periódica y la gestión de brechas, según corresponda?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "CONSTANZA",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A3%20-%20Marco%20Regulatorio%20y%20Cumplimiento/Pregunta%2009?d=wb0dea66d1cc5481aa3eff3f64de12c80&csf=1&web=1&e=2bWxsW",
               "comentarios": [
@@ -228,7 +228,7 @@ window.DASHBOARD_DATA = {
               "n": 10,
               "texto": "¿Se dio cumplimiento en plazo a las instrucciones/observaciones de los organismos y autoridades fiscalizadoras competentes y la de sus subcontratos? Si aplica. ¿Informando los resultados al administrador CODELCO y a la GSSO vía LOD o carta contractual?",
               "peso": 0.5,
-              "pct": 80,
+              "pct": 100,
               "responsable": "Constanza",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A3%20-%20Marco%20Regulatorio%20y%20Cumplimiento/Pregunta%2010?d=wa91b981960b9419fa7181e46780818ed&csf=1&web=1&e=mLvjIz",
               "comentarios": [
