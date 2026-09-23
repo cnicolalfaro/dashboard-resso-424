@@ -299,7 +299,13 @@
     return norm(value).split(/[^a-z0-9]+/).filter((token) => token.length >= 3 && !["dano","material","incidente","medida","medidas","correctivas","evento","nivel","para","con","del","los","las","una","uno","entre","sector","skic","camioneta"].includes(token));
   }
   function sharePointUrl(path) {
-    return `https://empresassk.sharepoint.com/${String(path || "").replace(/^\/+/, "")}`;
+    const cleanPath = String(path || "").replace(/^\/+/, "");
+    const libraryPrefix = "sites/ICSK-HSEC/Documentos compartidos";
+    if (cleanPath.startsWith(libraryPrefix)) {
+      const folderPath = cleanPath.slice(libraryPrefix.length).replace(/^\/+/, "");
+      return `https://empresassk.sharepoint.com/sites/ICSK-HSEC/Documentos%20compartidos/Forms/AllItems.aspx?id=${encodeURIComponent(`/sites/ICSK-HSEC/Documentos compartidos/${folderPath}`)}&viewid=7f6daa53-72cb-4020-b014-7388c5e0de57`;
+    }
+    return `https://empresassk.sharepoint.com/${cleanPath}`;
   }
   function evidenceDates(value) {
     const text = String(value || "");
