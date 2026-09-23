@@ -78,6 +78,11 @@
   const isClosed = (measure) => norm(measure.estatus).includes("cerrad");
   const isNA = (measure) => { const status = norm(measure.estatus); return status === "n/a" || status === "na" || status.includes("no aplica"); };
   const isPending = (measure) => { const status = norm(measure.estatus); return status.includes("abiert") || status.includes("pendient") || status.includes("proceso"); };
+  function measureDueInfo(measure) {
+    const due = parseDate(measure.fechaCierre);
+    const days = due ? Math.ceil((due - today) / DAY_MS) : null;
+    return { due, days, dueMonth: due ? `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, "0")}` : "", risk: days == null ? "none" : days < 0 ? "overdue" : days <= 30 ? "soon" : "ok" };
+  }
   function incidentStatus(incident) {
     if (!incident.medidas.length || incident.medidas.some(isPending)) return "pending";
     if (incident.medidas.every(isNA)) return "na";
@@ -242,8 +247,8 @@
 
   function pendingRecords() {
     return data.flatMap((incident) => incident.medidas.filter(isPending).map((measure) => {
-      const due = parseDate(measure.fechaCierre), days = due ? Math.ceil((due - today) / DAY_MS) : null;
-      return { incident, measure, days, dueMonth: due ? `${due.getFullYear()}-${String(due.getMonth()+1).padStart(2,"0")}` : "", risk: days == null ? "none" : days < 0 ? "overdue" : days <= 30 ? "soon" : "ok" };
+      const dueInfo = measureDueInfo(measure);
+      return { incident, measure, days: dueInfo.days, dueMonth: dueInfo.dueMonth, risk: dueInfo.risk };
     }));
   }
   function donutSvg(groups, total) {
@@ -267,9 +272,28 @@
   function renderCategories() {
     $("#incCategoryNav").innerHTML = categories.map((category) => `<button data-category="${escapeHtml(category)}" class="${state.category === category ? "active" : ""}"><span>${escapeHtml(category)}</span><strong>${data.filter((item)=>item.categoria===category).length}</strong></button>`).join("");
   }
+  function annotateDueAlerts(rows) {
+    document.querySelectorAll("#incResults .inc-event-row").forEach((eventRow, incidentIndex) => {
+      const incident = rows[incidentIndex];
+      if (!incident) return;
+      const measureRows = eventRow.querySelectorAll("tbody tr");
+      incident.medidas.forEach((measure, measureIndex) => {
+        if (!isPending(measure)) return;
+        const dueInfo = measureDueInfo(measure);
+        if (dueInfo.risk !== "overdue" && dueInfo.risk !== "soon") return;
+        const closeCell = measureRows[measureIndex]?.children[3];
+        if (!closeCell) return;
+        const label = dueInfo.risk === "overdue" ? `${Math.abs(dueInfo.days)} días de atraso` : dueInfo.days ? `Vence en ${dueInfo.days} días` : "Vence hoy";
+        closeCell.classList.add("inc-due-cell", dueInfo.risk);
+        closeCell.title = label;
+        closeCell.insertAdjacentHTML("beforeend", `<span class="inc-due-inline ${dueInfo.risk}">${label}</span>`);
+      });
+    });
+  }
   function renderTable() {
     const rows = filteredIncidents(); $("#incCount").textContent = `${rows.length} ${rows.length === 1 ? "incidente" : "incidentes"}`;
     $("#incResults").innerHTML = rows.map((incident) => { const status = incidentStatus(incident), label = {closed:"Cerrado",pending:"Pendiente",na:"No aplica",none:"Sin estado"}[status], open = state.openItems.has(incident.item); const measures = incident.medidas.map((measure) => `<tr><td>${escapeHtml(measure.medida)||"—"}</td><td>${escapeHtml(measure.responsable)||"—"}</td><td>${escapeHtml(incident.fecha)||"—"}</td><td>${escapeHtml(measure.fechaCierre)||"—"}</td><td><span class="inc-status ${isClosed(measure)?"closed":isNA(measure)?"na":isPending(measure)?"open":"none"}">${escapeHtml(measure.estatus)||"Sin estado"}</span></td></tr>`).join(""); return `<article class="inc-event-row ${open?"open":""}"><div class="inc-event-summary" data-item="${escapeHtml(incident.item)}"><span class="inc-event-item">${escapeHtml(incident.item)}</span><span class="inc-event-category">${escapeHtml(incident.categoria)}</span><span class="inc-event-area">${escapeHtml(incident.area)||"Por definir"}</span><span class="inc-event-name"><strong>${escapeHtml(incident.nombre)}</strong><small>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.turno)}</small></span><span class="inc-event-measures">${incident.medidas.length}</span><span class="inc-event-state ${status}">${label}</span><span class="inc-row-actions"><button class="inc-open-btn">›</button><button class="inc-edit-btn" data-edit="${escapeHtml(incident.item)}">Editar</button></span></div><div class="inc-event-detail" ${open?"":"hidden"}><div class="inc-event-facts"><div><span>Categoría</span><strong>${escapeHtml(incident.categoria)}</strong></div><div><span>Área de trabajo</span><strong>${escapeHtml(incident.area)||"Por definir"}</strong></div><div><span>Turno</span><strong>${escapeHtml(incident.turno)||"—"}</strong></div><div><span>Fecha general de cierre</span><strong>${escapeHtml(incident.fechaCierreGeneral)||"—"}</strong></div><div><span>Verificación de medidas</span><strong>${escapeHtml(incident.verifMedidas)||"—"}</strong></div><div><span>Verificación de eficacia</span><strong>${escapeHtml(incident.verifEficacia)||"—"}</strong></div></div><div class="inc-event-description"><span>Descripción del incidente</span><p>${escapeHtml(incident.incidente)||"Sin descripción"}</p></div><div class="table-wrap"><table class="records-table inc-exec-table"><thead><tr><th>Medida correctiva</th><th>Responsable</th><th>Inicio del incidente</th><th>Cierre</th><th>Estatus</th></tr></thead><tbody>${measures||'<tr><td colspan="5">Sin medidas.</td></tr>'}</tbody></table></div>${incident.comentarios?`<div class="inc-event-comments"><span>Comentarios</span><p>${escapeHtml(incident.comentarios)}</p></div>`:""}<button class="inc-download-folders" data-download="${escapeHtml(incident.item)}">Descargar carpetas</button></div></article>`; }).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
+    annotateDueAlerts(rows);
   }
   function renderAll() { const rows = filteredIncidents(); renderKpis(rows); renderOpenBars(rows); renderTrend(rows); renderCategories(); renderTable(); renderFollowup(); const meta=loadJson(SOURCE_META,{}); const modified=meta.lastModified?new Date(meta.lastModified).toLocaleDateString("es-CL"):"fecha no disponible"; $("#incSourceLabel").textContent = `Excel local · ${data.length} incidentes activos · actualizado ${modified}`; $("#incCategoryCount").textContent = categories.length; $("#incAreaCount").textContent = areas.length; }
 
@@ -306,7 +330,7 @@
     document.querySelector('[data-goto="viewIncidentes"]').addEventListener("click",()=>document.body.classList.add("incidents-mode")); document.querySelectorAll("#viewIncidentes [data-back]").forEach((button)=>button.addEventListener("click",()=>document.body.classList.remove("incidents-mode")));
     [["#incSearch","input","search"],["#incCat","change","category"],["#incTurno","change","shift"],["#incArea","change","area"],["#incEstado","change","status"]].forEach(([selector,event,key])=>$(selector).addEventListener(event,()=>{state[key]=$(selector).value;state.focusedItem="";renderAll();}));
     $("#incCategoryNav").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";renderAll();};
-    $("#incOpenBars").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";renderAll();$("#incidentesPanel").scrollIntoView({behavior:"smooth"});};
+    $("#incOpenBars").onclick=(event)=>{if(event.target.closest("strong, small"))return;const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";renderAll();$("#incidentesPanel").scrollIntoView({behavior:"smooth"});};
     $("#incTrendChart").onclick=(event)=>{const button=event.target.closest("[data-month]");if(!button)return;state.month=state.month===button.dataset.month?"":button.dataset.month;renderAll();};
     $("#incPendingCategory").onchange=()=>{state.pendingCategory=$("#incPendingCategory").value;renderFollowup();}; $("#incPendingMonth").onchange=()=>{state.pendingMonth=$("#incPendingMonth").value;renderFollowup();}; $("#incPendingRisk").onchange=()=>{state.pendingRisk=$("#incPendingRisk").value;renderFollowup();};
     $("#incPendingChart").onclick=(event)=>{const segment=event.target.closest("[data-risk]");if(!segment)return;state.pendingRisk=state.pendingRisk===segment.dataset.risk?"":segment.dataset.risk;$("#incPendingRisk").value=state.pendingRisk;renderFollowup();};

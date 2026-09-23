@@ -1668,6 +1668,19 @@ h1 {
 .inc-event-item { font-size: .69rem; font-weight: 800; }
 .inc-event-category { color: #334157; font-weight: 700; }
 .inc-event-name strong { font-size: .76rem; color: #202b3b; }
+.inc-due-cell.overdue { color: #9f2c20; font-weight: 800; }
+.inc-due-cell.soon { color: #a45b14; font-weight: 800; }
+.inc-due-inline {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: .55rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.inc-due-inline.overdue { background: rgba(214, 69, 50, .12); color: #9f2c20; }
+.inc-due-inline.soon { background: rgba(239, 139, 44, .14); color: #a45b14; }
 .inc-event-name small { margin-top: 2px; }
 .inc-event-detail { padding: 16px 18px 18px; border-top: 1px solid #d9e2ef; }
 .inc-event-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
