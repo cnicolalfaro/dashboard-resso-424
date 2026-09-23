@@ -423,16 +423,31 @@
   }
   function exportWorkbook() {
     const incidents = filteredIncidents({ ignoreFocused: true });
-    const header = ["ITEM", "FECHA", "TURNO", "CATEGORÍA", "ÁREA", "NOMBRE DEL EVENTO", "INCIDENTE", "N° MEDIDA", "MEDIDA CORRECTIVA", "RESPONSABLE", "FECHA CIERRE ACCIÓN", "ESTATUS", "VERIFICACIÓN MEDIDAS", "VERIFICACIÓN EFICACIA", "COMENTARIOS"];
-    const aoa = [header];
+    const filters = [
+      state.category ? `Categoría: ${state.category}` : "",
+      state.status ? `Estado: ${{ closed: "Cerrado", pending: "Pendiente", na: "No aplica", none: "Sin estado" }[state.status] || state.status}` : "",
+      state.pendingRisk ? `Seguimiento: ${{ closed: "Cerrada", overdue: "Vencida", soon: "Por vencer", open: "Abierta", none: "Sin fecha" }[state.pendingRisk] || state.pendingRisk}` : "",
+      state.month ? `Mes: ${MONTHS[+state.month]}` : "",
+      state.search ? `Búsqueda: ${state.search}` : "",
+    ].filter(Boolean).join(" | ") || "Sin filtros";
+    const header = ["N° REPORTE", "ITEM ORIGINAL", "FECHA", "TURNO", "CATEGORÍA", "ÁREA", "NOMBRE DEL EVENTO", "INCIDENTE", "N° MEDIDA", "MEDIDA CORRECTIVA", "RESPONSABLE", "FECHA CIERRE ACCIÓN", "ESTATUS", "VERIFICACIÓN MEDIDAS", "VERIFICACIÓN EFICACIA", "COMENTARIOS"];
+    const aoa = [
+      ["CONSOLIDADO DE INCIDENTES Y MEDIDAS CORRECTIVAS"],
+      [`Exportado: ${new Date().toLocaleString("es-CL")}`],
+      [`Filtros aplicados: ${filters}`],
+      [`Incidentes exportados: ${incidents.length}`],
+      [],
+      header,
+    ];
     const merges = [];
-    const rowKinds = ["header"];
-    incidents.forEach((item) => {
+    const rowKinds = ["title", "meta", "meta", "meta", "spacer", "header"];
+    incidents.forEach((item, itemIndex) => {
       const status = { closed: "Cerrado", pending: "Pendiente", na: "No aplica", none: "Sin estado" }[incidentStatus(item)] || "Sin estado";
       const measures = item.medidas.length ? item.medidas : [{}];
       const start = aoa.length;
       measures.forEach((measure, index) => {
         aoa.push([
+          index ? "" : itemIndex + 1,
           index ? "" : item.item,
           index ? "" : item.fecha,
           index ? "" : item.turno,
@@ -452,18 +467,18 @@
         rowKinds.push(index ? "measure" : "incident");
       });
       const end = aoa.length - 1;
-      if (end > start) [0,1,2,3,4,5,6,12,13,14].forEach((column) => merges.push({ s: { r: start, c: column }, e: { r: end, c: column } }));
+      if (end > start) [0,1,2,3,4,5,6,7,13,14,15].forEach((column) => merges.push({ s: { r: start, c: column }, e: { r: end, c: column } }));
       aoa.push(Array(header.length).fill(""));
       rowKinds.push("spacer");
     });
     const worksheet = XLSX.utils.aoa_to_sheet(aoa);
-    worksheet["!merges"] = merges;
+    worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: header.length - 1 } }, { s: { r: 2, c: 0 }, e: { r: 2, c: header.length - 1 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: header.length - 1 } }, ...merges];
     worksheet["!cols"] = [
-      { wch: 7 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 34 }, { wch: 54 }, { wch: 9 }, { wch: 58 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 34 },
+      { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 34 }, { wch: 54 }, { wch: 9 }, { wch: 58 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 34 },
     ];
-    worksheet["!rows"] = rowKinds.map((kind) => ({ hpt: kind === "header" ? 26 : kind === "spacer" ? 8 : kind === "incident" ? 42 : 34 }));
+    worksheet["!rows"] = rowKinds.map((kind) => ({ hpt: kind === "title" ? 28 : kind === "meta" ? 20 : kind === "header" ? 26 : kind === "spacer" ? 8 : kind === "incident" ? 42 : 34 }));
     worksheet["!freeze"] = { xSplit: 0, ySplit: 1 };
-    worksheet["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }) };
+    worksheet["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: 5, c: header.length - 1 } }) };
     const range = XLSX.utils.decode_range(worksheet["!ref"]);
     for (let row = range.s.r; row <= range.e.r; row++) {
       const kind = rowKinds[row] || "measure";
@@ -472,11 +487,12 @@
         if (!worksheet[address]) worksheet[address] = { t: "s", v: "" };
         const cell = worksheet[address];
         cell.s = {
-          font: { name: "Calibri", sz: kind === "header" ? 11 : 10, bold: kind === "header" || kind === "incident" },
+          font: { name: "Calibri", sz: kind === "title" ? 14 : kind === "header" ? 11 : 10, bold: kind === "title" || kind === "header" || kind === "incident" },
           alignment: { vertical: "center", wrapText: true },
           border: { top: { style: "thin", color: { rgb: "9AA6B6" } }, bottom: { style: "thin", color: { rgb: "9AA6B6" } }, left: { style: "thin", color: { rgb: "9AA6B6" } }, right: { style: "thin", color: { rgb: "9AA6B6" } } },
-          fill: { fgColor: { rgb: kind === "header" ? "DCE6F2" : kind === "spacer" ? "FFFFFF" : kind === "incident" ? "EEF3FB" : "FFFFFF" } },
+          fill: { fgColor: { rgb: kind === "title" ? "1F3C74" : kind === "meta" ? "EEF3FB" : kind === "header" ? "DCE6F2" : kind === "spacer" ? "FFFFFF" : kind === "incident" ? "EEF3FB" : "FFFFFF" } },
         };
+        if (kind === "title") cell.s.font.color = { rgb: "FFFFFF" };
         if (kind === "spacer") cell.s.border = {};
       }
     }
