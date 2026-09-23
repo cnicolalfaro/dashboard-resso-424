@@ -81,7 +81,7 @@
   function measureDueInfo(measure) {
     const due = parseDate(measure.fechaCierre);
     const days = due ? Math.ceil((due - today) / DAY_MS) : null;
-    return { due, days, dueMonth: due ? `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, "0")}` : "", risk: days == null ? "none" : days < 0 ? "overdue" : days <= 30 ? "soon" : "ok" };
+    return { due, days, dueMonth: due ? `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, "0")}` : "", risk: days == null ? "none" : days < 0 ? "overdue" : days <= 10 ? "soon" : "ok" };
   }
   function incidentStatus(incident) {
     if (!incident.medidas.length || incident.medidas.some(isPending)) return "pending";
@@ -142,7 +142,7 @@
   let categories = [];
   let areas = [];
   let criticality = loadJson(CRITICALITY, {});
-  const state = { search: "", category: "", shift: "", area: "", status: "", month: "", focusedItem: "", pendingCategory: "", pendingMonth: "", pendingRisk: "", openItems: new Set() };
+  const state = { search: "", category: "", shift: "", area: "", status: "", month: "", focusedItem: "", pendingCategory: "", pendingMonth: "", pendingRisk: "", followupItem: "", openItems: new Set() };
 
   async function loadData() {
     let source = localStorage.getItem(SOURCE);
@@ -187,23 +187,27 @@
     setFormOptions($("#incForm").elements.area, areas, "Por definir");
     setOptions($("#incPendingCategory"), categories, "Todas");
     const months = [...new Set(pendingRecords().map((record) => record.dueMonth).filter(Boolean))].sort().map((value) => ({ value, label: `${MONTHS[+value.slice(5) - 1]} ${value.slice(0, 4)}` }));
-    const monthSelect = $("#incPendingMonth"); const selected = monthSelect.value;
-    monthSelect.innerHTML = '<option value="">Todos</option>' + months.map((month) => `<option value="${month.value}">${month.label}</option>`).join("");
-    if (months.some((month) => month.value === selected)) monthSelect.value = selected;
+    const monthSelect = $("#incPendingMonth");
+    if (monthSelect) {
+      const selected = monthSelect.value;
+      monthSelect.innerHTML = '<option value="">Todos</option>' + months.map((month) => `<option value="${month.value}">${month.label}</option>`).join("");
+      if (months.some((month) => month.value === selected)) monthSelect.value = selected;
+    }
   }
 
-  function filteredIncidents() {
+  function filteredIncidents(options = {}) {
     const exactItemSearch = state.search && data.some((incident) => incident.item === clean(state.search))
       ? clean(state.search)
       : "";
     return data.filter((incident) => {
-      if (state.focusedItem && incident.item !== state.focusedItem) return false;
+      if (!options.ignoreFocused && state.focusedItem && incident.item !== state.focusedItem) return false;
       if (exactItemSearch && incident.item !== exactItemSearch) return false;
-      if (state.category && incident.categoria !== state.category) return false;
+      if (!options.ignoreCategory && state.category && incident.categoria !== state.category) return false;
       if (state.shift && incident.turno !== state.shift) return false;
       if (state.area && incident.area !== state.area) return false;
       if (state.status && incidentStatus(incident) !== state.status) return false;
-      if (state.month) { const date = parseDate(incident.fecha); if (!date || String(date.getMonth()) !== state.month) return false; }
+      if (!options.ignorePendingRisk && state.pendingRisk && followupStatus(incident).key !== state.pendingRisk) return false;
+      if (!options.ignoreMonth && state.month) { const date = parseDate(incident.fecha); if (!date || String(date.getMonth()) !== state.month) return false; }
       if (state.search && !exactItemSearch) {
         const haystack = norm([incident.item, incident.nombre, incident.incidente, incident.categoria, incident.area, ...incident.medidas.flatMap((measure) => [measure.medida, measure.responsable])].join(" "));
         if (!haystack.includes(norm(state.search))) return false;
@@ -215,23 +219,21 @@
   function renderKpis(rows) {
     const measures = rows.flatMap((item) => item.medidas);
     const closed = measures.filter(isClosed).length;
-    const pending = rows.filter((item) => incidentStatus(item) === "pending").length;
-    const overdue = measures.filter((measure) => { const due = parseDate(measure.fechaCierre); return isPending(measure) && due && due < today; }).length;
+    const open = measures.filter(isPending).length;
     const cards = [
-      ["Total registros", rows.length + measures.length, "blue", "Suma de incidentes y medidas."], ["Incidentes registrados", rows.length, "blue", "Cantidad de eventos únicos."],
-      ["Medidas correctivas", measures.length, "blue", "Total de acciones asociadas."], ["Medidas cerradas", closed, "green", "Acciones con estatus Cerrado."],
-      ["Incidentes con pendientes", pending, "amber", "Incidentes con medidas abiertas/pendientes/en proceso o sin medidas."], ["Medidas fuera de plazo", overdue, "red", "Medidas pendientes cuya fecha comprometida ya pasó."],
+      ["Total de incidentes", rows.length, "blue", "Eventos únicos filtrados."],
+      ["Medidas correctivas totales", measures.length, "blue", "Acciones asociadas a esos incidentes."],
+      ["Medidas cerradas", closed, "green", "Acciones con estatus Cerrado."],
+      ["Medidas abiertas", open, "amber", "Acciones abiertas, pendientes o en proceso."],
     ];
     $("#incKpis").innerHTML = cards.map(([label, value, tone, help]) => `<article class="inc-kpi inc-kpi-${tone}"><span>${label}</span><strong>${value}</strong><small>${help}</small></article>`).join("");
-    const pct = measures.length ? Math.round(closed / measures.length * 100) : 0;
-    $("#incGauge").innerHTML = `<div class="inc-gauge-dial" style="--progress:${pct * 1.8}deg"><div class="inc-gauge-center"><strong>${pct}%</strong><span>cerrado</span></div></div><div class="inc-gauge-scale"><span>0%</span><span>100%</span></div><p>${closed} de ${measures.length} medidas completadas</p>`;
   }
 
   function renderOpenBars(rows) {
     const colors = { low: "#3971c8", normal: "#e6ad18", critical: "#e87522" };
-    const groups = [...new Set(rows.map((item) => item.categoria))].map((category) => ({ category, value: rows.filter((item) => item.categoria === category).flatMap((item) => item.medidas).filter(isPending).length })).filter((item) => item.value).sort((a, b) => b.value - a.value).slice(0, 8);
+    const groups = [...new Set(rows.map((item) => item.categoria))].map((category) => ({ category, value: rows.filter((item) => item.categoria === category).length })).filter((item) => item.value).sort((a, b) => b.value - a.value || a.category.localeCompare(b.category));
     const max = Math.max(1, ...groups.map((item) => item.value));
-    $("#incOpenBars").innerHTML = groups.map((item) => { const level=criticality[item.category]||"normal"; return `<button class="inc-open-bar risk-${level}${state.category===item.category?" active":""}" data-category="${escapeHtml(item.category)}" title="${escapeHtml(item.category)} · ${item.value} medidas abiertas"><strong>${item.value}</strong><span class="inc-open-track"><i style="height:${Math.max(8, item.value / max * 100)}%;background:${colors[level]}"></i></span><small>${escapeHtml(item.category)}</small></button>`; }).join("") || '<div class="inc-empty-state">No hay medidas abiertas.</div>';
+    $("#incOpenBars").innerHTML = groups.map((item) => { const level=criticality[item.category]||"normal"; return `<button class="inc-open-bar risk-${level}${state.category===item.category?" active":""}" data-category="${escapeHtml(item.category)}" title="${escapeHtml(item.category)} · ${item.value} incidentes"><strong>${item.value}</strong><span class="inc-open-track"><i style="height:${Math.max(8, item.value / max * 100)}%;background:${colors[level]}"></i></span><small>${escapeHtml(item.category)}</small></button>`; }).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
   }
 
   function renderTrend(rows) {
@@ -270,7 +272,8 @@
   }
 
   function renderCategories() {
-    $("#incCategoryNav").innerHTML = categories.map((category) => `<button data-category="${escapeHtml(category)}" class="${state.category === category ? "active" : ""}"><span>${escapeHtml(category)}</span><strong>${data.filter((item)=>item.categoria===category).length}</strong></button>`).join("");
+    const base = filteredIncidents({ ignoreCategory: true });
+    $("#incCategoryNav").innerHTML = categories.map((category) => `<button data-category="${escapeHtml(category)}" class="${state.category === category ? "active" : ""}"><span>${escapeHtml(category)}</span><strong>${base.filter((item)=>item.categoria===category).length}</strong></button>`).join("");
   }
   function annotateDueAlerts(rows) {
     document.querySelectorAll("#incResults .inc-event-row").forEach((eventRow, incidentIndex) => {
@@ -290,12 +293,82 @@
       });
     });
   }
+  function followupStatus(incident) {
+    if (!incident.medidas.length) return { key: "none", label: "Sin medidas" };
+    const pending = incident.medidas.filter(isPending);
+    if (!pending.length && incidentStatus(incident) === "closed") return { key: "closed", label: "Cerrada" };
+    if (pending.some((measure) => measureDueInfo(measure).risk === "overdue")) return { key: "overdue", label: "Vencida" };
+    if (pending.some((measure) => measureDueInfo(measure).risk === "soon")) return { key: "soon", label: "Por vencer" };
+    if (pending.some((measure) => measureDueInfo(measure).risk === "none")) return { key: "none", label: "Sin fecha" };
+    if (pending.length) return { key: "open", label: "Abierta" };
+    return { key: "none", label: { na: "No aplica", none: "Sin estado", pending: "Pendiente" }[incidentStatus(incident)] || "Sin estado" };
+  }
+  function verificationState(value) {
+    const text = norm(value);
+    return !!text && !text.includes("pendient") && !text.includes("sin informacion") && text !== "-";
+  }
+  function verificationBadge(label, value) {
+    const ok = verificationState(value);
+    return `<span class="inc-verif-check ${ok ? "ok" : "missing"}"><b>${ok ? "✓" : "×"}</b>${label}: ${escapeHtml(value) || "Pendiente"}</span>`;
+  }
+  function measureDueText(measure) {
+    if (isClosed(measure)) return { text: measure.fechaCierre ? `Cerrada · ${measure.fechaCierre}` : "Cerrada", risk: "closed" };
+    if (isNA(measure)) return { text: measure.fechaCierre || measure.fechaCierreNota || "No aplica", risk: "na" };
+    const due = measureDueInfo(measure);
+    if (due.days == null) return { text: measure.fechaCierre || measure.fechaCierreNota || "Sin fecha", risk: "none" };
+    if (due.days < 0) return { text: `${measure.fechaCierre} · ${Math.abs(due.days)} días de atraso`, risk: "overdue" };
+    if (due.days <= 10) return { text: `${measure.fechaCierre} · ${due.days ? `Vence en ${due.days} días` : "Vence hoy"}`, risk: "soon" };
+    return { text: `${measure.fechaCierre} · En plazo`, risk: "ok" };
+  }
+  function followupDonut(groups, total, shown, shownLabel) {
+    if (!total) return '<div class="inc-risk-donut empty"><span>0<small>incidentes</small></span></div>';
+    const radius = 38, circumference = Math.PI * 2 * radius; let accumulated = 0;
+    const circles = groups.filter((group) => group.count).map((group) => { const length = group.count / total * circumference, offset = -accumulated / total * circumference; accumulated += group.count; return `<circle class="inc-risk-segment${state.pendingRisk === group.key ? " active" : ""}" cx="50" cy="50" r="${radius}" fill="none" stroke="${group.color}" stroke-width="13" stroke-dasharray="${length} ${circumference-length}" stroke-dashoffset="${offset}" transform="rotate(-90 50 50)" data-risk="${group.key}"><title>${group.label}: ${group.count}</title></circle>`; }).join("");
+    return `<div class="inc-risk-donut"><svg viewBox="0 0 100 100">${circles}</svg><span>${shown}<small>${shownLabel}</small></span></div>`;
+  }
+  function renderFollowupV2(rows, groupRows = rows) {
+    const defs = [
+      { key: "closed", label: "Cerrada", color: "#2f9461" },
+      { key: "overdue", label: "Vencida", color: "#d64532" },
+      { key: "soon", label: "Por vencer", color: "#ef8b2c" },
+      { key: "open", label: "Abierta", color: "#3971c8" },
+      { key: "none", label: "Sin fecha", color: "#8b96a8" },
+    ];
+    const groupEnriched = groupRows.map((incident) => ({ incident, status: followupStatus(incident) }));
+    const enriched = rows.map((incident) => ({ incident, status: followupStatus(incident) }));
+    const groups = defs.map((def) => ({ ...def, count: groupEnriched.filter((row) => row.status.key === def.key).length }));
+    const listed = state.pendingRisk ? enriched.filter((row) => row.status.key === state.pendingRisk) : enriched;
+    if (state.followupItem && !listed.some((row) => row.incident.item === state.followupItem)) state.followupItem = "";
+    const selectedForTone = state.followupItem ? enriched.find((row) => row.incident.item === state.followupItem) : null;
+    const activeTone = state.pendingRisk || (selectedForTone ? selectedForTone.status.key : "all");
+    $("#incPendingChart").closest(".inc-followup-panel").dataset.risk = activeTone;
+    $("#incPendingCount").textContent = listed.length;
+    const selectedGroup = state.pendingRisk ? groups.find((group) => group.key === state.pendingRisk) : null;
+    $("#incPendingChart").innerHTML = followupDonut(groups, enriched.length, selectedGroup ? selectedGroup.count : enriched.length, selectedGroup ? selectedGroup.label.toLowerCase() : "incidentes");
+    document.querySelectorAll("[data-pending-risk]").forEach((button) => button.classList.toggle("active", button.dataset.pendingRisk === state.pendingRisk));
+    $("#incPendingList").innerHTML = listed.map(({ incident, status }) => `<button class="inc-followup-row${state.followupItem === incident.item ? " active" : ""}" data-item="${escapeHtml(incident.item)}"><span class="inc-followup-item">${escapeHtml(incident.item)}</span><span class="inc-followup-category">${escapeHtml(incident.categoria)}</span><span class="inc-followup-event"><strong>${escapeHtml(incident.nombre)}</strong></span><span class="inc-due-badge ${status.key}">${status.label}</span></button>`).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
+    const selected = state.followupItem ? listed.find((row) => row.incident.item === state.followupItem) : null;
+    if (!selected) { $("#incPendingDetail").innerHTML = ""; return; }
+    const verification = `${verificationBadge("Verif. medidas", selected.incident.verifMedidas)}${verificationBadge("Verif. eficacia", selected.incident.verifEficacia)}`;
+    const detailMeasures = selected.incident.medidas.map((measure, index) => { const due = measureDueText(measure); return `<li class="measure-risk-${due.risk}"><span class="inc-measure-index">${index + 1}</span><strong>${escapeHtml(measure.medida) || "Medida sin descripción"}</strong><span>${escapeHtml(measure.responsable) || "Sin responsable"}</span><span class="inc-measure-state ${due.risk}">${escapeHtml(measure.estatus) || "Sin estado"}</span><span class="inc-measure-due">${escapeHtml(due.text)}</span></li>`; }).join("") || "<li><strong>Sin medidas registradas</strong><span>No hay acciones asociadas.</span></li>";
+    $("#incPendingDetail").innerHTML = `<div class="inc-detail-card"><div><span>Item ${escapeHtml(selected.incident.item)}</span><h3>${escapeHtml(selected.incident.nombre)}</h3><p>${escapeHtml(selected.incident.incidente) || "Sin descripción"}</p></div><div class="inc-detail-meta"><span class="meta-category">Categoría: ${escapeHtml(selected.incident.categoria)}</span><span class="meta-state ${selected.status.key}">Estado: ${escapeHtml(selected.status.label)}</span><span class="meta-date">Fecha: ${escapeHtml(selected.incident.fecha) || "Sin fecha"}</span><span class="meta-shift">Turno: ${escapeHtml(selected.incident.turno) || "Sin turno"}</span><span class="meta-area">Área: ${escapeHtml(selected.incident.area) || "Por definir"}</span><span class="meta-close ${selected.incident.fechaCierreGeneral ? "ok" : "missing"}">Cierre general: ${escapeHtml(selected.incident.fechaCierreGeneral) || "Sin cierre general"}</span></div><div class="inc-detail-verifications">${verification}</div><ul>${detailMeasures}</ul>${selected.incident.comentarios ? `<div class="inc-detail-comments"><strong>Comentarios</strong><p>${escapeHtml(selected.incident.comentarios)}</p></div>` : ""}</div>`;
+  }
+  function renderTableV2(rows) {
+    $("#incCount").textContent = `${rows.length} ${rows.length === 1 ? "incidente" : "incidentes"}`;
+    $("#incResults").innerHTML = rows.map((incident) => {
+      const status = incidentStatus(incident), label = {closed:"Cerrado",pending:"Pendiente",na:"No aplica",none:"Sin estado"}[status], open = state.openItems.has(incident.item);
+      const measuresText = incident.medidas.map((measure) => escapeHtml(measure.medida)).filter(Boolean).join(" · ") || "Sin medidas correctivas";
+      const measures = incident.medidas.map((measure) => `<tr><td>${escapeHtml(measure.medida)||"—"}</td><td>${escapeHtml(measure.responsable)||"—"}</td><td>${escapeHtml(incident.fecha)||"—"}</td><td>${escapeHtml(measure.fechaCierre)||"—"}</td><td><span class="inc-status ${isClosed(measure)?"closed":isNA(measure)?"na":isPending(measure)?"open":"none"}">${escapeHtml(measure.estatus)||"Sin estado"}</span></td></tr>`).join("");
+      return `<article class="inc-event-row ${open?"open":""}"><div class="inc-event-summary" data-item="${escapeHtml(incident.item)}"><span class="inc-event-item">${escapeHtml(incident.item)}</span><span class="inc-event-category">${escapeHtml(incident.categoria)}</span><span class="inc-event-area">${escapeHtml(incident.area)||"Por definir"}</span><span class="inc-event-name"><strong>${escapeHtml(incident.nombre)}</strong><small>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.turno)}</small></span><span class="inc-event-measures" title="${measuresText}">${measuresText}</span><span class="inc-event-state ${status}">${label}</span><span class="inc-row-actions"><button class="inc-open-btn">›</button><button class="inc-edit-btn" data-edit="${escapeHtml(incident.item)}">Editar</button></span></div><div class="inc-event-detail" ${open?"":"hidden"}><div class="inc-event-facts"><div><span>Categoría</span><strong>${escapeHtml(incident.categoria)}</strong></div><div><span>Área de trabajo</span><strong>${escapeHtml(incident.area)||"Por definir"}</strong></div><div><span>Turno</span><strong>${escapeHtml(incident.turno)||"—"}</strong></div><div><span>Fecha general de cierre</span><strong>${escapeHtml(incident.fechaCierreGeneral)||"—"}</strong></div><div><span>Verificación de medidas</span><strong>${escapeHtml(incident.verifMedidas)||"—"}</strong></div><div><span>Verificación de eficacia</span><strong>${escapeHtml(incident.verifEficacia)||"—"}</strong></div></div><div class="inc-event-description"><span>Descripción del incidente</span><p>${escapeHtml(incident.incidente)||"Sin descripción"}</p></div><div class="table-wrap"><table class="records-table inc-exec-table"><thead><tr><th>Medida correctiva</th><th>Responsable</th><th>Inicio del incidente</th><th>Cierre</th><th>Estatus</th></tr></thead><tbody>${measures||'<tr><td colspan="5">Sin medidas.</td></tr>'}</tbody></table></div>${incident.comentarios?`<div class="inc-event-comments"><span>Comentarios</span><p>${escapeHtml(incident.comentarios)}</p></div>`:""}<button class="inc-download-folders" data-download="${escapeHtml(incident.item)}">Descargar carpetas</button></div></article>`;
+    }).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
+    annotateDueAlerts(rows);
+  }
   function renderTable() {
     const rows = filteredIncidents(); $("#incCount").textContent = `${rows.length} ${rows.length === 1 ? "incidente" : "incidentes"}`;
     $("#incResults").innerHTML = rows.map((incident) => { const status = incidentStatus(incident), label = {closed:"Cerrado",pending:"Pendiente",na:"No aplica",none:"Sin estado"}[status], open = state.openItems.has(incident.item); const measures = incident.medidas.map((measure) => `<tr><td>${escapeHtml(measure.medida)||"—"}</td><td>${escapeHtml(measure.responsable)||"—"}</td><td>${escapeHtml(incident.fecha)||"—"}</td><td>${escapeHtml(measure.fechaCierre)||"—"}</td><td><span class="inc-status ${isClosed(measure)?"closed":isNA(measure)?"na":isPending(measure)?"open":"none"}">${escapeHtml(measure.estatus)||"Sin estado"}</span></td></tr>`).join(""); return `<article class="inc-event-row ${open?"open":""}"><div class="inc-event-summary" data-item="${escapeHtml(incident.item)}"><span class="inc-event-item">${escapeHtml(incident.item)}</span><span class="inc-event-category">${escapeHtml(incident.categoria)}</span><span class="inc-event-area">${escapeHtml(incident.area)||"Por definir"}</span><span class="inc-event-name"><strong>${escapeHtml(incident.nombre)}</strong><small>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.turno)}</small></span><span class="inc-event-measures">${incident.medidas.length}</span><span class="inc-event-state ${status}">${label}</span><span class="inc-row-actions"><button class="inc-open-btn">›</button><button class="inc-edit-btn" data-edit="${escapeHtml(incident.item)}">Editar</button></span></div><div class="inc-event-detail" ${open?"":"hidden"}><div class="inc-event-facts"><div><span>Categoría</span><strong>${escapeHtml(incident.categoria)}</strong></div><div><span>Área de trabajo</span><strong>${escapeHtml(incident.area)||"Por definir"}</strong></div><div><span>Turno</span><strong>${escapeHtml(incident.turno)||"—"}</strong></div><div><span>Fecha general de cierre</span><strong>${escapeHtml(incident.fechaCierreGeneral)||"—"}</strong></div><div><span>Verificación de medidas</span><strong>${escapeHtml(incident.verifMedidas)||"—"}</strong></div><div><span>Verificación de eficacia</span><strong>${escapeHtml(incident.verifEficacia)||"—"}</strong></div></div><div class="inc-event-description"><span>Descripción del incidente</span><p>${escapeHtml(incident.incidente)||"Sin descripción"}</p></div><div class="table-wrap"><table class="records-table inc-exec-table"><thead><tr><th>Medida correctiva</th><th>Responsable</th><th>Inicio del incidente</th><th>Cierre</th><th>Estatus</th></tr></thead><tbody>${measures||'<tr><td colspan="5">Sin medidas.</td></tr>'}</tbody></table></div>${incident.comentarios?`<div class="inc-event-comments"><span>Comentarios</span><p>${escapeHtml(incident.comentarios)}</p></div>`:""}<button class="inc-download-folders" data-download="${escapeHtml(incident.item)}">Descargar carpetas</button></div></article>`; }).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
     annotateDueAlerts(rows);
   }
-  function renderAll() { const rows = filteredIncidents(); renderKpis(rows); renderOpenBars(rows); renderTrend(rows); renderCategories(); renderTable(); renderFollowup(); const meta=loadJson(SOURCE_META,{}); const modified=meta.lastModified?new Date(meta.lastModified).toLocaleDateString("es-CL"):"fecha no disponible"; $("#incSourceLabel").textContent = `Excel local · ${data.length} incidentes activos · actualizado ${modified}`; $("#incCategoryCount").textContent = categories.length; $("#incAreaCount").textContent = areas.length; }
+  function renderAll() { const rows = filteredIncidents(); const followupGroups = filteredIncidents({ ignorePendingRisk: true }); const selectedIncident = state.followupItem ? data.find((incident) => incident.item === state.followupItem) : null; $("#incidentesPanel").dataset.risk = state.pendingRisk || (selectedIncident ? followupStatus(selectedIncident).key : "all"); renderKpis(rows); renderOpenBars(rows); renderTrend(filteredIncidents({ ignoreMonth: true })); renderCategories(); renderTableV2(rows); renderFollowupV2(rows, followupGroups); const meta=loadJson(SOURCE_META,{}); const modified=meta.lastModified?new Date(meta.lastModified).toLocaleDateString("es-CL"):"fecha no disponible"; const maxItem=Math.max(0,...data.map((incident)=>Number(incident.item)).filter(Number.isFinite)); const sequenceNote=maxItem>data.length?` · último item ${maxItem}`:""; $("#incSourceLabel").textContent = `Excel local · ${data.length} incidentes activos${sequenceNote} · actualizado ${modified}`; $("#incCategoryCount").textContent = categories.length; $("#incAreaCount").textContent = areas.length; }
 
   function addMeasureRow(measure = {}) {
     const row = document.createElement("div"); row.className = "inc-measure-row";
@@ -324,27 +397,113 @@
     const panel=$("#incTaxonomyPanel"), isCategory=mode==="category", values=isCategory?categories:areas; panel.dataset.mode=mode; panel.hidden=false; $("#incTaxonomyTitle").textContent=isCategory?"Categorías":"Áreas de trabajo"; $("#incTaxonomyHelp").textContent=isCategory?"Agrega categorías y edita nombre o criticidad.":"Agrega y edita áreas de trabajo.";
     $("#incTaxonomyList").innerHTML=values.map((value)=>`<div class="inc-taxonomy-row"><input value="${escapeHtml(value)}" readonly />${isCategory?`<select disabled>${[["low","Bajo"],["normal","Normal"],["critical","Crítico"]].map(([key,label])=>`<option value="${key}"${criticality[value]===key?" selected":""}>${label}</option>`).join("")}</select>`:""}<span>${data.filter((item)=>(isCategory?item.categoria:item.area)===value).length} incidentes</span><button data-tax-edit="${escapeHtml(value)}">Editar</button></div>`).join("");
   }
+  function exportRows() {
+    return filteredIncidents({ ignoreFocused: true }).flatMap((item) => {
+      const status = { closed: "Cerrado", pending: "Pendiente", na: "No aplica", none: "Sin estado" }[incidentStatus(item)] || "Sin estado";
+      const measures = item.medidas.length ? item.medidas : [{}];
+      return measures.map((measure, index) => ({
+        Item: item.item,
+        FechaIncidente: item.fecha,
+        Turno: item.turno,
+        Categoria: item.categoria,
+        Area: item.area,
+        NombreEvento: item.nombre,
+        DescripcionIncidente: item.incidente,
+        EstadoIncidente: status,
+        VerificacionMedidas: item.verifMedidas,
+        VerificacionEficacia: item.verifEficacia,
+        Comentarios: item.comentarios,
+        NumeroMedida: measure.medida ? index + 1 : "",
+        MedidaCorrectiva: measure.medida || "",
+        Responsable: measure.responsable || "",
+        FechaCierre: measure.fechaCierre || measure.fechaCierreNota || "",
+        EstatusMedida: measure.estatus || "",
+      }));
+    });
+  }
+  function exportWorkbook() {
+    const incidents = filteredIncidents({ ignoreFocused: true });
+    const header = ["ITEM", "FECHA", "TURNO", "CATEGORÍA", "ÁREA", "NOMBRE DEL EVENTO", "INCIDENTE", "N° MEDIDA", "MEDIDA CORRECTIVA", "RESPONSABLE", "FECHA CIERRE ACCIÓN", "ESTATUS", "VERIFICACIÓN MEDIDAS", "VERIFICACIÓN EFICACIA", "COMENTARIOS"];
+    const aoa = [header];
+    const merges = [];
+    const rowKinds = ["header"];
+    incidents.forEach((item) => {
+      const status = { closed: "Cerrado", pending: "Pendiente", na: "No aplica", none: "Sin estado" }[incidentStatus(item)] || "Sin estado";
+      const measures = item.medidas.length ? item.medidas : [{}];
+      const start = aoa.length;
+      measures.forEach((measure, index) => {
+        aoa.push([
+          index ? "" : item.item,
+          index ? "" : item.fecha,
+          index ? "" : item.turno,
+          index ? "" : item.categoria,
+          index ? "" : item.area,
+          index ? "" : item.nombre,
+          index ? "" : item.incidente,
+          measure.medida ? index + 1 : "",
+          measure.medida || "",
+          measure.responsable || "",
+          measure.fechaCierre || measure.fechaCierreNota || "",
+          measure.estatus || status,
+          index ? "" : item.verifMedidas,
+          index ? "" : item.verifEficacia,
+          index ? "" : item.comentarios,
+        ]);
+        rowKinds.push(index ? "measure" : "incident");
+      });
+      const end = aoa.length - 1;
+      if (end > start) [0,1,2,3,4,5,6,12,13,14].forEach((column) => merges.push({ s: { r: start, c: column }, e: { r: end, c: column } }));
+      aoa.push(Array(header.length).fill(""));
+      rowKinds.push("spacer");
+    });
+    const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+    worksheet["!merges"] = merges;
+    worksheet["!cols"] = [
+      { wch: 7 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 34 }, { wch: 54 }, { wch: 9 }, { wch: 58 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 34 },
+    ];
+    worksheet["!rows"] = rowKinds.map((kind) => ({ hpt: kind === "header" ? 26 : kind === "spacer" ? 8 : kind === "incident" ? 42 : 34 }));
+    worksheet["!freeze"] = { xSplit: 0, ySplit: 1 };
+    worksheet["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }) };
+    const range = XLSX.utils.decode_range(worksheet["!ref"]);
+    for (let row = range.s.r; row <= range.e.r; row++) {
+      const kind = rowKinds[row] || "measure";
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const address = XLSX.utils.encode_cell({ r: row, c: col });
+        if (!worksheet[address]) worksheet[address] = { t: "s", v: "" };
+        const cell = worksheet[address];
+        cell.s = {
+          font: { name: "Calibri", sz: kind === "header" ? 11 : 10, bold: kind === "header" || kind === "incident" },
+          alignment: { vertical: "center", wrapText: true },
+          border: { top: { style: "thin", color: { rgb: "9AA6B6" } }, bottom: { style: "thin", color: { rgb: "9AA6B6" } }, left: { style: "thin", color: { rgb: "9AA6B6" } }, right: { style: "thin", color: { rgb: "9AA6B6" } } },
+          fill: { fgColor: { rgb: kind === "header" ? "DCE6F2" : kind === "spacer" ? "FFFFFF" : kind === "incident" ? "EEF3FB" : "FFFFFF" } },
+        };
+        if (kind === "spacer") cell.s.border = {};
+      }
+    }
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Incidentes");
+    return workbook;
+  }
   let taxonomyMode="category";
 
   function bindEvents() {
     document.querySelector('[data-goto="viewIncidentes"]').addEventListener("click",()=>document.body.classList.add("incidents-mode")); document.querySelectorAll("#viewIncidentes [data-back]").forEach((button)=>button.addEventListener("click",()=>document.body.classList.remove("incidents-mode")));
-    [["#incSearch","input","search"],["#incCat","change","category"],["#incTurno","change","shift"],["#incArea","change","area"],["#incEstado","change","status"]].forEach(([selector,event,key])=>$(selector).addEventListener(event,()=>{state[key]=$(selector).value;state.focusedItem="";renderAll();}));
-    $("#incCategoryNav").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";renderAll();};
-    $("#incOpenBars").onclick=(event)=>{if(event.target.closest("strong, small"))return;const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";renderAll();$("#incidentesPanel").scrollIntoView({behavior:"smooth"});};
-    $("#incTrendChart").onclick=(event)=>{const button=event.target.closest("[data-month]");if(!button)return;state.month=state.month===button.dataset.month?"":button.dataset.month;renderAll();};
-    $("#incPendingCategory").onchange=()=>{state.pendingCategory=$("#incPendingCategory").value;renderFollowup();}; $("#incPendingMonth").onchange=()=>{state.pendingMonth=$("#incPendingMonth").value;renderFollowup();}; $("#incPendingRisk").onchange=()=>{state.pendingRisk=$("#incPendingRisk").value;renderFollowup();};
-    $("#incPendingChart").onclick=(event)=>{const segment=event.target.closest("[data-risk]");if(!segment)return;state.pendingRisk=state.pendingRisk===segment.dataset.risk?"":segment.dataset.risk;$("#incPendingRisk").value=state.pendingRisk;renderFollowup();};
-    $(".inc-followup-legend").onclick=(event)=>{const button=event.target.closest("[data-pending-risk]");if(!button)return;state.pendingRisk=state.pendingRisk===button.dataset.pendingRisk?"":button.dataset.pendingRisk;$("#incPendingRisk").value=state.pendingRisk;renderFollowup();};
-    $("#incClearPendingFilters").onclick=()=>{state.pendingCategory="";state.pendingMonth="";state.pendingRisk="";$("#incPendingCategory").value="";$("#incPendingMonth").value="";$("#incPendingRisk").value="";renderFollowup();};
-    $("#incClearDetailFilters").onclick=()=>{state.search="";state.category="";state.shift="";state.area="";state.status="";state.month="";state.focusedItem="";state.openItems.clear();$("#incSearch").value="";$("#incCat").value="";$("#incTurno").value="";$("#incArea").value="";$("#incEstado").value="";renderAll();};
-    $("#incPendingList").onclick=(event)=>{const row=event.target.closest("[data-item]");if(!row)return;state.focusedItem=row.dataset.item;state.search="";$("#incSearch").value="";state.category=state.shift=state.area=state.status=state.month="";$("#incCat").value=$("#incTurno").value=$("#incArea").value=$("#incEstado").value="";state.openItems=new Set([row.dataset.item]);renderAll();$("#incidentesPanel").scrollIntoView({behavior:"smooth",block:"start"});};
-    $("#incResults").onclick=(event)=>{const edit=event.target.closest("[data-edit]");if(edit){openForm(data.find((item)=>item.item===edit.dataset.edit));return;}const download=event.target.closest("[data-download]");if(download){downloadFolders(data.find((item)=>item.item===download.dataset.download));return;}const row=event.target.closest("[data-item]");if(!row)return;state.openItems.has(row.dataset.item)?state.openItems.delete(row.dataset.item):state.openItems.add(row.dataset.item);renderTable();};
+    [["#incSearch","input","search"],["#incCat","change","category"],["#incTurno","change","shift"],["#incArea","change","area"],["#incEstado","change","status"]].forEach(([selector,event,key])=>$(selector).addEventListener(event,()=>{state[key]=$(selector).value;state.focusedItem="";state.followupItem="";renderAll();}));
+    $("#incCategoryNav").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";state.followupItem="";renderAll();};
+    $("#incOpenBars").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";state.followupItem="";renderAll();$("#incidentesPanel").scrollIntoView({behavior:"smooth"});};
+    $("#incTrendChart").onclick=(event)=>{const button=event.target.closest("[data-month]");if(!button)return;state.month=state.month===button.dataset.month?"":button.dataset.month;state.followupItem="";renderAll();};
+    $("#incPendingChart").onclick=(event)=>{const segment=event.target.closest("[data-risk]");if(!segment)return;state.pendingRisk=state.pendingRisk===segment.dataset.risk?"":segment.dataset.risk;state.focusedItem="";state.followupItem="";renderAll();};
+    $(".inc-followup-legend").onclick=(event)=>{const button=event.target.closest("[data-pending-risk]");if(!button)return;state.pendingRisk=state.pendingRisk===button.dataset.pendingRisk?"":button.dataset.pendingRisk;state.focusedItem="";state.followupItem="";renderAll();};
+    $("#incClearPendingFilters").onclick=()=>{state.pendingCategory="";state.pendingMonth="";state.pendingRisk="";state.focusedItem="";state.followupItem="";renderAll();};
+    $("#incClearDetailFilters").onclick=()=>{state.search="";state.category="";state.shift="";state.area="";state.status="";state.month="";state.focusedItem="";state.pendingRisk="";state.followupItem="";state.openItems.clear();$("#incSearch").value="";$("#incCat").value="";$("#incTurno").value="";$("#incArea").value="";$("#incEstado").value="";renderAll();};
+    $("#incPendingList").onclick=(event)=>{const row=event.target.closest("[data-item]");if(!row)return;const item=row.dataset.item;if(state.followupItem===item){state.followupItem="";state.focusedItem="";}else{state.followupItem=item;state.focusedItem=item;}renderAll();};
+    $("#incResults").onclick=(event)=>{const edit=event.target.closest("[data-edit]");if(edit){openForm(data.find((item)=>item.item===edit.dataset.edit));return;}const download=event.target.closest("[data-download]");if(download){downloadFolders(data.find((item)=>item.item===download.dataset.download));return;}const row=event.target.closest("[data-item]");if(!row)return;const item=row.dataset.item;if(state.focusedItem===item){state.focusedItem="";state.followupItem="";state.openItems.delete(item);}else{state.focusedItem=item;state.followupItem=item;state.openItems=new Set([item]);}renderAll();};
     $("#incToggleForm").onclick=()=>{$("#incForm").hidden?openForm():($("#incForm").hidden=true,$("#incToggleForm").textContent="+ Crear nuevo incidente");}; $("#incCancelForm").onclick=()=>{$("#incForm").hidden=true;$("#incToggleForm").textContent="+ Crear nuevo incidente";}; $("#incAddMedida").onclick=()=>addMeasureRow();
     $("#incForm").onsubmit=(event)=>{event.preventDefault();const fd=new FormData(event.target);const measures=Array.prototype.map.call($("#incMeasureRows").children,(row)=>{const result={};row.querySelectorAll("[data-field]").forEach((field)=>{result[field.dataset.field]=field.value;});return result;});const incident=normalizeIncident({item:editingItem||`INC-${Date.now()}`,nombre:fd.get("nombre"),fecha:isoToDisplay(fd.get("fecha")),turno:fd.get("turno"),categoria:fd.get("categoria"),area:fd.get("area"),fechaCierreGeneral:isoToDisplay(fd.get("fechaCierreGeneral")),incidente:fd.get("incidente"),verifMedidas:fd.get("verifMedidas"),verifEficacia:fd.get("verifEficacia"),comentarios:fd.get("comentarios"),medidas:measures});const index=data.findIndex((item)=>item.item===editingItem);index>=0?data.splice(index,1,incident):data.push(incident);$("#incForm").hidden=true;$("#incToggleForm").textContent="+ Crear nuevo incidente";saveData(`${incident.item} guardado correctamente.`);};
     $("#incManageCategories").onclick=()=>{if(!$("#incTaxonomyPanel").hidden&&taxonomyMode==="category"){$("#incTaxonomyPanel").hidden=true;return;}taxonomyMode="category";renderTaxonomy(taxonomyMode);}; $("#incManageAreas").onclick=()=>{if(!$("#incTaxonomyPanel").hidden&&taxonomyMode==="area"){$("#incTaxonomyPanel").hidden=true;return;}taxonomyMode="area";renderTaxonomy(taxonomyMode);}; $("#incCloseTaxonomy").onclick=()=>$("#incTaxonomyPanel").hidden=true;
     $("#incTaxonomyForm").onsubmit=(event)=>{event.preventDefault();const name=clean($("#incTaxonomyName").value);if(!name)return;const values=taxonomyMode==="category"?categories:areas;if(!values.some((value)=>norm(value)===norm(name)))values.push(name);values.sort();if(taxonomyMode==="category")criticality[name]="normal";saveJson(CATEGORIES,categories);saveJson(AREAS,areas);saveJson(CRITICALITY,criticality);$("#incTaxonomyName").value="";populateOptions();renderTaxonomy(taxonomyMode);renderAll();};
     $("#incTaxonomyList").onclick=(event)=>{const button=event.target.closest("[data-tax-edit]");if(!button)return;const row=button.closest(".inc-taxonomy-row"),input=row.querySelector("input"),select=row.querySelector("select"),old=button.dataset.taxEdit;if(button.textContent==="Editar"){input.readOnly=false;if(select)select.disabled=false;button.textContent="Guardar";return;}const name=clean(input.value);if(!name)return;data.forEach((item)=>{if((taxonomyMode==="category"?item.categoria:item.area)===old)item[taxonomyMode==="category"?"categoria":"area"]=name;});const values=taxonomyMode==="category"?categories:areas,idx=values.indexOf(old);if(idx>=0)values[idx]=name;if(select){delete criticality[old];criticality[name]=select.value;}saveJson(CATEGORIES,categories);saveJson(AREAS,areas);saveJson(CRITICALITY,criticality);saveData(`${old} actualizado a ${name}.`);populateOptions();renderTaxonomy(taxonomyMode);};
-    $("#incExcelFile").onchange=async(event)=>{const file=event.target.files[0];if(!file)return;data=parseWorkbook(XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true}));saveData(`${data.length} incidentes importados.`);populateOptions();}; $("#incExportExcel").onclick=()=>{const rows=data.flatMap((item)=>item.medidas.length?item.medidas.map((measure)=>({Item:item.item,Fecha:item.fecha,Turno:item.turno,NombreEvento:item.nombre,Categoria:item.categoria,Area:item.area,Incidente:item.incidente,MedidaCorrectiva:measure.medida,Responsable:measure.responsable,FechaCierre:measure.fechaCierre,Estatus:measure.estatus,VerificacionMedidas:item.verifMedidas,VerificacionEficacia:item.verifEficacia,Comentarios:item.comentarios})):[]);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"Incidentes");XLSX.writeFile(wb,"Consolidado_incidentes.xlsx");};
+    $("#incExcelFile").onchange=async(event)=>{const file=event.target.files[0];if(!file)return;data=parseWorkbook(XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true}));saveData(`${data.length} incidentes importados.`);populateOptions();}; $("#incExportExcel").onclick=()=>XLSX.writeFile(exportWorkbook(),"Incidentes_filtrados_ordenados.xlsx",{cellStyles:true});
   }
 
   async function init() {
