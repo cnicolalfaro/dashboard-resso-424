@@ -1979,7 +1979,7 @@ h1 {
 .inc-area-btn { border-color: #6ea7cf; color: #21628e; background: #eef8ff; }
 .inc-create-btn { background: var(--sk-blue); color: #fff; }
 .inc-table-head,
-.inc-event-summary { grid-template-columns: 52px 96px 74px minmax(190px, .85fr) minmax(420px, 1.55fr) 86px 92px; min-width: 0; }
+.inc-event-summary { grid-template-columns: 52px 96px 74px minmax(180px, .78fr) minmax(390px, 1.35fr) 86px 150px; min-width: 0; }
 .inc-event-summary { min-height: 112px; align-items: start; padding-block: 10px; }
 .inc-event-measures {
   color: #40506a;
@@ -1993,6 +1993,24 @@ h1 {
 .inc-event-measures li { padding-left: 2px; }
 .inc-event-state.closed { background: rgba(47, 148, 97, .13); color: #237247; }
 .inc-event-state.open { background: rgba(214, 69, 50, .12); color: #a33228; }
+.inc-evidence-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid #8da7cf;
+  border-radius: 6px;
+  background: #eef3fb;
+  color: var(--sk-blue-dark);
+  font-weight: 900;
+  font-size: .72rem;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.inc-evidence-btn:hover { background: #dfe9f8; border-color: var(--sk-blue); }
+.inc-evidence-btn.compact { min-height: 24px; padding: 3px 6px; font-size: .64rem; }
 
 /* Escala legible para incidentes */
 .incidents-mode #viewIncidentes { font-size: 15px; }
@@ -2056,6 +2074,17 @@ h1 {
 .inc-row-actions button,
 .inc-edit-btn,
 .inc-open-btn { font-size: .72rem; }
+.inc-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  min-width: 0;
+}
+.inc-row-actions .inc-evidence-btn.compact {
+  width: 72px;
+  padding-inline: 4px;
+}
 .inc-event-facts span,
 .inc-event-description span,
 .inc-event-comments span { font-size: .76rem; }

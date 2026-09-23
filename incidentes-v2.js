@@ -7,12 +7,25 @@
   const $ = (selector) => document.querySelector(selector);
   const STORAGE = "resso424.incidentes.v1";
   const SOURCE = "resso424.incidentes.source";
-  const SOURCE_VERSION = "csv-v10";
+  const SOURCE_VERSION = "xlsx-v11";
   const SOURCE_META = "resso424.incidentes.sourceMeta";
   const CATEGORIES = "resso424.incidentes.categories";
   const AREAS = "resso424.incidentes.areas";
   const CRITICALITY = "resso424.incidentes.categoryCriticality";
-  const EXCEL_FILE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.csv";
+  const EXCEL_FILE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.2026.xlsx";
+  const QUERY_FILE = "query_incidentes.xlsx";
+  const EVIDENCE_OVERRIDES = {
+    "4": "002.- 28.03.25 Daño Material Choque manipulador telescópico nelson",
+    "7": "003.- 10.04.25 Daño Material Camioneta por Choque nelson",
+    "12": "12.- 29.04.2025 Derrame aceite bus SKIC en campamento VP nelson",
+    "21": "008.- 13.06.2025 Daño Material Parabrisas Camioneta (Jaime)",
+    "30": "01. TRAYECTO (16.08.25)",
+    "37": "02. TRAYECTO (21.09.25)",
+    "39": "016.- 18.10.2025 Daño Material Camioneta SK",
+    "47": "03. TRAYECTO (22-11-2025)",
+    "79": "021.- 03.05.2026 Daño Material Vidrio Bototo",
+    "98": "028.- 13.09.2026 Daño Material Minu buses",
+  };
   const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const DAY_MS = 86400000;
   const today = new Date();
@@ -38,8 +51,7 @@
     match = text.match(/^(\d{1,2})([-/])(\d{1,2})\2(\d{2,4})$/);
     if (match) {
       const year = match[4].length === 2 ? `20${match[4]}` : match[4];
-      const excelOrder = match[2] === "/";
-      return `${(excelOrder ? match[3] : match[1]).padStart(2, "0")}-${(excelOrder ? match[1] : match[3]).padStart(2, "0")}-${year}`;
+      return `${match[1].padStart(2, "0")}-${match[3].padStart(2, "0")}-${year}`;
     }
     match = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
     return match ? `${match[1].padStart(2, "0")}-${match[2].padStart(2, "0")}-${match[3]}` : text;
@@ -73,7 +85,8 @@
     if (value instanceof Date || typeof value === "number") return { date: isoToDisplay(value), note: "" };
     const text = clean(value);
     if (/^(NO APLICA|SIN FECHA|NO EXISTE EN SHAREPOINT)$/i.test(text)) return { date: "", note: text.toUpperCase() };
-    return { date: isoToDisplay(text), note: "" };
+    const dateText = text.replace(/[?]+$/g, "");
+    return { date: isoToDisplay(dateText), note: dateText !== text ? text : "" };
   }
   const isClosed = (measure) => norm(measure.estatus).includes("cerrad");
   const isNA = (measure) => { const status = norm(measure.estatus); return status === "n/a" || status === "na" || status.includes("no aplica"); };
@@ -94,6 +107,17 @@
     const dates = incident.medidas.filter(isClosed).map((measure) => displayToIso(measure.fechaCierre)).filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date)).sort();
     return dates.length ? isoToDisplay(dates[dates.length - 1]) : "";
   }
+  function fixCloseYearIfClearlyMistyped(startValue, closeValue) {
+    const start = parseDate(startValue), close = parseDate(closeValue);
+    if (!start || !close || close >= start) return closeValue;
+    const corrected = new Date(close);
+    let changed = false;
+    while ((start - corrected) / DAY_MS > 180) {
+      corrected.setFullYear(corrected.getFullYear() + 1);
+      changed = true;
+    }
+    return changed ? isoToDisplay(corrected) : closeValue;
+  }
   function normalizeIncident(incident, index) {
     const normalized = {
       item: clean(incident.item || incident.id || index + 1), nombre: clean(incident.nombre || incident.evento || "Evento sin nombre"),
@@ -112,6 +136,7 @@
       if (!measure.fechaCierre) measure.fechaCierre = closedTemplate.fechaCierre;
       if (!measure.responsable) measure.responsable = closedTemplate.responsable;
     });
+    normalized.medidas.forEach((measure) => { measure.fechaCierre = fixCloseYearIfClearlyMistyped(normalized.fecha, measure.fechaCierre); });
     if (!normalized.fechaCierreGeneral && incidentStatus(normalized) === "closed") normalized.fechaCierreGeneral = latestClose(normalized);
     return normalized;
   }
@@ -163,11 +188,83 @@
       saveJson(SOURCE_META, { file: EXCEL_FILE, lastModified: response.headers.get("Last-Modified") || "", importedAt: new Date().toISOString() });
     }
     data = stored.map(normalizeIncident);
+    await attachEvidenceLinks();
     saveJson(STORAGE, data);
     categories = [...new Set(loadJson(CATEGORIES, []).filter((item) => clean(item).toUpperCase() !== "N1").concat(data.map((item) => item.categoria)).filter(Boolean))].sort();
     areas = [...new Set(loadJson(AREAS, []).concat(data.map((item) => item.area)).filter(Boolean))].sort();
     categories.forEach((category) => { if (!criticality[category]) criticality[category] = "normal"; });
     saveJson(CATEGORIES, categories); saveJson(AREAS, areas); saveJson(CRITICALITY, criticality);
+  }
+
+  function evidenceTokens(value) {
+    return norm(value).split(/[^a-z0-9]+/).filter((token) => token.length >= 3 && !["dano","material","incidente","medida","medidas","correctivas","evento","nivel","para","con","del","los","las","una","uno","entre","sector","skic","camioneta"].includes(token));
+  }
+  function sharePointUrl(path) {
+    return `https://empresassk.sharepoint.com/${String(path || "").replace(/^\/+/, "")}`;
+  }
+  function evidenceDates(value) {
+    const text = String(value || "");
+    const dates = [];
+    text.replace(/(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})/g, (_, dd, mm, yy) => {
+      const year = yy.length === 2 ? `20${yy}` : yy;
+      dates.push(`${String(dd).padStart(2, "0")}-${String(mm).padStart(2, "0")}-${year}`);
+      return _;
+    });
+    return [...new Set(dates)];
+  }
+  async function attachEvidenceLinks() {
+    try {
+      const response = await fetch(encodeURI(QUERY_FILE));
+      if (!response.ok) return;
+      const workbook = XLSX.read(await response.arrayBuffer(), { type: "array", cellDates: true });
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+      const folders = rows.filter((row) => norm(row["Tipo de elemento"]).includes("carpeta")).map((row) => {
+        const name = clean(row.Nombre);
+        const parent = clean(row["Ruta de acceso"]);
+        const fullPath = [parent, name].filter(Boolean).join("/");
+        return { name, path: fullPath, tokens: new Set(evidenceTokens(`${name} ${fullPath}`)), dates: evidenceDates(`${name} ${fullPath}`) };
+      }).filter((folder) => folder.name && folder.path && evidenceTokens(folder.name).length);
+      const categoryCounts = data.reduce((counts, incident) => { counts[incident.categoria] = (counts[incident.categoria] || 0) + 1; return counts; }, {});
+      const categoryFolder = (category) => {
+        const categoryToken = evidenceTokens(category)[0];
+        if (!categoryToken) return null;
+        return folders.find((folder) => folder.tokens.has(categoryToken) && /\/INCIDENTES\/[^/]+$/i.test(`/${folder.path}`));
+      };
+      const uniqueCategoryEvidenceFolder = (category) => {
+        const parent = categoryFolder(category);
+        if (!parent) return null;
+        const prefix = `${parent.path}/`;
+        const directChildren = folders.filter((folder) => folder.path.startsWith(prefix) && !folder.path.slice(prefix.length).includes("/"));
+        return directChildren.length === 1 ? directChildren[0] : parent;
+      };
+      data.forEach((incident) => {
+        const tokens = evidenceTokens(incident.nombre);
+        if (!tokens.length) return;
+        const override = EVIDENCE_OVERRIDES[incident.item];
+        if (override) {
+          const overrideFolder = folders.find((folder) => norm(folder.name) === norm(override)) || folders.find((folder) => norm(folder.name).includes(norm(override)) || norm(override).includes(norm(folder.name)));
+          if (overrideFolder) {
+            incident.evidenciaNombre = overrideFolder.name;
+            incident.evidenciaUrl = sharePointUrl(overrideFolder.path);
+            return;
+          }
+        }
+        const scored = folders.map((folder) => {
+          const hits = tokens.filter((token) => folder.tokens.has(token));
+          const tokenScore = hits.length / tokens.length;
+          const dateHit = folder.dates.includes(incident.fecha);
+          const score = tokenScore + (dateHit ? 0.45 : 0);
+          return { folder, score, tokenScore, dateHit, hits: hits.length };
+        }).filter((item) => (item.tokenScore >= 0.6 && item.hits >= Math.min(2, tokens.length)) || (item.dateHit && item.tokenScore >= 0.25 && item.hits >= 1)).sort((a, b) => b.score - a.score || a.folder.path.length - b.folder.path.length);
+        const best = scored[0] || (categoryCounts[incident.categoria] === 1 ? { folder: uniqueCategoryEvidenceFolder(incident.categoria) } : null);
+        if (best && best.folder) {
+          incident.evidenciaNombre = best.folder.name;
+          incident.evidenciaUrl = sharePointUrl(best.folder.path);
+        }
+      });
+    } catch (error) {
+      console.warn("No se pudieron cargar links de evidencia", error);
+    }
   }
 
   function setOptions(select, values, allLabel) {
@@ -318,6 +415,11 @@
     const ok = verificationState(value);
     return `<span class="inc-verif-check ${ok ? "ok" : "missing"}"><b>${ok ? "✓" : "×"}</b>${label}: ${escapeHtml(value) || "Pendiente"}</span>`;
   }
+  function evidenceButton(incident, compact = false) {
+    if (!incident.evidenciaUrl) return "";
+    const label = compact ? "Carpeta" : "Carpeta de evidencia";
+    return `<a class="inc-evidence-btn${compact ? " compact" : ""}" href="${escapeHtml(incident.evidenciaUrl)}" target="_blank" rel="noopener" title="${escapeHtml(incident.evidenciaNombre || "Abrir evidencia en SharePoint")}">📁 ${label}</a>`;
+  }
   function measureDueText(measure) {
     if (isClosed(measure)) return { status: "Cerrado", date: measure.fechaCierre || "Sin fecha", condition: "Cerrada", risk: "closed" };
     if (isNA(measure)) return { status: "Abierto", date: measure.fechaCierre || measure.fechaCierreNota || "No aplica", condition: "Vencida", risk: "overdue" };
@@ -359,7 +461,7 @@
     if (!selected) { $("#incPendingDetail").innerHTML = ""; return; }
     const verification = `${verificationBadge("Verif. medidas", selected.incident.verifMedidas)}${verificationBadge("Verif. eficacia", selected.incident.verifEficacia)}`;
     const detailMeasures = selected.incident.medidas.map((measure, index) => { const due = measureDueText(measure); return `<li class="measure-risk-${due.risk}"><span class="inc-measure-index">${index + 1}</span><strong>${escapeHtml(measure.medida) || "Medida sin descripción"}</strong><span>${escapeHtml(measure.responsable) || "Sin responsable"}</span><span class="inc-measure-state ${due.status === "Cerrado" ? "closed" : "open"}">${due.status}</span><span class="inc-measure-date">${escapeHtml(due.date)}</span><span class="inc-measure-condition ${due.risk}">${escapeHtml(due.condition)}</span></li>`; }).join("") || '<li class="inc-no-measures-row"><strong>Sin medidas correctivas registradas</strong><span>El incidente queda abierto hasta registrar medidas y verificaciones.</span></li>';
-    $("#incPendingDetail").innerHTML = `<div class="inc-detail-card"><div><span>Item ${escapeHtml(selected.incident.item)}</span><h3>${escapeHtml(selected.incident.nombre)}</h3><p>${escapeHtml(selected.incident.incidente) || "Sin descripción"}</p></div><div class="inc-detail-meta"><span class="meta-category">Categoría: ${escapeHtml(selected.incident.categoria)}</span><span class="meta-state ${selected.status.key}">Estado: ${escapeHtml(selected.status.label)}</span><span class="meta-date">Fecha: ${escapeHtml(selected.incident.fecha) || "Sin fecha"}</span><span class="meta-shift">Turno: ${escapeHtml(selected.incident.turno) || "Sin turno"}</span><span class="meta-area">Área: ${escapeHtml(selected.incident.area) || "Por definir"}</span><span class="meta-close ${selected.incident.fechaCierreGeneral ? "ok" : "missing"}">Cierre general: ${escapeHtml(selected.incident.fechaCierreGeneral) || "Sin cierre general"}</span></div><div class="inc-detail-verifications">${verification}</div><div class="inc-measure-head"><span>N°</span><span>Medida correctiva</span><span>Responsable</span><span>Estatus</span><span>Fecha de cierre</span><span>Condición</span></div><ul>${detailMeasures}</ul>${selected.incident.comentarios ? `<div class="inc-detail-comments"><strong>Comentarios</strong><p>${escapeHtml(selected.incident.comentarios)}</p></div>` : ""}</div>`;
+    $("#incPendingDetail").innerHTML = `<div class="inc-detail-card"><div><span>Item ${escapeHtml(selected.incident.item)}</span><h3>${escapeHtml(selected.incident.nombre)}</h3><p>${escapeHtml(selected.incident.incidente) || "Sin descripción"}</p></div><div class="inc-detail-meta"><span class="meta-category">Categoría: ${escapeHtml(selected.incident.categoria)}</span><span class="meta-state ${selected.status.key}">Estado: ${escapeHtml(selected.status.label)}</span><span class="meta-date">Fecha: ${escapeHtml(selected.incident.fecha) || "Sin fecha"}</span><span class="meta-shift">Turno: ${escapeHtml(selected.incident.turno) || "Sin turno"}</span><span class="meta-area">Área: ${escapeHtml(selected.incident.area) || "Por definir"}</span><span class="meta-close ${selected.incident.fechaCierreGeneral ? "ok" : "missing"}">Cierre general: ${escapeHtml(selected.incident.fechaCierreGeneral) || "Sin cierre general"}</span></div><div class="inc-detail-verifications">${verification}${evidenceButton(selected.incident)}</div><div class="inc-measure-head"><span>N°</span><span>Medida correctiva</span><span>Responsable</span><span>Estatus</span><span>Fecha de cierre</span><span>Condición</span></div><ul>${detailMeasures}</ul>${selected.incident.comentarios ? `<div class="inc-detail-comments"><strong>Comentarios</strong><p>${escapeHtml(selected.incident.comentarios)}</p></div>` : ""}</div>`;
   }
   function renderTableV2(rows) {
     $("#incCount").textContent = `${rows.length} ${rows.length === 1 ? "incidente" : "incidentes"}`;
@@ -367,8 +469,9 @@
       const followup = followupStatus(incident), status = followup.key, label = followup.label, open = state.openItems.has(incident.item);
       const measuresText = incident.medidas.map((measure, index) => `${index + 1}. ${measure.medida}`).filter(Boolean).join("\n") || "Sin medidas correctivas";
       const measuresSummary = incident.medidas.length ? `<ol>${incident.medidas.map((measure) => `<li>${escapeHtml(measure.medida) || "Medida sin descripción"}</li>`).join("")}</ol>` : "Sin medidas correctivas";
+      const evidenceAction = evidenceButton(incident, true);
       const measures = incident.medidas.map((measure) => `<tr><td>${escapeHtml(measure.medida)||"—"}</td><td>${escapeHtml(measure.responsable)||"—"}</td><td>${escapeHtml(incident.fecha)||"—"}</td><td>${escapeHtml(measure.fechaCierre)||"—"}</td><td><span class="inc-status ${isClosed(measure)?"closed":isNA(measure)?"na":isPending(measure)?"open":"none"}">${escapeHtml(measure.estatus)||"Sin estado"}</span></td></tr>`).join("");
-      return `<article class="inc-event-row ${open?"open":""}" style="--measure-count:${Math.max(1, incident.medidas.length)}"><div class="inc-event-summary" data-item="${escapeHtml(incident.item)}"><span class="inc-event-item">${escapeHtml(incident.item)}</span><span class="inc-event-category">${escapeHtml(incident.categoria)}</span><span class="inc-event-area">${escapeHtml(incident.area)||"Por definir"}</span><span class="inc-event-name"><strong>${escapeHtml(incident.nombre)}</strong><small>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.turno)}</small></span><span class="inc-event-measures" title="${escapeHtml(measuresText)}">${measuresSummary}</span><span class="inc-event-state ${status}">${label}</span><span class="inc-row-actions"><button class="inc-open-btn">›</button><button class="inc-edit-btn" data-edit="${escapeHtml(incident.item)}">Editar</button></span></div><div class="inc-event-detail" ${open?"":"hidden"}><div class="inc-event-facts"><div><span>Categoría</span><strong>${escapeHtml(incident.categoria)}</strong></div><div><span>Área de trabajo</span><strong>${escapeHtml(incident.area)||"Por definir"}</strong></div><div><span>Turno</span><strong>${escapeHtml(incident.turno)||"—"}</strong></div><div><span>Fecha general de cierre</span><strong>${escapeHtml(incident.fechaCierreGeneral)||"—"}</strong></div><div><span>Verificación de medidas</span><strong>${escapeHtml(incident.verifMedidas)||"—"}</strong></div><div><span>Verificación de eficacia</span><strong>${escapeHtml(incident.verifEficacia)||"—"}</strong></div></div><div class="inc-event-description"><span>Descripción del incidente</span><p>${escapeHtml(incident.incidente)||"Sin descripción"}</p></div><div class="table-wrap"><table class="records-table inc-exec-table"><thead><tr><th>Medida correctiva</th><th>Responsable</th><th>Inicio del incidente</th><th>Cierre</th><th>Estatus</th></tr></thead><tbody>${measures||'<tr><td colspan="5">Sin medidas.</td></tr>'}</tbody></table></div>${incident.comentarios?`<div class="inc-event-comments"><span>Comentarios</span><p>${escapeHtml(incident.comentarios)}</p></div>`:""}<button class="inc-download-folders" data-download="${escapeHtml(incident.item)}">Descargar carpetas</button></div></article>`;
+        return `<article class="inc-event-row ${open?"open":""}" style="--measure-count:${Math.max(1, incident.medidas.length)}"><div class="inc-event-summary" data-item="${escapeHtml(incident.item)}"><span class="inc-event-item">${escapeHtml(incident.item)}</span><span class="inc-event-category">${escapeHtml(incident.categoria)}</span><span class="inc-event-area">${escapeHtml(incident.area)||"Por definir"}</span><span class="inc-event-name"><strong>${escapeHtml(incident.nombre)}</strong><small>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.turno)}</small></span><span class="inc-event-measures" title="${escapeHtml(measuresText)}">${measuresSummary}</span><span class="inc-event-state ${status}">${label}</span><span class="inc-row-actions"><button class="inc-open-btn">›</button>${evidenceAction}<button class="inc-edit-btn" data-edit="${escapeHtml(incident.item)}">Editar</button></span></div><div class="inc-event-detail" ${open?"":"hidden"}><div class="inc-event-facts"><div><span>Categoría</span><strong>${escapeHtml(incident.categoria)}</strong></div><div><span>Área de trabajo</span><strong>${escapeHtml(incident.area)||"Por definir"}</strong></div><div><span>Turno</span><strong>${escapeHtml(incident.turno)||"—"}</strong></div><div><span>Fecha general de cierre</span><strong>${escapeHtml(incident.fechaCierreGeneral)||"—"}</strong></div><div><span>Verificación de medidas</span><strong>${escapeHtml(incident.verifMedidas)||"—"}</strong></div><div><span>Verificación de eficacia</span><strong>${escapeHtml(incident.verifEficacia)||"—"}</strong></div></div><div class="inc-event-description"><span>Descripción del incidente</span><p>${escapeHtml(incident.incidente)||"Sin descripción"}</p></div><div class="table-wrap"><table class="records-table inc-exec-table"><thead><tr><th>Medida correctiva</th><th>Responsable</th><th>Inicio del incidente</th><th>Cierre</th><th>Estatus</th></tr></thead><tbody>${measures||'<tr><td colspan="5">Sin medidas.</td></tr>'}</tbody></table></div>${incident.comentarios?`<div class="inc-event-comments"><span>Comentarios</span><p>${escapeHtml(incident.comentarios)}</p></div>`:""}<button class="inc-download-folders" data-download="${escapeHtml(incident.item)}">Descargar carpetas</button></div></article>`;
     }).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
     annotateDueAlerts(rows);
   }
