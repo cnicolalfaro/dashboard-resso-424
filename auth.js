@@ -57,7 +57,7 @@
     s.src = "app.js?v=7";
     s.onload = function () {
       var incidents = document.createElement("script");
-      incidents.src = "incidentes-v2.js?v=20";
+      incidents.src = "incidentes-v2.js?v=27";
       document.body.appendChild(incidents);
     };
     document.body.appendChild(s);
