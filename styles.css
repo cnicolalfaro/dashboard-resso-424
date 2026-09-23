@@ -1827,6 +1827,20 @@ h1 {
 .inc-verif-check.ok { background: rgba(47, 148, 97, .13); color: #237247; }
 .inc-verif-check.missing { background: rgba(214, 69, 50, .12); color: #a33228; }
 .inc-detail-card ul { margin: 0; padding: 0; display: grid; gap: 8px; list-style: none; }
+.inc-measure-head {
+  display: grid;
+  grid-template-columns: 30px minmax(280px, 1.4fr) minmax(140px, .7fr) 110px minmax(140px, .8fr);
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid #bfd0e8;
+  border-radius: 6px;
+  background: #dce6f2;
+  color: var(--sk-blue-dark);
+  font-size: .6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
 .inc-detail-card li {
   display: grid;
   grid-template-columns: 30px minmax(280px, 1.4fr) minmax(140px, .7fr) 110px minmax(140px, .8fr);
