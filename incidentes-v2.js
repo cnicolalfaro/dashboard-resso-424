@@ -26,6 +26,105 @@
     "79": "021.- 03.05.2026 Daño Material Vidrio Bototo",
     "98": "028.- 13.09.2026 Daño Material Minu buses",
   };
+    const EVIDENCE_STATIC_LINKS = {
+    "1": ["1.- 23.02.25 Evento Hídrico en campamento", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/12..- CAMPAMENTO/1.- 23.02.25 Evento Hídrico en campamento"],
+    "2": ["001.- 15-03-2025 Daño Material Ruptura foco trasero derecho (SIN INFORME COLDELCO, SOLO INFORME SKIC)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/001.- 15-03-2025 Daño Material Ruptura foco trasero derecho (SIN INFORME COLDELCO, SOLO INFORME SKIC)"],
+    "4": ["002.- 28.03.25 Daño Material Choque manipulador telescópico nelson", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/002.- 28.03.25 Daño Material Choque manipulador telescópico nelson"],
+    "5": ["01. N1 Área No segregada por Cenefa 30.03.25", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/01. N1 Área No segregada por Cenefa 30.03.25"],
+    "6": ["004.- 09.04.2025 Daño Material Ruptura espejo izquierdo Mini Bus TZYY-82 (SIN INFORME)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/004.- 09.04.2025 Daño Material Ruptura espejo izquierdo Mini Bus TZYY-82 (SIN INFORME)"],
+    "7": ["003.- 10.04.25 Daño Material Camioneta por Choque nelson", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/003.- 10.04.25 Daño Material Camioneta por Choque nelson"],
+    "8": ["004.- 13.04.25 Daño Material Ruptura vidrio lateral izquierdo nelson", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/004.- 13.04.25 Daño Material Ruptura vidrio lateral izquierdo nelson"],
+    "10": ["004.- 09.04.2025 Daño Material Ruptura espejo izquierdo Mini Bus TZYY-82 (SIN INFORME)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/004.- 09.04.2025 Daño Material Ruptura espejo izquierdo Mini Bus TZYY-82 (SIN INFORME)"],
+    "11": ["1.- 26.04.2025 Falla Operacional Manga de ventilación nelson", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/03.- FALLA OPERACIONAL/1.- 26.04.2025 Falla Operacional Manga de ventilación nelson"],
+    "12": ["12.- 29.04.2025 Derrame aceite bus SKIC en campamento VP nelson", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/04.- INCIDENTE AMBIENTAL/12.- 29.04.2025 Derrame aceite bus SKIC en campamento VP nelson"],
+    "14": ["05.- 09.05.2025 Robo martillo hidraulico Retroexcavadora", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/0.- INTERNO SKIC/05.- 09.05.2025 Robo martillo hidraulico Retroexcavadora"],
+    "15": ["03. N1 Falta de cenefa en traslado de bomba de hormigo con apoyo de manipulador 23.05.25", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/03. N1 Falta de cenefa en traslado de bomba de hormigo con apoyo de manipulador 23.05.25"],
+    "16": ["03. N1 Falta de cenefa en traslado de bomba de hormigo con apoyo de manipulador 23.05.25", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/03. N1 Falta de cenefa en traslado de bomba de hormigo con apoyo de manipulador 23.05.25"],
+    "18": ["010.- 08.06.2025 Daño Material Perforación Manual Sistema de Combustión interna Genera Alza de temperatura (SIN INFORME)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/010.- 08.06.2025 Daño Material Perforación Manual Sistema de Combustión interna Genera Alza de temperatura (SIN INFORME)"],
+    "19": ["00 .- 09.06.2025 Falla Operacional Traslado de Polea Motriz (NA a Proyecto 424)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/0.- INTERNO SKIC/03. Cuasi accidente significativo/00 .- 09.06.2025 Falla Operacional Traslado de Polea Motriz (NA a Proyecto 424)"],
+    "21": ["008.- 13.06.2025 Daño Material Parabrisas Camioneta (Jaime)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/008.- 13.06.2025 Daño Material Parabrisas Camioneta (Jaime)"],
+    "23": ["010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral"],
+    "26": ["001.- 15-03-2025 Daño Material Ruptura foco trasero derecho (SIN INFORME COLDELCO, SOLO INFORME SKIC)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/001.- 15-03-2025 Daño Material Ruptura foco trasero derecho (SIN INFORME COLDELCO, SOLO INFORME SKIC)"],
+    "27": ["018.- 22.07.2025 Daño Materia - Caída de Tapado Sobre Plataforma de Andamio", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/018.- 22.07.2025 Daño Materia - Caída de Tapado Sobre Plataforma de Andamio"],
+    "28": ["01.- Ley Karin (01.08.2025) - Roberto Fuentes Juica", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/01.- Ley Karin (01.08.2025) - Roberto Fuentes Juica"],
+    "30": ["01. TRAYECTO (16.08.25)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/07.- TRAYECTO/01. TRAYECTO (16.08.25)"],
+    "31": ["019.- 18.08.2025 Daño Material - Golpe Techo Bus (RECA NAT)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/019.- 18.08.2025 Daño Material - Golpe Techo Bus (RECA NAT)"],
+    "32": ["010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral"],
+    "33": ["05. Torcedura pie derecho (21.12.2025)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/05. Torcedura pie derecho (21.12.2025)"],
+    "34": ["2.- 06.09.2025 Falla Operacional Desprendimiento de Hormigón en tronco pique buzón N°5", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/03.- FALLA OPERACIONAL/2.- 06.09.2025 Falla Operacional Desprendimiento de Hormigón en tronco pique buzón N°5"],
+    "37": ["02. TRAYECTO (21.09.25)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/07.- TRAYECTO/02. TRAYECTO (21.09.25)"],
+    "39": ["016.- 18.10.2025 Daño Material Camioneta SK", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/016.- 18.10.2025 Daño Material Camioneta SK"],
+    "42": ["06. N1 Ejecución de Trabajo sin ART 01.11.25", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/06. N1 Ejecución de Trabajo sin ART 01.11.25"],
+    "43": ["3.- 03.11.2025 Falla Operacional Derrame de Hormogón Sector Chancado S04", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/03.- FALLA OPERACIONAL/3.- 03.11.2025 Falla Operacional Derrame de Hormogón Sector Chancado S04"],
+    "44": ["04.- Molestias en ojo derecho (07.11.2025) NAT", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/04.- Molestias en ojo derecho (07.11.2025) NAT"],
+    "47": ["03. TRAYECTO (22-11-2025)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/07.- TRAYECTO/03. TRAYECTO (22-11-2025)"],
+    "48": ["018.- 24.11.25 Daño Material Vidrio Bus 4x4", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/018.- 24.11.25 Daño Material Vidrio Bus 4x4"],
+    "49": ["1.- 03-Dic_Incidente Golpe dedos índice y medio mano derecha", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/03.- CTP/1.- 03-Dic_Incidente Golpe dedos índice y medio mano derecha"],
+    "50": ["4- 20.12.2025 Falla Operacional fatiga de Perno de Anclaje", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/03.- FALLA OPERACIONAL/4- 20.12.2025 Falla Operacional fatiga de Perno de Anclaje"],
+    "51": ["05. Torcedura pie derecho (21.12.2025)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/05. Torcedura pie derecho (21.12.2025)"],
+    "52": ["08. N1 Interacción de Personas con Equipo - Manipulador Telescópico 05.01.26", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/08. N1 Interacción de Personas con Equipo - Manipulador Telescópico 05.01.26"],
+    "53": ["08. N1 Interacción de Personas con Equipo - Manipulador Telescópico 05.01.26", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/08. N1 Interacción de Personas con Equipo - Manipulador Telescópico 05.01.26"],
+    "55": ["019.- 31-01-2026 Choque mini bus contra camioneta", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/019.- 31-01-2026 Choque mini bus contra camioneta"],
+    "56": ["09. N1 Deficiencia en aseguramiento linea de agua 06-02-26", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/09. N1 Deficiencia en aseguramiento linea de agua 06-02-26"],
+    "57": ["10. N1 Conexión fuera de estándar a tablero eléctrico 06-02-2026", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/10. N1 Conexión fuera de estándar a tablero eléctrico 06-02-2026"],
+    "58": ["11. N1 Exposición a Caída distinto nivel 15.02.26", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/11. N1 Exposición a Caída distinto nivel 15.02.26"],
+    "59": ["14. N1 23.02.2026 ART sin firma supervisor", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/14. N1 23.02.2026 ART sin firma supervisor"],
+    "60": ["13. N1 22-02-2026 canastillo manipulador fuera de estándar", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/13. N1 22-02-2026 canastillo manipulador fuera de estándar"],
+    "61": ["14. N1 23.02.2026 ART sin firma supervisor", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/14. N1 23.02.2026 ART sin firma supervisor"],
+    "62": ["15. N1 24.02.2026 Bloqueo candado subestandar de equipo grua horquilla", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/15. N1 24.02.2026 Bloqueo candado subestandar de equipo grua horquilla"],
+    "63": ["16. N1 01.03.2026 Evento significativo sin lesión", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/16. N1 01.03.2026 Evento significativo sin lesión"],
+    "64": ["17. N1 01.03.2026 Trabajador sin porte de autorescatador", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/17. N1 01.03.2026 Trabajador sin porte de autorescatador"],
+    "65": ["18. N1 15.03.2026 Estructura sobre soportación fuera de estandar", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/18. N1 15.03.2026 Estructura sobre soportación fuera de estandar"],
+    "66": ["08. N1 Interacción de Personas con Equipo - Manipulador Telescópico 05.01.26", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/08. N1 Interacción de Personas con Equipo - Manipulador Telescópico 05.01.26"],
+    "67": ["07.- Golpeado por soporte de cable tensor (18.03.2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/07.- Golpeado por soporte de cable tensor (18.03.2026)"],
+    "68": ["20. N1 21-03-2026 Personal no hace uso de cinturón de seguridad", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/20. N1 21-03-2026 Personal no hace uso de cinturón de seguridad"],
+    "70": ["19. N1 16.03.2026 Interacción hombre maquina", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/19. N1 16.03.2026 Interacción hombre maquina"],
+    "71": ["08. Golpe en rodilla izquierda contra banca en sala de cambio (08.04.2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/08. Golpe en rodilla izquierda contra banca en sala de cambio (08.04.2026)"],
+    "72": ["09. Golpe en pierna izquierda con moldaje (15.04.26)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/09. Golpe en pierna izquierda con moldaje (15.04.26)"],
+    "74": ["23. N1 23.04.2026 Falta de cinta de confinamiento", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/23. N1 23.04.2026 Falta de cinta de confinamiento"],
+    "75": ["24. N1 23.04.2026 Maniobras con equipo de manipulador", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/24. N1 23.04.2026 Maniobras con equipo de manipulador"],
+    "77": ["25. N1 28.04.2026 PdP Bloqueo departamental Chancador 2", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/25. N1 28.04.2026 PdP Bloqueo departamental Chancador 2"],
+    "79": ["021.- 03.05.2026 Daño Material Vidrio Bototo", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/021.- 03.05.2026 Daño Material Vidrio Bototo"],
+    "80": ["01. 06.05.2026 Uso extintor PQS Bus Tranporte de personal", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/13.- REPORTE PREVENTIVO/01. 06.05.2026 Uso extintor PQS Bus Tranporte de personal"],
+    "81": ["26. N1 12.05.2026 Andamio sin validación diaria", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/26. N1 12.05.2026 Andamio sin validación diaria"],
+    "83": ["28. 16.05.2026 Actividad sin ART", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/28. 16.05.2026 Actividad sin ART"],
+    "84": ["023.- 24.05.2026 Rotura de Vidrio Manipulador Telescópico", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/023.- 24.05.2026 Rotura de Vidrio Manipulador Telescópico"],
+    "85": ["29. N1 24.05.2026 Segregación Manipulador Telescópico", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/29. N1 24.05.2026 Segregación Manipulador Telescópico"],
+    "86": ["30. N1 25.05.2026 Movimiento de equipo sin segregación", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/30. N1 25.05.2026 Movimiento de equipo sin segregación"],
+    "87": ["024.- 30.05.2026 Caída cable mensajero", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/024.- 30.05.2026 Caída cable mensajero"],
+    "88": ["31. N1 07.06.2026 Transgresión señal de tránsito PARE", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/31. N1 07.06.2026 Transgresión señal de tránsito PARE"],
+    "89": ["025.- 14.06.2026 Rotura de ventanas minibus", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/025.- 14.06.2026 Rotura de ventanas minibus"],
+    "90": ["32. N1 19.06.2026 Sin porte de Licencias interna y municipal", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/32. N1 19.06.2026 Sin porte de Licencias interna y municipal"],
+    "91": ["1.- 03-Dic_Incidente Golpe dedos índice y medio mano derecha", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/03.- CTP/1.- 03-Dic_Incidente Golpe dedos índice y medio mano derecha"],
+    "92": ["010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral"],
+    "95": ["007.- 10.06.2025 Daño Material Rotura Línea de Agua con Camión Tolva (Nelson)INFORMADO", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/007.- 10.06.2025 Daño Material Rotura Línea de Agua con Camión Tolva (Nelson)INFORMADO"],
+    "96": ["12. Golpe contra andamio (31.08.2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/12. Golpe contra andamio (31.08.2026)"],
+    "97": ["34. N1 10.09.206 Manipulador sin segregación", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/34. N1 10.09.206 Manipulador sin segregación"],
+    "98": ["028.- 13.09.2026 Daño Material Minu buses", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/028.- 13.09.2026 Daño Material Minu buses"],
+    "3": ["001.- 23.03.25 Daño Material Golpe con perno en techo minibus jaime", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/001.- 23.03.25 Daño Material Golpe con perno en techo minibus jaime"],
+    "9": ["005.- 17.04.25 Daño Material Línea de servicio agua industrial jaime", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/005.- 17.04.25 Daño Material Línea de servicio agua industrial jaime"],
+    "13": ["009.- 04.05.2025 Daño Material Minibus (bototo) jaime (SIN INFORME)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/009.- 04.05.2025 Daño Material Minibus (bototo) jaime (SIN INFORME)"],
+    "17": ["04. N1 Transgresión Loro Metálico 01.06.25", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/04. N1 Transgresión Loro Metálico 01.06.25"],
+    "20": ["007.- 10.06.2025 Daño Material Rotura Línea de Agua con Camión Tolva (Nelson)INFORMADO", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/007.- 10.06.2025 Daño Material Rotura Línea de Agua con Camión Tolva (Nelson)INFORMADO"],
+    "24": ["011.- 01.07.2025 Falla operacional Volcamiento de Equipos Eléctricos (CARPETA SOLO)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/011.- 01.07.2025 Falla operacional Volcamiento de Equipos Eléctricos (CARPETA SOLO)"],
+    "25": ["012.- 12.07.2025 Daño material Foco de camioneta", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/012.- 12.07.2025 Daño material Foco de camioneta"],
+    "29": ["02.- Golpe por Manguera de Aire (10.08.2025)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/02.- Golpe por Manguera de Aire (10.08.2025)"],
+    "35": ["015.- 11.09.2025 Daño Material - Vidrio Izquierdo Mini Bus", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/015.- 11.09.2025 Daño Material - Vidrio Izquierdo Mini Bus"],
+    "36": ["05. N1 Conductor y Acompañante sin Cinturos de seguridad 17.09.25", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/05. N1 Conductor y Acompañante sin Cinturos de seguridad 17.09.25"],
+    "38": ["022.- 02.10.2025 Daño Material - Piquete vidrio costado Izquierdo", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/022.- 02.10.2025 Daño Material - Piquete vidrio costado Izquierdo"],
+    "40": ["03. Cuasi accidente significativo", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/0.- INTERNO SKIC/03. Cuasi accidente significativo"],
+    "41": ["017.- 22.10.2025 Daño Material Daño lateral Bototo con perno minero", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/017.- 22.10.2025 Daño Material Daño lateral Bototo con perno minero"],
+    "45": ["01.- Alto Potencial Interacción de camioneta con escolta 09.11.2025", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/08.- ALTO POTENCIAL/01.- Alto Potencial Interacción de camioneta con escolta 09.11.2025"],
+    "46": ["03.- 19.11.2025 Cuasi acc. sign. Exposición Caída a pique", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/0.- INTERNO SKIC/03. Cuasi accidente significativo/03.- 19.11.2025 Cuasi acc. sign. Exposición Caída a pique"],
+    "54": ["06. Golpe en abdomen con perno de estructura (13.01.2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/06. Golpe en abdomen con perno de estructura (13.01.2026)"],
+    "69": ["020.- 25-03-2026 Daño Material Trizadura ventada de bus", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/020.- 25-03-2026 Daño Material Trizadura ventada de bus"],
+    "73": ["22. N1 20.04.2026 Deficiencia en segregación con cenefa", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/22. N1 20.04.2026 Deficiencia en segregación con cenefa"],
+    "78": ["10. Impacto de bus SKIC en rotonda TAP (03.05.2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/10. Impacto de bus SKIC en rotonda TAP (03.05.2026)"],
+    "82": ["01. Curso cenefa divisional a personal electrico", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/16. N1 01.03.2026 Evento significativo sin lesión/Medidas de control/01. Curso cenefa divisional a personal electrico"],
+    "93": ["08. TRAYECTO (07-08-2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/07.- TRAYECTO/08. TRAYECTO (07-08-2026)"],
+    "94": ["INS. RETIRO DE TAPADO DE SEGURIDAD ESTACIÓN DE VACIADO REV.1", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/11. Caida de Tapado 08-08-2026/1.- Procedimientos Aplicables/INS. RETIRO DE TAPADO DE SEGURIDAD ESTACIÓN DE VACIADO REV.1"],
+    "99": ["13. Esguice Grado 1 14-09-2026", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/13. Esguice Grado 1 14-09-2026"],
+  };
   const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const DAY_MS = 86400000;
   const today = new Date();
@@ -213,6 +312,12 @@
     return [...new Set(dates)];
   }
   async function attachEvidenceLinks() {
+    data.forEach((incident) => {
+      const staticLink = EVIDENCE_STATIC_LINKS[incident.item];
+      if (!staticLink) return;
+      incident.evidenciaNombre = staticLink[0];
+      incident.evidenciaUrl = sharePointUrl(staticLink[1]);
+    });
     try {
       const response = await fetch(encodeURI(QUERY_FILE));
       if (!response.ok) return;
@@ -258,8 +363,10 @@
         }).filter((item) => (item.tokenScore >= 0.6 && item.hits >= Math.min(2, tokens.length)) || (item.dateHit && item.tokenScore >= 0.25 && item.hits >= 1)).sort((a, b) => b.score - a.score || a.folder.path.length - b.folder.path.length);
         const best = scored[0] || (categoryCounts[incident.categoria] === 1 ? { folder: uniqueCategoryEvidenceFolder(incident.categoria) } : null);
         if (best && best.folder) {
-          incident.evidenciaNombre = best.folder.name;
-          incident.evidenciaUrl = sharePointUrl(best.folder.path);
+          if (!incident.evidenciaUrl) {
+            incident.evidenciaNombre = best.folder.name;
+            incident.evidenciaUrl = sharePointUrl(best.folder.path);
+          }
         }
       });
     } catch (error) {
