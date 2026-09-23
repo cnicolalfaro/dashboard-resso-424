@@ -7,12 +7,12 @@
   const $ = (selector) => document.querySelector(selector);
   const STORAGE = "resso424.incidentes.v1";
   const SOURCE = "resso424.incidentes.source";
-  const SOURCE_VERSION = "excel-v9";
+  const SOURCE_VERSION = "csv-v10";
   const SOURCE_META = "resso424.incidentes.sourceMeta";
   const CATEGORIES = "resso424.incidentes.categories";
   const AREAS = "resso424.incidentes.areas";
   const CRITICALITY = "resso424.incidentes.categoryCriticality";
-  const EXCEL_FILE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.2026.xlsx";
+  const EXCEL_FILE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.csv";
   const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const DAY_MS = 86400000;
   const today = new Date();
@@ -86,9 +86,8 @@
   }
   function incidentStatus(incident) {
     if (hasFinalReportGap(incident)) return "pending";
-    if (!incident.medidas.length || incident.medidas.some(isPending)) return "pending";
-    if (incident.medidas.every(isNA)) return "na";
-    if (incident.medidas.some(isClosed) && incident.medidas.every((measure) => isClosed(measure) || isNA(measure))) return "closed";
+    if (!incident.medidas.length || incident.medidas.some((measure) => isPending(measure) || isNA(measure))) return "pending";
+    if (incident.medidas.length && incident.medidas.every(isClosed)) return "closed";
     return "none";
   }
   function latestClose(incident) {
@@ -124,7 +123,7 @@
     if (headerIndex < 0) throw new Error("No se encontró la fila ITEM / NOMBRE DEL EVENTO.");
     const headers = rows[headerIndex].map(key);
     const col = (...names) => headers.findIndex((header) => names.includes(header));
-    const columns = { item: col("item"), fecha: col("fecha"), turno: col("turno"), nombre: col("nombredelevento"), categoria: col("categoria"), incidente: col("incidente"), medida: col("medidacorrectiva"), responsable: col("responsable"), cierre: col("fechacierreaccion", "fechacierre"), estatus: col("estatus"), verifMedidas: col("verificacionmedidas"), verifEficacia: col("verificaciondeeficacia", "verificacioneficacia"), comentarios: col("comentarios"), area: col("area", "sector"), cierreGeneral: col("fechacierregeneral") };
+    const columns = { item: col("item"), fecha: col("fecha"), turno: col("turno"), nombre: col("nombredelevento"), categoria: col("categoria"), incidente: col("incidente"), medida: col("medidacorrectiva"), responsable: col("responsable"), cierre: col("fechacierreaccion", "fechacierreaccin", "fechacierre"), estatus: col("estatus"), verifMedidas: col("verificacionmedidas", "verificacinmedidas"), verifEficacia: col("verificaciondeeficacia", "verificacioneficacia", "verificacindeeficacia"), comentarios: col("comentarios"), area: col("area", "sector"), cierreGeneral: col("fechacierregeneral") };
     const value = (row, column) => column >= 0 ? row[column] : "";
     const incidents = [];
     let current = null;
@@ -159,7 +158,7 @@
     if (source !== SOURCE_VERSION || !stored.length) {
       const response = await fetch(encodeURI(EXCEL_FILE));
       if (!response.ok) throw new Error(`No se pudo cargar Excel (${response.status}).`);
-      stored = parseWorkbook(XLSX.read(await response.arrayBuffer(), { type: "array", cellDates: true }));
+      stored = parseWorkbook(XLSX.read(await response.arrayBuffer(), { type: "array", cellDates: true, codepage: 1252 }));
       saveJson(STORAGE, stored); localStorage.setItem(SOURCE, SOURCE_VERSION);
       saveJson(SOURCE_META, { file: EXCEL_FILE, lastModified: response.headers.get("Last-Modified") || "", importedAt: new Date().toISOString() });
     }
@@ -321,11 +320,10 @@
   }
   function measureDueText(measure) {
     if (isClosed(measure)) return { status: "Cerrado", date: measure.fechaCierre || "Sin fecha", condition: "Cerrada", risk: "closed" };
-    if (isNA(measure)) return { status: "Cerrado", date: measure.fechaCierre || measure.fechaCierreNota || "No aplica", condition: "Cerrada", risk: "closed" };
+    if (isNA(measure)) return { status: "Abierto", date: measure.fechaCierre || measure.fechaCierreNota || "No aplica", condition: "Vencida", risk: "overdue" };
     const due = measureDueInfo(measure);
-    if (due.days == null) return { status: "Abierto", date: measure.fechaCierre || measure.fechaCierreNota || "Sin fecha", condition: "Sin fecha", risk: "none" };
-    if (due.days < 0) return { status: "Abierto", date: measure.fechaCierre, condition: `${Math.abs(due.days)} días de atraso`, risk: "overdue" };
-    if (due.days <= 10) return { status: "Abierto", date: measure.fechaCierre, condition: due.days ? `Por vencer en ${due.days} días` : "Vence hoy", risk: "soon" };
+    if (due.days == null) return { status: "Abierto", date: measure.fechaCierre || measure.fechaCierreNota || "Sin fecha", condition: "Vencida", risk: "overdue" };
+    if (due.days < 0) return { status: "Abierto", date: measure.fechaCierre, condition: "Vencida", risk: "overdue" };
     return { status: "Abierto", date: measure.fechaCierre, condition: "En plazo", risk: "ok" };
   }
   function followupDonut(groups, total, shown, shownLabel) {
@@ -360,7 +358,7 @@
     const selected = state.followupItem ? listed.find((row) => row.incident.item === state.followupItem) : null;
     if (!selected) { $("#incPendingDetail").innerHTML = ""; return; }
     const verification = `${verificationBadge("Verif. medidas", selected.incident.verifMedidas)}${verificationBadge("Verif. eficacia", selected.incident.verifEficacia)}`;
-    const detailMeasures = selected.incident.medidas.map((measure, index) => { const due = measureDueText(measure); return `<li class="measure-risk-${due.risk}"><span class="inc-measure-index">${index + 1}</span><strong>${escapeHtml(measure.medida) || "Medida sin descripción"}</strong><span>${escapeHtml(measure.responsable) || "Sin responsable"}</span><span class="inc-measure-state ${due.status === "Cerrado" ? "closed" : "open"}">${due.status}</span><span class="inc-measure-date">${escapeHtml(due.date)}</span><span class="inc-measure-condition ${due.risk}">${escapeHtml(due.condition)}</span></li>`; }).join("") || "<li><strong>Sin medidas registradas</strong><span>No hay acciones asociadas.</span></li>";
+    const detailMeasures = selected.incident.medidas.map((measure, index) => { const due = measureDueText(measure); return `<li class="measure-risk-${due.risk}"><span class="inc-measure-index">${index + 1}</span><strong>${escapeHtml(measure.medida) || "Medida sin descripción"}</strong><span>${escapeHtml(measure.responsable) || "Sin responsable"}</span><span class="inc-measure-state ${due.status === "Cerrado" ? "closed" : "open"}">${due.status}</span><span class="inc-measure-date">${escapeHtml(due.date)}</span><span class="inc-measure-condition ${due.risk}">${escapeHtml(due.condition)}</span></li>`; }).join("") || '<li class="inc-no-measures-row"><strong>Sin medidas correctivas registradas</strong><span>El incidente queda abierto hasta registrar medidas y verificaciones.</span></li>';
     $("#incPendingDetail").innerHTML = `<div class="inc-detail-card"><div><span>Item ${escapeHtml(selected.incident.item)}</span><h3>${escapeHtml(selected.incident.nombre)}</h3><p>${escapeHtml(selected.incident.incidente) || "Sin descripción"}</p></div><div class="inc-detail-meta"><span class="meta-category">Categoría: ${escapeHtml(selected.incident.categoria)}</span><span class="meta-state ${selected.status.key}">Estado: ${escapeHtml(selected.status.label)}</span><span class="meta-date">Fecha: ${escapeHtml(selected.incident.fecha) || "Sin fecha"}</span><span class="meta-shift">Turno: ${escapeHtml(selected.incident.turno) || "Sin turno"}</span><span class="meta-area">Área: ${escapeHtml(selected.incident.area) || "Por definir"}</span><span class="meta-close ${selected.incident.fechaCierreGeneral ? "ok" : "missing"}">Cierre general: ${escapeHtml(selected.incident.fechaCierreGeneral) || "Sin cierre general"}</span></div><div class="inc-detail-verifications">${verification}</div><div class="inc-measure-head"><span>N°</span><span>Medida correctiva</span><span>Responsable</span><span>Estatus</span><span>Fecha de cierre</span><span>Condición</span></div><ul>${detailMeasures}</ul>${selected.incident.comentarios ? `<div class="inc-detail-comments"><strong>Comentarios</strong><p>${escapeHtml(selected.incident.comentarios)}</p></div>` : ""}</div>`;
   }
   function renderTableV2(rows) {
@@ -379,7 +377,7 @@
     $("#incResults").innerHTML = rows.map((incident) => { const status = incidentStatus(incident), label = {closed:"Cerrado",pending:"Pendiente",na:"No aplica",none:"Sin estado"}[status], open = state.openItems.has(incident.item); const measures = incident.medidas.map((measure) => `<tr><td>${escapeHtml(measure.medida)||"—"}</td><td>${escapeHtml(measure.responsable)||"—"}</td><td>${escapeHtml(incident.fecha)||"—"}</td><td>${escapeHtml(measure.fechaCierre)||"—"}</td><td><span class="inc-status ${isClosed(measure)?"closed":isNA(measure)?"na":isPending(measure)?"open":"none"}">${escapeHtml(measure.estatus)||"Sin estado"}</span></td></tr>`).join(""); return `<article class="inc-event-row ${open?"open":""}"><div class="inc-event-summary" data-item="${escapeHtml(incident.item)}"><span class="inc-event-item">${escapeHtml(incident.item)}</span><span class="inc-event-category">${escapeHtml(incident.categoria)}</span><span class="inc-event-area">${escapeHtml(incident.area)||"Por definir"}</span><span class="inc-event-name"><strong>${escapeHtml(incident.nombre)}</strong><small>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.turno)}</small></span><span class="inc-event-measures">${incident.medidas.length}</span><span class="inc-event-state ${status}">${label}</span><span class="inc-row-actions"><button class="inc-open-btn">›</button><button class="inc-edit-btn" data-edit="${escapeHtml(incident.item)}">Editar</button></span></div><div class="inc-event-detail" ${open?"":"hidden"}><div class="inc-event-facts"><div><span>Categoría</span><strong>${escapeHtml(incident.categoria)}</strong></div><div><span>Área de trabajo</span><strong>${escapeHtml(incident.area)||"Por definir"}</strong></div><div><span>Turno</span><strong>${escapeHtml(incident.turno)||"—"}</strong></div><div><span>Fecha general de cierre</span><strong>${escapeHtml(incident.fechaCierreGeneral)||"—"}</strong></div><div><span>Verificación de medidas</span><strong>${escapeHtml(incident.verifMedidas)||"—"}</strong></div><div><span>Verificación de eficacia</span><strong>${escapeHtml(incident.verifEficacia)||"—"}</strong></div></div><div class="inc-event-description"><span>Descripción del incidente</span><p>${escapeHtml(incident.incidente)||"Sin descripción"}</p></div><div class="table-wrap"><table class="records-table inc-exec-table"><thead><tr><th>Medida correctiva</th><th>Responsable</th><th>Inicio del incidente</th><th>Cierre</th><th>Estatus</th></tr></thead><tbody>${measures||'<tr><td colspan="5">Sin medidas.</td></tr>'}</tbody></table></div>${incident.comentarios?`<div class="inc-event-comments"><span>Comentarios</span><p>${escapeHtml(incident.comentarios)}</p></div>`:""}<button class="inc-download-folders" data-download="${escapeHtml(incident.item)}">Descargar carpetas</button></div></article>`; }).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
     annotateDueAlerts(rows);
   }
-  function renderAll() { const rows = filteredIncidents(); const followupGroups = filteredIncidents({ ignorePendingRisk: true }); const selectedIncident = state.followupItem ? data.find((incident) => incident.item === state.followupItem) : null; $("#incidentesPanel").dataset.risk = state.pendingRisk || (selectedIncident ? followupStatus(selectedIncident).key : "all"); renderKpis(rows); renderOpenBars(rows); renderTrend(filteredIncidents({ ignoreMonth: true })); renderCategories(); renderTableV2(rows); renderFollowupV2(rows, followupGroups); const meta=loadJson(SOURCE_META,{}); const modified=meta.lastModified?new Date(meta.lastModified).toLocaleDateString("es-CL"):"fecha no disponible"; const maxItem=Math.max(0,...data.map((incident)=>Number(incident.item)).filter(Number.isFinite)); const sequenceNote=maxItem>data.length?` · último item ${maxItem}`:""; $("#incSourceLabel").textContent = `Excel local · ${data.length} incidentes activos${sequenceNote} · actualizado ${modified}`; $("#incCategoryCount").textContent = categories.length; $("#incAreaCount").textContent = areas.length; }
+  function renderAll() { const rows = filteredIncidents(); const followupGroups = filteredIncidents({ ignorePendingRisk: true }); const selectedIncident = state.followupItem ? data.find((incident) => incident.item === state.followupItem) : null; $("#incidentesPanel").dataset.risk = state.pendingRisk || (selectedIncident ? followupStatus(selectedIncident).key : "all"); renderKpis(rows); renderOpenBars(rows); renderTrend(filteredIncidents({ ignoreMonth: true })); renderCategories(); renderTableV2(rows); renderFollowupV2(rows, followupGroups); const meta=loadJson(SOURCE_META,{}); const modified=meta.lastModified?new Date(meta.lastModified).toLocaleDateString("es-CL"):"fecha no disponible"; const maxItem=Math.max(0,...data.map((incident)=>Number(incident.item)).filter(Number.isFinite)); const sequenceNote=maxItem>data.length?` · último item ${maxItem}`:""; $("#incSourceLabel").textContent = `Consolidado local · ${data.length} incidentes activos${sequenceNote} · actualizado ${modified}`; $("#incCategoryCount").textContent = categories.length; $("#incAreaCount").textContent = areas.length; }
 
   function addMeasureRow(measure = {}) {
     const row = document.createElement("div"); row.className = "inc-measure-row";
@@ -413,6 +411,7 @@
       const status = { closed: "Cerrado", pending: "Pendiente", na: "No aplica", none: "Sin estado" }[incidentStatus(item)] || "Sin estado";
       const measures = item.medidas.length ? item.medidas : [{}];
       return measures.map((measure, index) => ({
+        CondicionMedida: measure.medida ? measureDueText(measure).condition : "",
         Item: item.item,
         FechaIncidente: item.fecha,
         Turno: item.turno,
@@ -441,7 +440,7 @@
       state.month ? `Mes: ${MONTHS[+state.month]}` : "",
       state.search ? `Búsqueda: ${state.search}` : "",
     ].filter(Boolean).join(" | ") || "Sin filtros";
-    const header = ["N° REPORTE", "ITEM ORIGINAL", "FECHA", "TURNO", "CATEGORÍA", "ÁREA", "NOMBRE DEL EVENTO", "INCIDENTE", "N° MEDIDA", "MEDIDA CORRECTIVA", "RESPONSABLE", "FECHA CIERRE ACCIÓN", "ESTATUS", "VERIFICACIÓN MEDIDAS", "VERIFICACIÓN EFICACIA", "COMENTARIOS"];
+    const header = ["N° REPORTE", "ITEM ORIGINAL", "FECHA", "TURNO", "CATEGORÍA", "ÁREA", "NOMBRE DEL EVENTO", "INCIDENTE", "N° MEDIDA", "MEDIDA CORRECTIVA", "RESPONSABLE", "FECHA CIERRE ACCIÓN", "ESTATUS", "CONDICIÓN MEDIDA", "VERIFICACIÓN MEDIDAS", "VERIFICACIÓN EFICACIA", "COMENTARIOS"];
     const aoa = [
       ["CONSOLIDADO DE INCIDENTES Y MEDIDAS CORRECTIVAS"],
       [`Exportado: ${new Date().toLocaleString("es-CL")}`],
@@ -457,6 +456,7 @@
       const measures = item.medidas.length ? item.medidas : [{}];
       const start = aoa.length;
       measures.forEach((measure, index) => {
+        const condition = measure.medida ? measureDueText(measure).condition : "";
         aoa.push([
           index ? "" : itemIndex + 1,
           index ? "" : item.item,
@@ -471,6 +471,7 @@
           measure.responsable || "",
           measure.fechaCierre || measure.fechaCierreNota || "",
           measure.estatus || status,
+          condition,
           index ? "" : item.verifMedidas,
           index ? "" : item.verifEficacia,
           index ? "" : item.comentarios,
@@ -478,14 +479,14 @@
         rowKinds.push(index ? "measure" : "incident");
       });
       const end = aoa.length - 1;
-      if (end > start) [0,1,2,3,4,5,6,7,13,14,15].forEach((column) => merges.push({ s: { r: start, c: column }, e: { r: end, c: column } }));
+      if (end > start) [0,1,2,3,4,5,6,7,14,15,16].forEach((column) => merges.push({ s: { r: start, c: column }, e: { r: end, c: column } }));
       aoa.push(Array(header.length).fill(""));
       rowKinds.push("spacer");
     });
     const worksheet = XLSX.utils.aoa_to_sheet(aoa);
     worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: header.length - 1 } }, { s: { r: 2, c: 0 }, e: { r: 2, c: header.length - 1 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: header.length - 1 } }, ...merges];
     worksheet["!cols"] = [
-      { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 34 }, { wch: 54 }, { wch: 9 }, { wch: 58 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 34 },
+      { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 34 }, { wch: 54 }, { wch: 9 }, { wch: 58 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 34 },
     ];
     worksheet["!rows"] = rowKinds.map((kind) => ({ hpt: kind === "title" ? 28 : kind === "meta" ? 20 : kind === "header" ? 26 : kind === "spacer" ? 8 : kind === "incident" ? 42 : 34 }));
     worksheet["!freeze"] = { xSplit: 0, ySplit: 1 };
@@ -530,7 +531,7 @@
     $("#incManageCategories").onclick=()=>{if(!$("#incTaxonomyPanel").hidden&&taxonomyMode==="category"){$("#incTaxonomyPanel").hidden=true;return;}taxonomyMode="category";renderTaxonomy(taxonomyMode);}; $("#incManageAreas").onclick=()=>{if(!$("#incTaxonomyPanel").hidden&&taxonomyMode==="area"){$("#incTaxonomyPanel").hidden=true;return;}taxonomyMode="area";renderTaxonomy(taxonomyMode);}; $("#incCloseTaxonomy").onclick=()=>$("#incTaxonomyPanel").hidden=true;
     $("#incTaxonomyForm").onsubmit=(event)=>{event.preventDefault();const name=clean($("#incTaxonomyName").value);if(!name)return;const values=taxonomyMode==="category"?categories:areas;if(!values.some((value)=>norm(value)===norm(name)))values.push(name);values.sort();if(taxonomyMode==="category")criticality[name]="normal";saveJson(CATEGORIES,categories);saveJson(AREAS,areas);saveJson(CRITICALITY,criticality);$("#incTaxonomyName").value="";populateOptions();renderTaxonomy(taxonomyMode);renderAll();};
     $("#incTaxonomyList").onclick=(event)=>{const button=event.target.closest("[data-tax-edit]");if(!button)return;const row=button.closest(".inc-taxonomy-row"),input=row.querySelector("input"),select=row.querySelector("select"),old=button.dataset.taxEdit;if(button.textContent==="Editar"){input.readOnly=false;if(select)select.disabled=false;button.textContent="Guardar";return;}const name=clean(input.value);if(!name)return;data.forEach((item)=>{if((taxonomyMode==="category"?item.categoria:item.area)===old)item[taxonomyMode==="category"?"categoria":"area"]=name;});const values=taxonomyMode==="category"?categories:areas,idx=values.indexOf(old);if(idx>=0)values[idx]=name;if(select){delete criticality[old];criticality[name]=select.value;}saveJson(CATEGORIES,categories);saveJson(AREAS,areas);saveJson(CRITICALITY,criticality);saveData(`${old} actualizado a ${name}.`);populateOptions();renderTaxonomy(taxonomyMode);};
-    $("#incExcelFile").onchange=async(event)=>{const file=event.target.files[0];if(!file)return;data=parseWorkbook(XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true}));saveData(`${data.length} incidentes importados.`);populateOptions();}; $("#incExportExcel").onclick=()=>XLSX.writeFile(exportWorkbook(),"Incidentes_filtrados_ordenados.xlsx",{cellStyles:true});
+    $("#incExcelFile").onchange=async(event)=>{const file=event.target.files[0];if(!file)return;data=parseWorkbook(XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true,codepage:1252}));saveData(`${data.length} incidentes importados.`);populateOptions();}; $("#incExportExcel").onclick=()=>XLSX.writeFile(exportWorkbook(),"Incidentes_filtrados_ordenados.xlsx",{cellStyles:true});
   }
 
   async function init() {
