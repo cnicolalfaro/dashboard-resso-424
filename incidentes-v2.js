@@ -122,7 +122,7 @@
     "78": ["10. Impacto de bus SKIC en rotonda TAP (03.05.2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/10. Impacto de bus SKIC en rotonda TAP (03.05.2026)"],
     "82": ["01. Curso cenefa divisional a personal electrico", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/05.- NIVEL 1/16. N1 01.03.2026 Evento significativo sin lesión/Medidas de control/01. Curso cenefa divisional a personal electrico"],
     "93": ["08. TRAYECTO (07-08-2026)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/07.- TRAYECTO/08. TRAYECTO (07-08-2026)"],
-    "94": ["INS. RETIRO DE TAPADO DE SEGURIDAD ESTACIÓN DE VACIADO REV.1", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/11. Caida de Tapado 08-08-2026/1.- Procedimientos Aplicables/INS. RETIRO DE TAPADO DE SEGURIDAD ESTACIÓN DE VACIADO REV.1"],
+    "94": ["11. Caida de Tapado 08-08-2026", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/11. Caida de Tapado 08-08-2026"],
     "99": ["13. Esguice Grado 1 14-09-2026", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/01.- STP/13. Esguice Grado 1 14-09-2026"],
   };
   const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
