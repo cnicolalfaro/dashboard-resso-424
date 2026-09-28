@@ -1012,8 +1012,24 @@
   // ---- Navegación por secciones (menú principal → vistas) ----------------
   function setupNav() {
     const views = Array.prototype.slice.call(document.querySelectorAll(".view"));
+    const avanceFrame = $("#avanceRessoFrame");
+    const sendAvanceData = () => {
+      if (!avanceFrame || !avanceFrame.contentWindow || !D.avanceResso) return;
+      avanceFrame.contentWindow.postMessage(
+        { type: "avance-resso-data", data: D.avanceResso },
+        window.location.origin
+      );
+    };
+    if (avanceFrame) {
+      avanceFrame.addEventListener("load", sendAvanceData);
+      window.addEventListener("message", (event) => {
+        if (event.origin !== window.location.origin || event.source !== avanceFrame.contentWindow) return;
+        if (event.data && event.data.type === "avance-resso-ready") sendAvanceData();
+      });
+    }
     function show(id) {
       views.forEach((v) => { v.hidden = v.id !== id; });
+      if (id === "viewAvanceResso") sendAvanceData();
       window.scrollTo(0, 0);
     }
     document.querySelectorAll("[data-goto]").forEach((btn) =>

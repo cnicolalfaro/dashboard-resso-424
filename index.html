@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=52" />
+  <link rel="stylesheet" href="styles.css?v=53" />
 </head>
 <body>
 
@@ -88,6 +88,12 @@
                 <span class="menu-card-desc">Cruce entre los Riesgos de Fatalidad de CODELCO y los Riesgos Críticos de SKIC, pregunta por pregunta.</span>
                 <span class="menu-card-go">Entrar →</span>
               </a>
+              <button type="button" class="menu-card" data-goto="viewAvanceResso">
+                <span class="menu-card-ico" aria-hidden="true">📈</span>
+                <span class="menu-card-title">Avance RESSO</span>
+                <span class="menu-card-desc">Cumplimiento de capacitaciones por documento, familia y persona de la dotación activa.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
             </div>
           </div>
         </div>
@@ -399,6 +405,12 @@
           <div class="inc-filters"><label>Buscar<input id="incSearch" type="search" placeholder="Evento, item o responsable" /></label><label>Categoría<select id="incCat"><option value="">Todas</option></select></label><label>Estado medidas<select id="incEstado"><option value="">Todos</option><option value="closed">Cerrado</option><option value="pending">Pendiente</option><option value="na">No aplica</option><option value="none">Sin estado</option></select></label><label class="inc-hidden-filter">Turno<select id="incTurno"><option value="">Todos</option></select></label><label class="inc-hidden-filter">Área de trabajo<select id="incArea"><option value="">Todas</option></select></label></div><div id="incCategoryNav" class="inc-category-nav"></div><div class="inc-table-head"><span>Item</span><span>Categoría</span><span>Área</span><span>Nombre del evento</span><span>Medidas correctivas</span><span>Estatus</span><span>Acciones</span></div><div id="incResults" class="inc-exec-results"></div><div class="inc-admin-panel"><button type="button" class="inc-create-btn" id="incToggleForm">+ Crear nuevo incidente</button></div>
         </section>
       </section><!-- /viewIncidentes -->
+
+      <!-- ===================== VISTA: AVANCE RESSO ===================== -->
+      <section class="view avance-resso-view" id="viewAvanceResso" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+        <iframe id="avanceRessoFrame" class="avance-resso-frame" src="avance-resso/" title="Avance de cumplimiento RESSO"></iframe>
+      </section>
     </main>
 
     <footer class="footer">
@@ -422,7 +434,7 @@
   <script>window.INCIDENTS_V2 = true;</script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/datos.enc.js?v=5"></script>
-  <script src="auth.js?v=4"></script>
+  <script src="data/datos.enc.js?v=6"></script>
+  <script src="auth.js?v=5"></script>
 </body>
 </html>

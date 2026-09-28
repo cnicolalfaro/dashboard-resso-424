@@ -984,6 +984,16 @@ h1 {
 }
 .back-btn:hover { background: #e1e8f7; transform: translateX(-2px); }
 
+.avance-resso-view { min-height: calc(100vh - 150px); }
+.avance-resso-frame {
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - 190px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7f4ee;
+}
+
 /* ===== FOOTER ===== */
 .footer { margin-top: 24px; text-align: center; color: var(--muted); font-size: .85rem; padding: 16px; position: relative; z-index: 2; }
 
