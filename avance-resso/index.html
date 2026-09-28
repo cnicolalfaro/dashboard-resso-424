@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Avance RESSO</title>
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Tablero de avance de cumplimiento RESSO - SKIC 424 (exportado como sitio estatico)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<div class="module-status" id="moduleStatus" role="status">Ingresa al dashboard RESSO para consultar este módulo.</div>
+<header class="top">
+  <div class="wrap" style="padding-bottom:0;">
+    <span class="eyebrow"><span class="dot"></span>Tablero ejecutivo · RESSO</span>
+    <h1 class="title">Avance de cumplimiento RESSO</h1>
+    <p class="subtitle">Cruce entre los formularios de difusión/evaluación (Microsoft Forms), la nueva plataforma de capacitación, y la dotación activa de la tarja. Cada persona cuenta como al día en un documento si aprobó por cualquiera de las fuentes disponibles: 100% de las preguntas correctas o "APROBADO" en Forms, o "Aprobado" en la plataforma nueva.</p>
+    <div class="meta-row" id="metaRow"></div>
+    <div class="kpis" id="kpis"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section id="overview-section">
+    <div class="section-head">
+      <h2>Distribución general</h2>
+      <span class="hint">Documentos por familia · clic en una porción o categoría para saltar al desglose</span>
+    </div>
+    <div class="overview-card">
+      <div class="pie-wrap" id="pieWrap"></div>
+      <div class="pie-legend" id="pieLegend"></div>
+    </div>
+  </section>
+
+  <section id="docs-section">
+    <div class="section-head">
+      <h2>Avance por módulo</h2>
+      <span class="hint">Agrupado por familia · clic en un documento para ver quiénes faltan</span>
+    </div>
+    <div id="categoryGroups"></div>
+    <div class="legend">
+      <span><i style="background:var(--critical)"></i>&lt; 30% al día</span>
+      <span><i style="background:var(--serious)"></i>30–59%</span>
+      <span><i style="background:var(--warning)"></i>60–84%</span>
+      <span><i style="background:var(--good)"></i>≥ 85%</span>
+    </div>
+  </section>
+
+  <section id="targeted-section" style="display:none;">
+    <div class="section-head">
+      <h2>Capacitaciones dirigidas por cargo</h2>
+      <span class="hint">Su denominador no es la dotación activa completa, sino solo el cargo al que va dirigida</span>
+    </div>
+    <div class="doclist" id="targetedList"></div>
+  </section>
+
+  <section id="people-section">
+    <div class="section-head">
+      <h2>Personas</h2>
+      <span class="hint" id="peopleHint">980 de la dotación activa</span>
+    </div>
+    <div class="controls">
+      <input type="search" id="searchBox" placeholder="Buscar por nombre o RUT…">
+      <select id="cargoFilter"></select>
+      <select id="docFilterSelect"></select>
+    </div>
+    <div class="active-filter-note" id="activeFilterNote" style="display:none;"></div>
+    <div class="tablewrap"><table>
+      <thead><tr id="tableHead"></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table></div>
+  </section>
+
+  <footer>
+    <span id="generatedNote"></span>
+    <span>Fuente: formularios de difusión/evaluación + tarja (dotación activa, Maestra) · AVANCE_TOTAL</span>
+  </footer>
+</div>
+<script src="app.js?v=1"></script>
+</body>
+</html>
