@@ -1,0 +1,695 @@
+[
+ {
+  "item": "1",
+  "fecha": "21/02/2025",
+  "categoria": "CAMPAMENTO",
+  "nombre": "Pï¿½RDIDA DE AGUA EN SERVICIO HIGIENICO / CAMPAMENTO",
+  "medidas": 4
+ },
+ {
+  "item": "2",
+  "fecha": "15/03/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - ROTURA DE FOCO TRASERO DERECHO",
+  "medidas": 1
+ },
+ {
+  "item": "3",
+  "fecha": "23/03/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - TECHO DE MINIBï¿½S (BOTOTO) SECTOR TUNEL 14 DE EXTRACCIï¿½N, INTERSECCIï¿½N CON ï¿½Y",
+  "medidas": 2
+ },
+ {
+  "item": "4",
+  "fecha": "28/03/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - MANITOU  SECTOR ESTOCADA DE CALLE 26 DEL PVAC 5",
+  "medidas": 3
+ },
+ {
+  "item": "5",
+  "fecha": "30/03/2025",
+  "categoria": "NIVEL 1",
+  "nombre": "N1 - ï¿½REA NO SEGREGADA POR CENEFA",
+  "medidas": 4
+ },
+ {
+  "item": "6",
+  "fecha": "09/04/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - RUPTURA DE ESPEJO IZQUIERDO MINI BUS TZYY-82",
+  "medidas": 1
+ },
+ {
+  "item": "7",
+  "fecha": "10/04/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - CAMIONETA SKIC / CALAMA.",
+  "medidas": 2
+ },
+ {
+  "item": "8",
+  "fecha": "13/04/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - CAMIONETA SKIC ï¿½ RUPTURA VIDRIO LATERAL IZQUIERDO CALAMA",
+  "medidas": 2
+ },
+ {
+  "item": "9",
+  "fecha": "17/04/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - Lï¿½NEA DE SERVICIO AGUA INDUSTRIAL EN CALLE 28 CON CABECERA 1, SECTOR PVAC-5.",
+  "medidas": 3
+ },
+ {
+  "item": "10",
+  "fecha": "24/04/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - ESPEJO RETROVISOR IZQUIERDO MINI BUS",
+  "medidas": 2
+ },
+ {
+  "item": "11",
+  "fecha": "26/04/2025",
+  "categoria": "FALLA OPERACIONAL",
+  "nombre": "FALLA OPERACIONAL ï¿½  MANGA VENTILACIï¿½N BICH.",
+  "medidas": 3
+ },
+ {
+  "item": "12",
+  "fecha": "29/04/2025",
+  "categoria": "FALLA OPERACIONAL",
+  "nombre": "FALLA OPERACIONAL CON CONSECUENCIAS AMBIENTALES ï¿½  BUS LPSW-27",
+  "medidas": 3
+ },
+ {
+  "item": "13",
+  "fecha": "04/05/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - GOLPE PARTE TRASERA SUPERIOR IZQUIERDA DE MINIBUS EN ZANJA 18",
+  "medidas": 1
+ },
+ {
+  "item": "14",
+  "fecha": "09/05/2025",
+  "categoria": "ROBO",
+  "nombre": "ROBO MARTILLO HIDRï¿½ULICO RETROEXCAVADORA",
+  "medidas": 1
+ },
+ {
+  "item": "15",
+  "fecha": "10/05/2025",
+  "categoria": "NIVEL 1",
+  "nombre": "N1 - \"TRANSGRESIï¿½N CENEFA\" PERFORACIï¿½N MANUAL CON APOYO DE MANIPULADOR",
+  "medidas": 5
+ },
+ {
+  "item": "16",
+  "fecha": "23/05/2025",
+  "categoria": "NIVEL 1",
+  "nombre": "N1 - FALTA DE CENEFA EN TRASLADO DE BOMBA DE HORMIGï¿½N CON APOYO DE MANIPULADOR",
+  "medidas": 5
+ },
+ {
+  "item": "17",
+  "fecha": "01/06/2025",
+  "categoria": "NIVEL 1",
+  "nombre": "N1 - TRANSGRESIï¿½N LORO METï¿½LICO DE EMPRESA CMDB",
+  "medidas": 6
+ },
+ {
+  "item": "18",
+  "fecha": "08/06/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - PERFORACIï¿½N MANUAL SISTEMA DE COMBUSTIï¿½N INTERNA, GENERA ALZA DE TEMPERATURA",
+  "medidas": 1
+ },
+ {
+  "item": "19",
+  "fecha": "09/06/2025",
+  "categoria": "FALLA OPERACIONAL",
+  "nombre": "FALLA OPERACIONAL - TRASLADO DE POLEA MOTRIZ SECUNDARIA",
+  "medidas": 1
+ },
+ {
+  "item": "20",
+  "fecha": "10/06/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - Lï¿½NEA DE SERVICIO AGUA INDUSTRIAL EN CALLE 28 CON CABECERA 1, SECTOR PVAC-3",
+  "medidas": 2
+ },
+ {
+  "item": "21",
+  "fecha": "13/06/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - PARABRISA DE CAMIONETA",
+  "medidas": 3
+ },
+ {
+  "item": "22",
+  "fecha": "21/06/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - FIBRA ï¿½PTICA BARRIO Cï¿½VICO",
+  "medidas": 2
+ },
+ {
+  "item": "23",
+  "fecha": "30/06/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - TRIZADURA DE VIDRIO LATERAL MINIBUS",
+  "medidas": 2
+ },
+ {
+  "item": "24",
+  "fecha": "01/07/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - VOLCAMIENTO EQUIPOS ELï¿½CTRICOS CCM, DESDE CAMIï¿½N PLUMA",
+  "medidas": 4
+ },
+ {
+  "item": "25",
+  "fecha": "12/07/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - ROTURA DE FOCO TRASERO IZQUIERDO DE CAMIONETA",
+  "medidas": 3
+ },
+ {
+  "item": "26",
+  "fecha": "18/07/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - ROTURA DE FOCO TRASERO DERECHO DE CAMIONETA",
+  "medidas": 2
+ },
+ {
+  "item": "27",
+  "fecha": "22/07/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - CAï¿½DA DE TAPADO SOBRE PLATAFORMA DE ANDAMIO",
+  "medidas": 2
+ },
+ {
+  "item": "28",
+  "fecha": "01/08/2025",
+  "categoria": "STP",
+  "nombre": "STP - LEY KARIN",
+  "medidas": 1
+ },
+ {
+  "item": "29",
+  "fecha": "10/08/2025",
+  "categoria": "STP",
+  "nombre": "DESACOPLE UNIï¿½N MANGUERA NEUMï¿½TICA",
+  "medidas": 6
+ },
+ {
+  "item": "30",
+  "fecha": "16/08/2025",
+  "categoria": "TRAYECTO",
+  "nombre": "CHOQUE DE BUS Y \nMINIBUS KIC",
+  "medidas": 6
+ },
+ {
+  "item": "31",
+  "fecha": "18/08/2025",
+  "categoria": "NAT",
+  "nombre": "DAï¿½O MATERIAL - GOLPE TECHO BUS",
+  "medidas": 1
+ },
+ {
+  "item": "32",
+  "fecha": "26/08/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - ROTIURA DE VIDRIO Y CARROCERï¿½A DE MINIBUS",
+  "medidas": 5
+ },
+ {
+  "item": "33",
+  "fecha": "31/08/2025",
+  "categoria": "STP",
+  "nombre": "TORCEDURA PIE DERECHO",
+  "medidas": 5
+ },
+ {
+  "item": "34",
+  "fecha": "06/09/2025",
+  "categoria": "FALLA OPERACIONAL",
+  "nombre": "DESPRENDIMIENTO DE HORMIGï¿½N EN TRONCO BUZï¿½N Nï¿½5",
+  "medidas": 5
+ },
+ {
+  "item": "35",
+  "fecha": "11/09/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - ROTURA VIDRIO IZQUIERDO MINIBUS",
+  "medidas": 4
+ },
+ {
+  "item": "36",
+  "fecha": "17/09/2025",
+  "categoria": "NIVEL 1",
+  "nombre": "CONDUCCIï¿½N DE CAMIï¿½N SIN USO DE CINTURï¿½N DE SEGURIDAD",
+  "medidas": 3
+ },
+ {
+  "item": "37",
+  "fecha": "21/09/2025",
+  "categoria": "TRAYECTO",
+  "nombre": "COLISIï¿½N POR ALCANCE EN PARTE POSTERIOR",
+  "medidas": 1
+ },
+ {
+  "item": "38",
+  "fecha": "02/10/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - PIQUETE VIDRIO COSTADO IZQUIRDO MINI BUS",
+  "medidas": 1
+ },
+ {
+  "item": "39",
+  "fecha": "18/10/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL -  CAMIONETA VCSZ41",
+  "medidas": 3
+ },
+ {
+  "item": "40",
+  "fecha": "19/10/2025",
+  "categoria": "CUASI ACCIDENTE SIGNIFICATIVO",
+  "nombre": "CUASI ACCIDENTE SIGNIFICATIVO - CONDUCCIï¿½N SIN LICENCIA INTERNA",
+  "medidas": 0
+ },
+ {
+  "item": "41",
+  "fecha": "22/10/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - BUS 4X4 BOTOTO TZYY49",
+  "medidas": 3
+ },
+ {
+  "item": "42",
+  "fecha": "01/11/2025",
+  "categoria": "NIVEL 1",
+  "nombre": "N1: EJECUCIï¿½N DE TRABAJO SIN ART",
+  "medidas": 1
+ },
+ {
+  "item": "43",
+  "fecha": "03/11/2025",
+  "categoria": "FALLA OPERACIONAL",
+  "nombre": "DERRAME D HORMIGï¿½N SECTOR CHANCADO S04",
+  "medidas": 3
+ },
+ {
+  "item": "44",
+  "fecha": "07/11/2025",
+  "categoria": "NAT",
+  "nombre": "MOLESTIAS EN OJO DERECHO",
+  "medidas": 3
+ },
+ {
+  "item": "45",
+  "fecha": "09/11/2025",
+  "categoria": "SIGNIFICATIVO",
+  "nombre": "INTERACCIï¿½N ENTRE CAMIONETA  CMDB Y ESCOLTA OPERACIONAL",
+  "medidas": 3
+ },
+ {
+  "item": "46",
+  "fecha": "19/11/2025",
+  "categoria": "SIGNIFICATIVO",
+  "nombre": "EVENTO SIGNIFICATIVO SIN LESIï¿½N ï¿½EXPOSICIï¿½N CAï¿½DA A PIQUEï¿½",
+  "medidas": 4
+ },
+ {
+  "item": "47",
+  "fecha": "22/11/2025",
+  "categoria": "TRAYECTO",
+  "nombre": "ACCIDENTE DE TRï¿½NSITO EN TRAYECTO DESDE SU DOMICILIO A OBRA",
+  "medidas": 1
+ },
+ {
+  "item": "48",
+  "fecha": "24/11/2025",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL - VIDRIO BUS 4X4",
+  "medidas": 1
+ },
+ {
+  "item": "49",
+  "fecha": "03/12/2025",
+  "categoria": "CTP",
+  "nombre": "INCIDENTE GOLPE DEDOS ï¿½NDICE Y MEDIO MANO DERECHA",
+  "medidas": 13
+ },
+ {
+  "item": "50",
+  "fecha": "20/12/2025",
+  "categoria": "SIGNIFICATIVO",
+  "nombre": "FATIGA DE PERNO DE ANCLAJE",
+  "medidas": 5
+ },
+ {
+  "item": "51",
+  "fecha": "21/12/2025",
+  "categoria": "STP",
+  "nombre": "TORCEDURA PIE DERECHO",
+  "medidas": 1
+ },
+ {
+  "item": "52",
+  "fecha": "23/12/2025",
+  "categoria": "NIVEL 1",
+  "nombre": "INTERACCIï¿½N DE PERSONAS CON EQUIPO",
+  "medidas": 3
+ },
+ {
+  "item": "53",
+  "fecha": "05/01/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "INTERACCIï¿½N DE PERSONAS CON EQUIPO - MANIPULADOR TELESCï¿½PICO",
+  "medidas": 3
+ },
+ {
+  "item": "54",
+  "fecha": "13/01/2026",
+  "categoria": "STP",
+  "nombre": "CONTACTO CON PERNO",
+  "medidas": 3
+ },
+ {
+  "item": "55",
+  "fecha": "31/01/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "CHOQUE DE MINI BUS CONTRA CAMIONETA",
+  "medidas": 2
+ },
+ {
+  "item": "56",
+  "fecha": "06/02/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "Deficiencia en  aseguramiento de\n lï¿½nea de agua\n(INTERNO CODELCO-JEJ)",
+  "medidas": 3
+ },
+ {
+  "item": "57",
+  "fecha": "06/02/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "CONEXIï¿½N FUERA DE ESTANDAR A TABLERO",
+  "medidas": 2
+ },
+ {
+  "item": "58",
+  "fecha": "15/02/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "EXPOSICIï¿½N A CAï¿½DA DISTINTO NIVEL",
+  "medidas": 3
+ },
+ {
+  "item": "59",
+  "fecha": "15/02/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "ART SIN FIRMA SUPERVISOR",
+  "medidas": 1
+ },
+ {
+  "item": "60",
+  "fecha": "22/02/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "RETIRO DE CANASTILLO FUERA DE ESTANDAR",
+  "medidas": 4
+ },
+ {
+  "item": "61",
+  "fecha": "23/02/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "FALTA FIRMA DE SUPERVISOR ART",
+  "medidas": 1
+ },
+ {
+  "item": "62",
+  "fecha": "24/02/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "BLOQUEO SUBESTANDAR DE EQUIPO GRUA HORQUILLA",
+  "medidas": 1
+ },
+ {
+  "item": "63",
+  "fecha": "01/03/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "EVENTO SIGNIFICATIVO SIN LESIï¿½N",
+  "medidas": 2
+ },
+ {
+  "item": "64",
+  "fecha": "01/03/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "TRABAJADOR SIN PORTE DE AUTORRESCATADOR",
+  "medidas": 2
+ },
+ {
+  "item": "65",
+  "fecha": "15/03/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "ESTRUCTURA SOBRE SOPORTACIï¿½N FUERA DE ESTANDAR",
+  "medidas": 2
+ },
+ {
+  "item": "66",
+  "fecha": "16/03/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "Interacciï¿½n equipo/persona",
+  "medidas": 4
+ },
+ {
+  "item": "67",
+  "fecha": "18/03/2026",
+  "categoria": "STP",
+  "nombre": "GOLPEADO POR SOPORTE DE CABLE TENSOR",
+  "medidas": 3
+ },
+ {
+  "item": "68",
+  "fecha": "21/03/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "PERSONAL NO HACE USO DE CINTURON DE SEGURIDAD",
+  "medidas": 2
+ },
+ {
+  "item": "69",
+  "fecha": "25/03/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "DAï¿½O A MATERIAL VENTANA IZQUIERDA BUS (BOTOTO)",
+  "medidas": 2
+ },
+ {
+  "item": "70",
+  "fecha": "26/03/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "INTERACCIï¿½N PERSONA MAQUINA",
+  "medidas": 3
+ },
+ {
+  "item": "71",
+  "fecha": "08/04/2026",
+  "categoria": "STP",
+  "nombre": "GOLPE EN RODILLA IZQUIERDA CONTRA BANCA EN SALA DE CAMBIO",
+  "medidas": 1
+ },
+ {
+  "item": "72",
+  "fecha": "15/04/2026",
+  "categoria": "STP",
+  "nombre": "GOLPE EN PIERNA IZQUIERDA CON MOLDAJE",
+  "medidas": 2
+ },
+ {
+  "item": "73",
+  "fecha": "20/04/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "DEFICIENCIA EN SEGREGACIï¿½N CON CINTA DE CONFINAMIENTO",
+  "medidas": 3
+ },
+ {
+  "item": "74",
+  "fecha": "23/04/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "FALTA DE CINTA DE CONFINAMIENTO",
+  "medidas": 4
+ },
+ {
+  "item": "75",
+  "fecha": "23/04/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "MANIOBRAS CON EQUIPO DE LEVANTE",
+  "medidas": 3
+ },
+ {
+  "item": "77",
+  "fecha": "28/04/2026",
+  "categoria": "NIVEL 1",
+  "nombre": "BLOQUEO DEPARTAMENTAL CHANCADOR 2",
+  "medidas": 2
+ },
+ {
+  "item": "78",
+  "fecha": "03/05/2026",
+  "categoria": "STP",
+  "nombre": "DAï¿½O MATERIAL VENTANA DE BUS (Codelco)\n2 STP (SKIC)",
+  "medidas": 3
+ },
+ {
+  "item": "79",
+  "fecha": "03/05/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL PORTAMALETA MINIBUS",
+  "medidas": 2
+ },
+ {
+  "item": "80",
+  "fecha": "06/05/2026",
+  "categoria": "NAT",
+  "nombre": "USO EXTINTOR PQS BUS TRANPORTE DE PERSONAL",
+  "medidas": 1
+ },
+ {
+  "item": "81",
+  "fecha": "12/05/2026",
+  "categoria": "N1",
+  "nombre": "ANDAMIOS SIN VALIDACIï¿½N DIARIA",
+  "medidas": 3
+ },
+ {
+  "item": "82",
+  "fecha": "12/05/2026",
+  "categoria": "N1",
+  "nombre": "SIN CENEFA",
+  "medidas": 1
+ },
+ {
+  "item": "83",
+  "fecha": "16/05/2026",
+  "categoria": "N1",
+  "nombre": "ACTIVIDAD SIN ART",
+  "medidas": 2
+ },
+ {
+  "item": "84",
+  "fecha": "24/05/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL ROTURA DE VIDRIO MANIPULADOR TELESCï¿½PICO",
+  "medidas": 2
+ },
+ {
+  "item": "85",
+  "fecha": "24/05/2026",
+  "categoria": "N1",
+  "nombre": "SEGREGACIï¿½N MANIPULADOR TELESCï¿½PICO",
+  "medidas": 5
+ },
+ {
+  "item": "86",
+  "fecha": "25/05/2026",
+  "categoria": "N1",
+  "nombre": "MOVIMIENTO DE EQUIPO SIN SEGREGACIï¿½N",
+  "medidas": 4
+ },
+ {
+  "item": "87",
+  "fecha": "30/05/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL CAIDA DE CABLE MENSAJERO",
+  "medidas": 2
+ },
+ {
+  "item": "88",
+  "fecha": "07/06/2026",
+  "categoria": "N1",
+  "nombre": "Transgresiï¿½n seï¿½al de trï¿½nsito PARE",
+  "medidas": 1
+ },
+ {
+  "item": "89",
+  "fecha": "14/06/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "ROTURA VENTANA MINIBUS",
+  "medidas": 1
+ },
+ {
+  "item": "90",
+  "fecha": "19/06/2026",
+  "categoria": "N1",
+  "nombre": "SIN PORTE DE LICENCIA INTERNA Y MUNICIPAL",
+  "medidas": 3
+ },
+ {
+  "item": "91",
+  "fecha": "28/06/2026",
+  "categoria": "TRAYECTO",
+  "nombre": "MOLESTIA DEDO ï¿½NDICE MANO DERECHA",
+  "medidas": 3
+ },
+ {
+  "item": "92",
+  "fecha": "24/07/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "TRIZADURA VENTANA MINIBUS",
+  "medidas": 2
+ },
+ {
+  "item": "93",
+  "fecha": "07/08/2026",
+  "categoria": "TRAYECTO",
+  "nombre": "ACCIDENTE DE TRAYECTO \nDOLOR LUMBAR",
+  "medidas": 1
+ },
+ {
+  "item": "94",
+  "fecha": "08/08/2026",
+  "categoria": "CTP",
+  "nombre": "EVENTO SIGNIFICATIVO SIN LESIï¿½N \nCAï¿½DA DE ESTRUCTURA TAPADO DE SEGURIDAD",
+  "medidas": 8
+ },
+ {
+  "item": "95",
+  "fecha": "13/08/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL CAMIï¿½N DE IZAJE",
+  "medidas": 3
+ },
+ {
+  "item": "96",
+  "fecha": "31/08/2026",
+  "categoria": "STP",
+  "nombre": "GOLPE CONTRA ANDAMIOS",
+  "medidas": 2
+ },
+ {
+  "item": "97",
+  "fecha": "10/09/2026",
+  "categoria": "N1",
+  "nombre": "MANIPULADOR SIN SEGREGACIï¿½N",
+  "medidas": 3
+ },
+ {
+  "item": "98",
+  "fecha": "13/09/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "DAï¿½O MATERIAL CAMION DE IZAJE",
+  "medidas": 0
+ },
+ {
+  "item": "99",
+  "fecha": "15/09/2026",
+  "categoria": "STP",
+  "nombre": "ESGUINCE GRADO 1",
+  "medidas": 0
+ },
+ {
+  "item": "100",
+  "fecha": "24/09/2026",
+  "categoria": "DAï¿½O MATERIAL",
+  "nombre": "GOLPE EN CANASTILLO DE EQUIPO MANIPULADOR",
+  "medidas": 1
+ }
+]

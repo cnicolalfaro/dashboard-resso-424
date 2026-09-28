@@ -1,0 +1,42 @@
+﻿HEADER ROW: 1
+HEADERS: ['item', 'fecha', 'turno', 'nombredelevento', 'categoria', 'incidente', 'medidacorrectiva', 'responsable', 'fechacierreaccin', 'estatus', 'verificacinmedidas', 'verificaciondeeficacia', 'comentarios']
+COLS: {'item': 0, 'fecha': 1, 'turno': 2, 'nombre': 3, 'categoria': 4, 'incidente': 5, 'medida': 6, 'responsable': 7, 'cierre': 8, 'estatus': 9, 'verifm': 10, 'verife': 11, 'comentarios': 12, 'area': -1}
+TOTAL INCIDENTES: 99
+RANGO ITEM: 1 - 100
+FALTANTES: [76]
+DUPLICADOS: []
+
+--- FECHAS CIERRE ANTERIORES AL INCIDENTE ---
+ITEM 75 | incidente 23/04/2026 | cierre 05/04/2026 | dif -18 d | MANIOBRAS CON EQUIPO DE LEVANTE
+ITEM 84 | incidente 24/05/2026 | cierre 22/05/2026 | dif -2 d | DA├»┬┐┬¢O MATERIAL ROTURA DE VIDRIO MANIPULADOR TELESC├»┬┐┬¢P
+
+--- FECHAS NO PARSEABLES / TEXTO EN CIERRE ---
+'01-07-2026?' -> items ['90']
+'05-05-2026?' -> items ['69']
+'15.06.2026?' -> items ['83']
+'19.05.2026?' -> items ['83']
+'25-04-2026?' -> items ['68']
+'30-04-2026?' -> items ['64', '65']
+'30-06-2026?' -> items ['90']
+'NO APLICA' -> items ['14', '27', '31', '37', '93']
+'NO EXISTE EN SHAREPOINT' -> items ['13', '18', '2', '38', '6']
+'SIN FECHA' -> items ['77']
+
+--- INCIDENTES SIN FECHA ---
+
+--- ULTIMOS 12 ITEMS ---
+ITEM 89 | 14/06/2026 | DA├»┬┐┬¢O MATERIAL | ROTURA VENTANA MINIBUS | medidas=1
+ITEM 90 | 19/06/2026 | N1 | SIN PORTE DE LICENCIA INTERNA Y MUNICIPAL | medidas=3
+ITEM 91 | 28/06/2026 | TRAYECTO | MOLESTIA DEDO ├»┬┐┬¢NDICE MANO DERECHA | medidas=3
+ITEM 92 | 24/07/2026 | DA├»┬┐┬¢O MATERIAL | TRIZADURA VENTANA MINIBUS | medidas=2
+ITEM 93 | 07/08/2026 | TRAYECTO | ACCIDENTE DE TRAYECTO 
+DOLOR LUMBAR | medidas=1
+ITEM 94 | 08/08/2026 | CTP | EVENTO SIGNIFICATIVO SIN LESI├»┬┐┬¢N 
+CA├»┬┐┬¢DA DE ESTRUCTURA TAPADO DE SEG | medidas=8
+ITEM 95 | 13/08/2026 | DA├»┬┐┬¢O MATERIAL | DA├»┬┐┬¢O MATERIAL CAMI├»┬┐┬¢N DE IZAJE | medidas=3
+ITEM 96 | 31/08/2026 | STP | GOLPE CONTRA ANDAMIOS | medidas=2
+ITEM 97 | 10/09/2026 | N1 | MANIPULADOR SIN SEGREGACI├»┬┐┬¢N | medidas=3
+ITEM 98 | 13/09/2026 | DA├»┬┐┬¢O MATERIAL | DA├»┬┐┬¢O MATERIAL CAMION DE IZAJE | medidas=0
+ITEM 99 | 15/09/2026 | STP | ESGUINCE GRADO 1 | medidas=0
+ITEM 100 | 24/09/2026 | DA├»┬┐┬¢O MATERIAL | GOLPE EN CANASTILLO DE EQUIPO MANIPULADOR | medidas=1
+

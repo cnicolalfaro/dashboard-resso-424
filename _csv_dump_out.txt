@@ -1,0 +1,60 @@
+﻿
+########## ITEM 51 | fecha='21/12/2025' turno='10X10 A'
+  NOMBRE: 'TORCEDURA PIE DERECHO'
+  CATEG : 'STP'
+  INCID : 'Estando en el primer dia de turno, trabajador refiere que, al trasladarse por paso peatonal desde casino Geovita a Barrio Civico SKIC, pisa sobre superficie irregular de terreno, provocandole una torcedura en su pie derecho.'
+   ROW: {'medida': 'Se aplicaron dos medidas; Difusi´┐¢n del evento y pavimentaci´┐¢n ', 'resp': 'Superintendente general de faena', 'cierre': '08/02/2026', 'estatus': 'CERRADO', 'verifm': 'CERRADO', 'verife': 'PENDEINTE', 'coment': 'SKIC: STP\nCODELCO: Com´┐¢n\nRECA Mutual: STP'}
+
+########## ITEM 67 | fecha='18/03/2026' turno='10X10 A'
+  NOMBRE: 'GOLPEADO POR SOPORTE DE CABLE TENSOR '
+  CATEG : 'STP'
+  INCID : 'Durante las labores de tensado del cable tensor, y por causas que se encuentran en proceso de investigaci´┐¢n, la tuerca del perno tipo ojo cedi´┐¢, provocando el rebote del soporte del cable, el cual impact´┐¢ en el respirador de medio rostro utilizado por el trabajador.?'
+   ROW: {'medida': 'Capacitaci´┐¢n por parte del departamento de calidad al personal asignado al pre armado de soportes en ambos turnos.?\n* Registro asistencia personal el´┐¢ctrico ambos turnos', 'resp': 'Superintendente especialidad el´┐¢ctrica?\nFrancisco Rossi / Teobaldo Rivas.?\nJefe de Calidad?\nFrancisco Burgos / Diego Soto', 'cierre': '30/04/2026', 'estatus': 'ABIERTO', 'verifm': 'PENDIENTE Capacitaci´┐¢n por parte del departamento de calidad a turno A y B ', 'coment': 'SKIC: STP\nCODELCO: Com´┐¢n\nRECA Mutual: STP'}
+   ROW: {'medida': 'Taller identificaci´┐¢n de riesgos en ART, a supervisi´┐¢n responsable de la actividad de tiro de cable mensajero, con enfoque en (energ´┐¢a potencial el´┐¢stica) en la l´┐¢nea, al realizar el tensado.?\n* Registro asistencia personal el´┐¢ctrico ambos turnos', 'resp': 'Superintendente especialidad el´┐¢ctrica?\nFrancisco Rossi / Teobaldo Rivas.', 'cierre': '30/04/2026', 'estatus': 'CERRADO'}
+   ROW: {'medida': 'Modificaci´┐¢n al procedimiento ´┐¢Montaje de Canalizaciones el´┐¢ctricas´┐¢, el cual debe contener la metodolog´┐¢a de armado de soporte.?\n*   Registro entrega Procedimiento de trabajo actualizado', 'resp': 'Superintendente especialidad el´┐¢ctrica?\nFrancisco Rossi / Teobaldo Rivas.', 'cierre': '30/04/2026', 'estatus': 'CERRADO'}
+
+########## ITEM 71 | fecha='08/04/2026' turno='10X10 A'
+  NOMBRE: 'GOLPE EN RODILLA IZQUIERDA CONTRA BANCA EN SALA DE CAMBIO'
+  CATEG : 'STP'
+  INCID : 'Trabajador declara que al retirarse de sala de cambio al t´┐¢rmino de la jornada laboral se golpea contra banca del ´┐¢rea de vestidores en rodilla izquierda.\nInforma de lo ocurrido al d´┐¢a siguiente (09.04.2026).'
+   ROW: {'medida': '1.- Difusi´┐¢n incidente al personal\n2.- Instalaci´┐¢n de se´┐¢aletica en bancas', 'resp': 'ADC  Jose Luis Maira M./HSEC?', 'cierre': '25/04/2026', 'estatus': 'CERRADO', 'coment': 'SKIC: STP\nCODELCO: Com´┐¢n\nRECA Mutual: STP'}
+
+########## ITEM 78 | fecha='03/05/2026' turno='10X10 B\n'
+  NOMBRE: 'DA´┐¢O MATERIAL VENTANA DE BUS (Codelco)\n2 STP (SKIC)'
+  CATEG : 'STP'
+  INCID : 'Durante el traslado de personal desde superficie hacia interior mina, el bus SKIC placa SKBK-56, al transitar por la rotonda del sector TAP y por causas que se investigan, impacta su parte superior derecha con la caja de la rotonda. Producto del desprendimiento de fragmentos de vidrio, dos trabajadores que se trasladaban como pasajeros declararon presentar molestias oculares, principalmente en el ojo derecho.'
+   ROW: {'medida': '1.- Realizar actividad de concientizaci´┐¢n (bi mensual) y reforzamiento para conductores y operadores ambos turnos, mediante bolet´┐¢n informativo sobre manejo en sectores confinados y maniobras de alto riesgo en interior mina. R: entregable Bolet´┐¢n Informativo, Registro de asistencia.\n', 'resp': 'Jose Luis Maira M. / AdC ', 'cierre': '30/05/2026', 'estatus': 'CERRADO', 'verifm': 'Comentario: Se emitieron 2 boletines. Falta difusi´┐¢n de boletin Turno A y B', 'coment': 'Las Medidas Correctivas Pueden cambiar ya que el miercoles tendr´┐¢a que salir una nueva revisi´┐¢n.\n\n\nSKIC: STP (2 trabajadores)\nCODELCO: Da´┐¢o Material\nRECA Mutual: STP para los 2 trabajadores afectados'}
+   ROW: {'medida': '2.- Actualizaci´┐¢n de PLAN DE TRANSITO DE VEH´┐¢CULOS, EQUIPOS Y PEATONES.\n4600029025-000000-PLNSE-00001. R: Documento actualizado, registro difusi´┐¢n y evaluaci´┐¢n Conductores y Operadores ambos turnos.\n', 'resp': 'Jose Luis Maira M. / AdC ', 'cierre': '30/05/2026', 'estatus': 'ABIERTO'}
+   ROW: {'medida': '3.- Re Inducci´┐¢n Curso Conducci´┐¢n a la Defensiva ´┐¢ Curso Reglamento de Tr´┐¢nsito Divisional a Operador Bus. R: Entregable, registro curso aprobado ', 'resp': 'Jose Luis Maira M. / AdC ', 'cierre': '30/05/2026', 'estatus': 'CERRADO'}
+
+########## ITEM 94 | fecha='08/08/2026' turno='10X10 B'
+  NOMBRE: 'EVENTO SIGNIFICATIVO SIN LESI´┐¢N \nCA´┐¢DA DE ESTRUCTURA TAPADO DE SEGURIDAD'
+  CATEG : 'CTP'
+  INCID : 'Durante el corte por tramos del tapado de seguridad de la Estaci´┐¢n de Vaciado (EVAC) utilizando esmeril angular, unos tres minutos despu´┐¢s del ´┐¢ltimo corte el tapado cedi´┐¢ inesperadamente,  cayendo en dos secciones al nivel inferior de chancado (encima de Feeder de Gruesos).\nDos trabajadores perdieron su posici´┐¢n y quedaron suspendidos de sus sistemas de detenci´┐¢n de ca´┐¢das (arn´┐¢s + l´┐¢nea de vida + retr´┐¢ctil).\nAmbos sin lesiones, derivados a Mutual de Seguridad Calama. Adem´┐¢s se activa el respaldo contenci´┐¢n emocional para los trabajadores involucrados.'
+   ROW: {'medida': 'Cambio est´┐¢ndar corporativo de la UME \nFoco en las secuencia constructivas.\nEstablecer protocolo de comunicaciones con los proyectos (Flujograma)\nGesti´┐¢n del cambio y seguimiento documental.\nEntregable: Est´┐¢ndar modificado  enviado a Oficina T´┐¢cnica proyecto.', 'resp': 'Gerente de Operaciones / Mauricio Mari´┐¢ R. \n', 'cierre': '15/09/2026', 'estatus': 'abierto', 'coment': 'Uno tiene RECA 4 y el otro RECA 1, ambos tienen d´┐¢as perdidos, sumando 26 para el mes de agosto. De acuerdo a lo conversado con HSEC Santiago, para todo efecto son CTP. (2 CTP).'}
+   ROW: {'medida': 'Implementar en proyecto Procedimiento de Gesti´┐¢n de Cambio.\nEntregable: Procedimiento generado, difundido a l´┐¢nea de supervisi´┐¢n', 'resp': 'Gerente de Proyecto / Jose Luis Maira\nJefe Oficina T´┐¢cnica / Gonzalo Rivas C.\n', 'cierre': '30/09/2026', 'estatus': 'ABIERTO'}
+   ROW: {'medida': 'Refuerzo de la L´┐¢nea de mando con la incorporaci´┐¢n de 2 Gerentes de Construcci´┐¢n, entre Gerente de Proyecto y Superintendentes General de Faena', 'resp': 'Gerente de Operaciones / Mauricio Mari´┐¢ R.', 'cierre': '31/08/2026', 'estatus': 'CERRADO'}
+   ROW: {'medida': 'Fortalecimiento del uso de herramientas de control preventivo existentes a nivel organizacional.\nEntregable: Aseguramiento de Herramientas de control Preventivo por parte de Departamento Productividad en Programaci´┐¢n Mensual y Semanal', 'resp': 'Gerente de Proyecto / Jose Luis Maira\nJefe Oficina T´┐¢cnica / Gonzalo Rivas C.\n', 'cierre': '30/09/2026', 'estatus': 'ABIERTO'}
+   ROW: {'medida': 'Revisi´┐¢n peri´┐¢dica de Mapas de Procesos y MIPER', 'resp': 'Gerente de Proyecto / Jose Luis Maira\nJefe Oficina T´┐¢cnica / Gonzalo Rivas C. \nJefe Departamento HSEC / Claudio Rojas R.\n', 'cierre': '30/09/2026', 'estatus': 'ABIERTO'}
+   ROW: {'medida': '\nTaller de aplicabilidad del Plan Local de Emergencia Obra, dirigido a capataces y supervisores.\n\nR: Registro de asistencia', 'resp': 'Gerente de Proyecto / Jose Luis Maira', 'cierre': '30/09/2026', 'estatus': 'PENDIENTE TA'}
+   ROW: {'medida': 'Simulacro con brigada de avanzada', 'resp': 'Gerente de Proyecto / Jose Luis Maira \nDirector Obras Mina Sur CODELCO/ Edgardo Madariaga G.', 'cierre': '30/09/2026', 'estatus': 'ABIERTO'}
+   ROW: {'medida': 'Taller sobre Riesgos de Fatalidad asociados a miner´┐¢a subterr´┐¢nea (RF-02; RF-16; RF-18 y RF-23), dirigido a supervisi´┐¢n y personal directo de terreno.', 'resp': 'Gerente de Proyecto / Jose Luis Maira\n', 'cierre': '30/09/2026', 'estatus': 'PENDIENTE TA \nTB NOCHE'}
+
+########## ITEM 96 | fecha='31/08/2026' turno='10X10 B'
+  NOMBRE: 'GOLPE CONTRA ANDAMIOS'
+  CATEG : 'STP'
+  INCID : 'En momento en que trabajador realiza apertura de port´┐¢n principal de Sala el´┐¢ctrica, por razones que se investigan, el port´┐¢n se cierra de manera inesperada, lo desplaza y provoca que trabajador golpee contra  andamio ubicado al costado del port´┐¢n. '
+   ROW: {'medida': 'Bolet´┐¢n informativo sobre la PROHIBICI´┐¢N de obstruir salidas, accesos a salas el´┐¢ctricas y v´┐¢as de evacuaci´┐¢n.\n', 'resp': 'Jos´┐¢ Luis Maira.\nGerente de construcci´┐¢n\nDepartamento HSEC SKIC\n', 'cierre': '30/09/2026', 'estatus': 'ABIERTO', 'verifm': 'Generar boletin Pendiente difusi´┐¢n 29-09', 'coment': 'SKIC: STP \nCODELCO: Com´┐¢n, atenci´┐¢n m´┐¢dica\nRECA Mutual: STP '}
+   ROW: {'medida': 'Taller de reforzamiento ´┐¢Elaboraci´┐¢n efectiva de Chequeo 360´┐¢´┐¢ a supervisores y Capataces de proyecto.\n', 'resp': 'Jos´┐¢ Luis Maira.\nGerente de construcci´┐¢n\nJuan Villa ´┐¢ Mauricio Catal´┐¢n\nSuperintendente el´┐¢ctrico.\n', 'cierre': '30/09/2026', 'estatus': 'ABIERTO'}
+
+########## ITEM 99 | fecha='15/09/2026' turno='10X10 A'
+  NOMBRE: 'ESGUINCE GRADO 1'
+  CATEG : 'STP'
+  INCID : 'Trabajador refiere que al pisar un desnivel, siente  una molestia menor en el pie derecho. Al no considerarlo importante en ese momento, omiti´┐¢ reportar el hecho a su l´┐¢nea de supervisi´┐¢n de manera oportuna. Sin embargo, debido a la persistencia del malestar durante la jornada de hoy, procede a informar la situaci´┐¢n. '
+
+########## ITEM 100 | fecha='24/09/2026' turno='10X10 B'
+  NOMBRE: 'GOLPE EN CANASTILLO DE EQUIPO MANIPULADOR'
+  CATEG : 'DA´┐¢O MATERIAL'
+  INCID : 'Durante el traslado del manipulador telesc´┐¢pico MAGNI 4.5 por la Calle 42, el operador realiz´┐¢ una maniobra de giro para ingresar a la Zanja 13. En dicha maniobra, el canastillo del equipo impact´┐¢ contra la caja de la calle, da´┐¢´┐¢ndose en el costado izquierdo.\nEl ´┐¢rea se encontraba debidamente iluminada y segregada, sin exposici´┐¢n de personas.\n'
+   ROW: {'medida': 'PENDIENTE REVISI´┐¢N DE ICAM POR JAIME GALLEGOS '}
+
