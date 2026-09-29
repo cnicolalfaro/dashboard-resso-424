@@ -2,7 +2,7 @@
 // Generado automáticamente desde data/dashboard_data.js — no editar a mano.
 // Regenerar con: node fuentes/sync_instrumento_data.js
 window.DASHBOARD_DATA = {
-  "generatedAt": "29/09/2026 15:00",
+  "generatedAt": "29/09/2026 15:04",
   "kpis": {
     "nivelExposicion": "Moderado"
   },
@@ -354,7 +354,7 @@ window.DASHBOARD_DATA = {
               "n": 16,
               "texto": "¿Los cambios en condiciones operacionales, se evalúan mediante SIGO-P-030 (Gestión del Cambio)? ¿Cuentan con respaldos de su aplicabilidad?",
               "peso": 1,
-              "pct": 100,
+              "pct": 80,
               "responsable": "GESTION",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B2%20-%20Documentos%20Operativos%20y%20Procedimientos/Pregunta%2016?d=wc50fc69303264db6b1622601129d3651&csf=1&web=1&e=wd1zcv",
               "comentarios": [
@@ -759,7 +759,7 @@ window.DASHBOARD_DATA = {
               "n": 40,
               "texto": "Se cumple y se dispone de evidencias de actividades definidas en el “Estándar de Seguridad Conductual” de acuerdo a lo programado (N° Observadores, cierre de ciclo, conductas preocupantes y plan de acción)?",
               "peso": 1,
-              "pct": 80,
+              "pct": 50,
               "responsable": "constanza",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D2%20-%20Actualizacion%20del%20Sistema%20Preventivo/Pregunta%2040?d=we6b04c798b3c42d79937cd2d0e2acd4c&csf=1&web=1&e=EWw5vT",
               "comentarios": []
