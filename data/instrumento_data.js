@@ -2,7 +2,7 @@
 // Generado automáticamente desde data/dashboard_data.js — no editar a mano.
 // Regenerar con: node fuentes/sync_instrumento_data.js
 window.DASHBOARD_DATA = {
-  "generatedAt": "23/09/2026 17:00",
+  "generatedAt": "29/09/2026 15:04",
   "kpis": {
     "nivelExposicion": "Moderado"
   },
@@ -167,7 +167,7 @@ window.DASHBOARD_DATA = {
               "n": 7,
               "texto": "¿La Matriz de Riesgos de la empresa, esta alineada a su mapa de procesos y se encuentra validada y actualizada periódicamente por la empresa?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "GESTIÓN",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A2%20-%20Evaluacion%20de%20Riesgos/Pregunta%2007?d=w75c693734f204565980cf2d31b9eb6e6&csf=1&web=1&e=e3lrLr",
               "comentarios": [
@@ -185,7 +185,7 @@ window.DASHBOARD_DATA = {
               "n": 8,
               "texto": "¿La Matriz considera el levantamiento de Riesgos de Fatalidad y establece el tratamiento de riesgos en función de la jerarquía de controles?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "GESTIÓN",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/A%20-%20PLAN/A2%20-%20Evaluacion%20de%20Riesgos/Pregunta%2008?d=wb6ea0f7bc25f4accbd814bd25e6e21b1&csf=1&web=1&e=B5vN2B",
               "comentarios": [
@@ -257,7 +257,7 @@ window.DASHBOARD_DATA = {
               "n": 11,
               "texto": "¿Se cumple y se dispone de evidencias de Inducciones, Información de Riesgos Laborales (IRL), capacitaciones y acreditaciones necesarias para el cumplimiento de los cargos?",
               "peso": 2,
-              "pct": 80,
+              "pct": 50,
               "responsable": "MAX TORRES / CONSTANZA",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B1%20-%20Competencias%20y%20Formacion/Pregunta%2011?d=w6cb4ef9b92644c8f93c8b273fbdbcba8&csf=1&web=1&e=evvj78",
               "comentarios": [
@@ -268,6 +268,10 @@ window.DASHBOARD_DATA = {
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
                   "texto": "se deben generar las firmas de los anexos ( coni ) / se debe terminar de generar los anexos"
+                },
+                {
+                  "fecha": "Observaciones 21 de septiembre",
+                  "texto": "FALTA GENERAR LOS ANEXOS FALTANTES"
                 }
               ]
             },
@@ -275,7 +279,7 @@ window.DASHBOARD_DATA = {
               "n": 12,
               "texto": "¿Los supervisores están formados en ejecución y verificación de controles críticos?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "CONSTANZA Y MAX",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B1%20-%20Competencias%20y%20Formacion/Pregunta%2012?d=w5566b67a88964b9485610ec67c7f1e55&csf=1&web=1&e=SV4sDF",
               "comentarios": [
@@ -350,7 +354,7 @@ window.DASHBOARD_DATA = {
               "n": 16,
               "texto": "¿Los cambios en condiciones operacionales, se evalúan mediante SIGO-P-030 (Gestión del Cambio)? ¿Cuentan con respaldos de su aplicabilidad?",
               "peso": 1,
-              "pct": 50,
+              "pct": 80,
               "responsable": "GESTION",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B2%20-%20Documentos%20Operativos%20y%20Procedimientos/Pregunta%2016?d=wc50fc69303264db6b1622601129d3651&csf=1&web=1&e=wd1zcv",
               "comentarios": [
@@ -375,7 +379,7 @@ window.DASHBOARD_DATA = {
               "n": 17,
               "texto": "¿Los controles críticos declarados para los RF aplicables a la actividades en terreno, son consistentes con lo declarado en el ART de la tarea y la matriz IPER, estos se encuentran instalados, operativos y verificables en el área de ejecución, siendo consistente su condición real con lo descrito en el estándar de RF definido por la empresa?",
               "peso": 5,
-              "pct": 80,
+              "pct": 100,
               "responsable": "TERRENO",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B2%20-%20Documentos%20Operativos%20y%20Procedimientos/Pregunta%2016?d=wc50fc69303264db6b1622601129d3651&csf=1&web=1&e=wd1zcv",
               "comentarios": [
@@ -393,7 +397,7 @@ window.DASHBOARD_DATA = {
               "n": 18,
               "texto": "¿Los trabajadores en terreno muestran conocimiento en relación con controles operativos implementados?",
               "peso": 3,
-              "pct": "NA",
+              "pct": 80,
               "responsable": "N/A",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2018?d=w063802ee5c974035a99383b4c352268c&csf=1&web=1&e=rsDuT1",
               "comentarios": [
@@ -448,7 +452,7 @@ window.DASHBOARD_DATA = {
               "texto": "¿Se aplican herramientas de control: ART, permisos, checklists y coordinación de trabajos simultáneos? ¿Se utiliza Tarjeta Verde ante desviaciones o ausencia de condiciones seguras?",
               "peso": 3,
               "pct": 100,
-              "responsable": "ADRIANA/PAULINA/CONSTANZA",
+              "responsable": "ADRIANA/PAULINA",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2021?d=w2c72e593b683435fa7cdb5b859a7b359&csf=1&web=1&e=zdoXCL",
               "comentarios": []
             },
@@ -484,7 +488,7 @@ window.DASHBOARD_DATA = {
               "n": 24,
               "texto": "¿La empresa cuenta con procedimiento de capacitación, en el cual incluye un programa de operadores de baja experiencia laboral (BEL)?",
               "peso": 1,
-              "pct": 80,
+              "pct": 50,
               "responsable": "SALUD",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B3%20-%20Control%20Operacional/Pregunta%2024?d=wdf40249108274cbfabe1e5b07ca21eee&csf=1&web=1&e=FnbXZJ",
               "comentarios": [
@@ -505,7 +509,7 @@ window.DASHBOARD_DATA = {
               "n": 25,
               "texto": "¿La empresa cuenta con un plan de emergencia que considere la comunicación, coordinación y acciones y se difundió a sus trabajadores(as)? ¿El Plan de Emergencias está alineado a CODELCO?",
               "peso": 2,
-              "pct": 80,
+              "pct": 50,
               "responsable": "",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B4%20-%20Preparacion%20del%20Entorno%20y%20Respuesta%20a%20Emergencias/Pregunta%2025?d=w70a0f2fc93934b46892e8a69e7760afd&csf=1&web=1&e=vFegLs",
               "comentarios": []
@@ -514,7 +518,7 @@ window.DASHBOARD_DATA = {
               "n": 26,
               "texto": "¿La empresa cuenta con un programa de simulacros de emergencias que afecten a su servicio?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "CLAUDIO",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B4%20-%20Preparacion%20del%20Entorno%20y%20Respuesta%20a%20Emergencias/Pregunta%2026?d=w7468d3c55d4348a391a63abc0e2f2620&csf=1&web=1&e=qIR8kJ",
               "comentarios": [
@@ -529,7 +533,7 @@ window.DASHBOARD_DATA = {
               "texto": "¿Se cumple y se dispone de evidencias de evaluación periódica de verificación de las condiciones del sitio de trabajo?",
               "peso": 2,
               "pct": 80,
-              "responsable": "ANGIE/ TAMARA",
+              "responsable": "terreno",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/B%20-%20DO/B4%20-%20Preparacion%20del%20Entorno%20y%20Respuesta%20a%20Emergencias/Pregunta%2027?d=wf697f4d7428f4a9ba66b8fd570000127&csf=1&web=1&e=2zkMcL",
               "comentarios": [
                 {
@@ -539,6 +543,10 @@ window.DASHBOARD_DATA = {
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
                   "texto": "Se vuelve a actualizar debido al rechazo deL PLAN DE EMERGENCIA, se da fecha nueva para octubre ( Levantar por LODl informativa)"
+                },
+                {
+                  "fecha": "Observaciones 21 de septiembre",
+                  "texto": "este documento va d ela mano con el plan de emergencia"
                 }
               ]
             }
@@ -587,9 +595,14 @@ window.DASHBOARD_DATA = {
               "texto": "¿Se difunden los reportes de incidentes Divisionales y Corporativos, en especial los que apliquen a su servicio? Si aplica, ¿la empresa realiza una evaluación de aplicabilidad?",
               "peso": 3,
               "pct": 100,
-              "responsable": "",
+              "responsable": "Nicolas villa / VIVIANA",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C1%20-%20Aseguramiento%20y%20Auditoria/Pregunta%2030?d=w3508b244b30b4c52941fad3fd7a4cdb9&csf=1&web=1&e=vwA7oc",
-              "comentarios": []
+              "comentarios": [
+                {
+                  "fecha": "Observaciones 21 de septiembre",
+                  "texto": "Tengo certeza de que nicolas villa realiza esra acción, solicitare su apoyo para recuperar la información y cargarla"
+                }
+              ]
             },
             {
               "n": 31,
@@ -606,6 +619,10 @@ window.DASHBOARD_DATA = {
                 {
                   "fecha": "OBS SEPTIEMBRE 9",
                   "texto": "Revisar el apartado \" se realiza evaluación de probabilidad y de los controles existentes, generando aprendizajes documentados.\" como sera valido para codelco este punto"
+                },
+                {
+                  "fecha": "Observaciones 21 de septiembre",
+                  "texto": "se debe generar un formato para agilizar este proceso"
                 }
               ]
             },
@@ -613,7 +630,7 @@ window.DASHBOARD_DATA = {
               "n": 32,
               "texto": "¿Existe respaldo de las acciones de auditorías internas/externas, tienen trazabilidad de cierre? Además, ¿Existe seguimiento a desviaciones recurrentes para evitar repetitividad?",
               "peso": 2,
-              "pct": 100,
+              "pct": 50,
               "responsable": "terreno",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C1%20-%20Aseguramiento%20y%20Auditoria/Pregunta%2032?d=wfe8b7ae2491b470fa6805471cd6bf1d0&csf=1&web=1&e=eXcD95",
               "comentarios": [
@@ -631,7 +648,7 @@ window.DASHBOARD_DATA = {
               "n": 33,
               "texto": "¿Se evalúa la eficacia de los controles principales y críticos en terreno? ¿Es consistente con la evaluación de indicadores definida en el punto N° 3 de esta lista de verificación?",
               "peso": 2,
-              "pct": 80,
+              "pct": 100,
               "responsable": "constanza",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/C%20-%20CHECK/C1%20-%20Aseguramiento%20y%20Auditoria/Pregunta%2033?d=w7ddcc83c2b3047d49399169233fb7560&csf=1&web=1&e=cDRBbX",
               "comentarios": [
@@ -712,7 +729,7 @@ window.DASHBOARD_DATA = {
               "n": 38,
               "texto": "¿La EECC evaluó los riesgos de un potencial accidente grave o fatal? ¿De lo anterior se realizó un simulacro documental, implementando las medidas dentro de los plazos?",
               "peso": 5,
-              "pct": 80,
+              "pct": 100,
               "responsable": "GESTION",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D1%20-%20Gestion%20de%20Incidentes/Pregunta%2038?d=wbe3accdb77a54a1b8954d7dc9c30ec32&csf=1&web=1&e=K1FzxN",
               "comentarios": [
@@ -733,7 +750,7 @@ window.DASHBOARD_DATA = {
               "n": 39,
               "texto": "¿Se actualizan los planes, programas, procedimientos, métodos de trabajo y controles a partir de aprendizajes, auditorías o incidentes?",
               "peso": 4,
-              "pct": 80,
+              "pct": 100,
               "responsable": "",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D2%20-%20Actualizacion%20del%20Sistema%20Preventivo/Pregunta%2039?d=w678e16e258264e5888d3a5c2581b671c&csf=1&web=1&e=HrGRUJ",
               "comentarios": []
@@ -742,7 +759,7 @@ window.DASHBOARD_DATA = {
               "n": 40,
               "texto": "Se cumple y se dispone de evidencias de actividades definidas en el “Estándar de Seguridad Conductual” de acuerdo a lo programado (N° Observadores, cierre de ciclo, conductas preocupantes y plan de acción)?",
               "peso": 1,
-              "pct": 80,
+              "pct": 50,
               "responsable": "constanza",
               "link": "https://empresassk.sharepoint.com/:f:/r/sites/ICSK-HSEC/Documentos%20compartidos/05%20-%20Respaldo%20HSEC%20faenas/424%20-%20CC%20101/0.-%20RESSO%20Ver.%2010/02%20RESSO%20V10/D%20-%20ACT/D2%20-%20Actualizacion%20del%20Sistema%20Preventivo/Pregunta%2040?d=we6b04c798b3c42d79937cd2d0e2acd4c&csf=1&web=1&e=EWw5vT",
               "comentarios": []
