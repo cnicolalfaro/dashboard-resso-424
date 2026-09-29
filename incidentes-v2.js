@@ -7,7 +7,7 @@
   const $ = (selector) => document.querySelector(selector);
   const STORAGE = "resso424.incidentes.v1";
   const SOURCE = "resso424.incidentes.source";
-  const SOURCE_VERSION = "xlsx-v12";
+  const SOURCE_VERSION = "xlsx-v13";
   const SOURCE_META = "resso424.incidentes.sourceMeta";
   const CATEGORIES = "resso424.incidentes.categories";
   const AREAS = "resso424.incidentes.areas";
