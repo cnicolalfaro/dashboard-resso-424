@@ -243,11 +243,12 @@
     const doc = documentalPct();
     // Terreno omitido por ahora (solo interesa lo documental): el total
     // auditoría es igual al documental mientras no se audite en campo.
-    const total = Math.round(doc);
+    const docDisplay = Math.round(doc * 10) / 10;
+    const total = docDisplay;
     const expClass =
       "exp-" + (k.nivelExposicion || "").toLowerCase().replace(/[^a-z]/g, "");
     const cards = [
-      { label: "Cumplimiento documental", value: Math.round(doc) + "%", accent: pctColor(doc) },
+      { label: "Cumplimiento documental", value: docDisplay + "%", accent: pctColor(doc) },
       { label: "Cumplimiento total auditoría", value: total + "%", accent: "#24407a" },
       { label: "Nivel de exposición", pill: true, value: k.nivelExposicion, expClass, accent: "#24407a" },
     ];
