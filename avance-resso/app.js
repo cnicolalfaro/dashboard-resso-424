@@ -10,6 +10,16 @@
   const docs = DATA.documentos;
   const people = DATA.personas;
   const nDocs = docs.length;
+  const namiPeople = DATA.namiLinks && DATA.namiLinks.people ? DATA.namiLinks.people : {};
+
+  function normalizeRut(value) {
+    return String(value || '').toUpperCase().replace(/[^0-9K]/g, '');
+  }
+
+  function safeSharePointUrl(value) {
+    const url = String(value || '');
+    return /^https:\/\/empresassk\.sharepoint\.com\//i.test(url) ? url : '';
+  }
 
   function statusColor(pct) {
     if (pct < 30) return 'var(--critical)';
@@ -74,6 +84,14 @@
     if (RIM_KEYWORDS.some(k => t.includes(k))) return 'RIM';
     if (MA_KEYWORDS.some(k => t.includes(k))) return 'MA';
     return 'IRL';
+  }
+
+  function namiLinkFor(person, docIndex) {
+    const links = namiPeople[normalizeRut(person.rut)];
+    if (!links) return { url: '', exact: false };
+    const categoryUrl = links.categories && links.categories[categorize(docs[docIndex].titulo)];
+    const url = safeSharePointUrl(categoryUrl || links.root);
+    return { url, exact: Boolean(categoryUrl && url) };
   }
 
   const docsByCat = { RF: [], RIM: [], MA: [], IRL: [] };
@@ -197,7 +215,7 @@
         const idx = Number(row.dataset.idx);
         activeDocIndex = activeDocIndex === idx ? null : idx;
         document.getElementById('docFilterSelect').value = activeDocIndex === null ? '' : String(activeDocIndex);
-        renderTable();
+        renderPeople();
         renderDocs();
       });
     });
@@ -255,39 +273,50 @@
   docSelect.innerHTML = `<option value="">Ver avance general (todos los documentos)</option>` +
     docs.map((d, i) => `<option value="${i}">Solo pendientes: ${esc(d.titulo)}</option>`).join('');
 
-  cargoSelect.addEventListener('change', renderTable);
+  let peopleView = 'summary';
+  let matrixPage = 1;
+  const MATRIX_PAGE_SIZE = 40;
+
+  function resetMatrixAndRender() {
+    matrixPage = 1;
+    renderPeople();
+  }
+
+  cargoSelect.addEventListener('change', resetMatrixAndRender);
   docSelect.addEventListener('change', () => {
     const v = docSelect.value;
     activeDocIndex = v === '' ? null : Number(v);
     renderDocs();
-    renderTable();
+    renderPeople();
   });
-  document.getElementById('searchBox').addEventListener('input', renderTable);
+  document.getElementById('searchBox').addEventListener('input', resetMatrixAndRender);
 
   function clearDocFilter() {
     activeDocIndex = null;
     docSelect.value = '';
     renderDocs();
-    renderTable();
+    renderPeople();
+  }
+
+  function filteredPeople() {
+    const query = document.getElementById('searchBox').value.trim().toLowerCase();
+    const cargo = cargoSelect.value;
+    return people.filter(person => {
+      if (cargo && person.especialidad !== cargo) return false;
+      if (!query) return true;
+      return person.nombre.toLowerCase().includes(query) ||
+        person.rut.toLowerCase().replace(/[.\-]/g, '').includes(query.replace(/[.\-]/g, ''));
+    });
   }
 
   // ---------- Table ----------
   function renderTable() {
-    const query = document.getElementById('searchBox').value.trim().toLowerCase();
-    const cargo = cargoSelect.value;
     const note = document.getElementById('activeFilterNote');
     const head = document.getElementById('tableHead');
     const body = document.getElementById('tableBody');
     const hint = document.getElementById('peopleHint');
 
-    let rows = people;
-    if (cargo) rows = rows.filter(p => p.especialidad === cargo);
-    if (query) {
-      rows = rows.filter(p =>
-        p.nombre.toLowerCase().includes(query) ||
-        p.rut.toLowerCase().replace(/[.\-]/g, '').includes(query.replace(/[.\-]/g, ''))
-      );
-    }
+    let rows = filteredPeople();
 
     if (activeDocIndex !== null) {
       const doc = docs[activeDocIndex];
@@ -332,12 +361,80 @@
     }
   }
 
+  function courseCode(doc, index) {
+    const code = String(doc.titulo || '').match(/\b(?:RF|R)-?\s?\d{1,3}\b/i);
+    return code ? code[0].replace(/\s+/g, '') : `C${String(index + 1).padStart(2, '0')}`;
+  }
+
+  function matrixCell(person, docIndex) {
+    if (person.aprob[docIndex] !== '1') {
+      return '<td class="matrix-status pending" title="Pendiente"><span>·</span></td>';
+    }
+    const link = namiLinkFor(person, docIndex);
+    if (!link.url) {
+      return '<td class="matrix-status done" title="Aprobado · sin enlace NAMI"><span>✓</span></td>';
+    }
+    const label = link.exact ? 'Abrir respaldo NAMI de la categoría' : 'Abrir carpeta NAMI del trabajador';
+    const fallbackClass = link.exact ? '' : ' fallback';
+    return `<td class="matrix-status done linked${fallbackClass}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
+  }
+
+  function renderMatrix() {
+    const category = document.getElementById('matrixCategoryFilter').value;
+    const docIndexes = docs.map((_, index) => index).filter(index => !category || categorize(docs[index].titulo) === category);
+    const rows = filteredPeople().slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    const totalPages = Math.max(1, Math.ceil(rows.length / MATRIX_PAGE_SIZE));
+    matrixPage = Math.min(matrixPage, totalPages);
+    const pageRows = rows.slice((matrixPage - 1) * MATRIX_PAGE_SIZE, matrixPage * MATRIX_PAGE_SIZE);
+
+    document.getElementById('peopleHint').textContent = `${rows.length} trabajadores · ${docIndexes.length} cursos visibles`;
+    document.getElementById('matrixHead').innerHTML = `<tr><th class="matrix-person">Trabajador</th>${docIndexes.map(index => {
+      const categoryKey = categorize(docs[index].titulo);
+      const sources = (docs[index].fuentes || []).join(' + ');
+      return `<th class="matrix-course cat-${categoryKey.toLowerCase()}" title="${esc(docs[index].titulo)} · Fuentes: ${esc(sources)}"><span>${esc(courseCode(docs[index], index))}</span></th>`;
+    }).join('')}</tr>`;
+    document.getElementById('matrixBody').innerHTML = pageRows.length ? pageRows.map(person => `
+      <tr>
+        <th class="matrix-person" scope="row"><strong>${esc(titleCase(person.nombre))}</strong><span>${esc(person.rut)} · ${esc(titleCase(person.especialidad))}</span></th>
+        ${docIndexes.map(index => matrixCell(person, index)).join('')}
+      </tr>`).join('') : '<tr><td class="empty-state">Sin trabajadores para los filtros seleccionados.</td></tr>';
+
+    document.getElementById('matrixPageInfo').textContent = `Página ${matrixPage} de ${totalPages}`;
+    document.getElementById('matrixPrev').disabled = matrixPage <= 1;
+    document.getElementById('matrixNext').disabled = matrixPage >= totalPages;
+  }
+
+  function renderPeople() {
+    const summary = peopleView === 'summary';
+    document.getElementById('peopleSummaryView').hidden = !summary;
+    document.getElementById('peopleMatrixView').hidden = summary;
+    docSelect.hidden = !summary;
+    document.getElementById('activeFilterNote').style.display = 'none';
+    if (summary) renderTable(); else renderMatrix();
+  }
+
+  function setPeopleView(view) {
+    peopleView = view;
+    const summary = view === 'summary';
+    document.getElementById('summaryViewBtn').classList.toggle('active', summary);
+    document.getElementById('summaryViewBtn').setAttribute('aria-pressed', String(summary));
+    document.getElementById('matrixViewBtn').classList.toggle('active', !summary);
+    document.getElementById('matrixViewBtn').setAttribute('aria-pressed', String(!summary));
+    renderPeople();
+  }
+
+  document.getElementById('summaryViewBtn').addEventListener('click', () => setPeopleView('summary'));
+  document.getElementById('matrixViewBtn').addEventListener('click', () => setPeopleView('matrix'));
+  document.getElementById('matrixCategoryFilter').addEventListener('change', resetMatrixAndRender);
+  document.getElementById('matrixPrev').addEventListener('click', () => { matrixPage -= 1; renderMatrix(); });
+  document.getElementById('matrixNext').addEventListener('click', () => { matrixPage += 1; renderMatrix(); });
+
   document.getElementById('generatedNote').textContent = `Datos generados el ${DATA.generado}`;
 
   renderPie();
   renderDocs();
   renderTargeted();
-  renderTable();
+  renderPeople();
   }
 
   window.addEventListener("message", (event) => {

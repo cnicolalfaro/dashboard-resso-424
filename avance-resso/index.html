@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <div class="module-status" id="moduleStatus" role="status">Ingresa al dashboard RESSO para consultar este módulo.</div>
@@ -62,16 +62,50 @@
       <h2>Personas</h2>
       <span class="hint" id="peopleHint">980 de la dotación activa</span>
     </div>
+    <div class="people-view-switch" role="group" aria-label="Vista de trabajadores">
+      <button type="button" class="active" id="summaryViewBtn" aria-pressed="true">Resumen</button>
+      <button type="button" id="matrixViewBtn" aria-pressed="false">Matriz trabajador × curso</button>
+    </div>
     <div class="controls">
       <input type="search" id="searchBox" placeholder="Buscar por nombre o RUT…">
       <select id="cargoFilter"></select>
       <select id="docFilterSelect"></select>
     </div>
     <div class="active-filter-note" id="activeFilterNote" style="display:none;"></div>
-    <div class="tablewrap"><table>
-      <thead><tr id="tableHead"></tr></thead>
-      <tbody id="tableBody"></tbody>
-    </table></div>
+    <div id="peopleSummaryView">
+      <div class="tablewrap"><table>
+        <thead><tr id="tableHead"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table></div>
+    </div>
+    <div id="peopleMatrixView" hidden>
+      <div class="matrix-toolbar">
+        <label>Familia<select id="matrixCategoryFilter">
+          <option value="">Todos los cursos</option>
+          <option value="RF">Riesgos de Fatalidad</option>
+          <option value="RIM">Reglamentos Internos Mineros</option>
+          <option value="MA">Medio Ambiente</option>
+          <option value="IRL">IRL y otras capacitaciones</option>
+        </select></label>
+        <div class="matrix-legend" aria-label="Leyenda">
+          <span><i class="matrix-demo done">✓</i>Aprobado</span>
+          <span><i class="matrix-demo linked">✓↗</i>Categoría NAMI</span>
+          <span><i class="matrix-demo fallback">✓↗</i>Carpeta trabajador</span>
+          <span><i class="matrix-demo pending">·</i>Pendiente</span>
+        </div>
+      </div>
+      <div class="matrixwrap">
+        <table class="course-matrix" id="courseMatrix">
+          <thead id="matrixHead"></thead>
+          <tbody id="matrixBody"></tbody>
+        </table>
+      </div>
+      <div class="matrix-pager">
+        <button type="button" id="matrixPrev">Anterior</button>
+        <span id="matrixPageInfo"></span>
+        <button type="button" id="matrixNext">Siguiente</button>
+      </div>
+    </div>
   </section>
 
   <footer>
@@ -79,6 +113,6 @@
     <span>Fuente: formularios de difusión/evaluación + tarja (dotación activa, Maestra) · AVANCE_TOTAL</span>
   </footer>
 </div>
-<script src="app.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
