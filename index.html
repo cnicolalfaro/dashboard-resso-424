@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=53" />
+  <link rel="stylesheet" href="styles.css?v=56" />
 </head>
 <body>
 
@@ -397,6 +397,26 @@
           <article class="inc-exec-panel inc-month-panel"><div class="inc-exec-head"><div><h2>Incidentes por mes</h2><p>Comparación mensual entre 2025 y 2026</p></div><div class="inc-year-legend"><span><i class="year-2025"></i>2025</span><span><i class="year-2026"></i>2026</span></div></div><div id="incTrendChart"></div></article>
         </section>
         <section class="inc-followup-section"><div class="inc-section-heading"><div><h2>Seguimiento de medidas</h2><p>Control de compromisos por incidente</p></div><button type="button" class="inc-reset-btn" id="incClearPendingFilters">Limpiar filtros</button></div><article class="inc-exec-panel inc-followup-panel"><div class="inc-followup-main"><div class="inc-followup-left"><div id="incPendingChart" class="inc-followup-chart"></div><div class="inc-followup-legend"><button type="button" data-pending-risk="closed"><i class="due-closed"></i>Incidente cerrado</button><button type="button" data-pending-risk="open"><i class="due-open"></i>Incidente abierto</button></div></div><div class="inc-followup-right"><div class="inc-followup-head"><div><h3>Seguimiento de medidas</h3><p>Resumen impactado por los filtros superiores</p></div><strong id="incPendingCount">0</strong></div><div class="inc-followup-table-head"><span>N°</span><span>Categoría</span><span>Incidencia</span><span>Status</span></div><div id="incPendingList" class="inc-followup-list"></div></div></div><div id="incPendingDetail" class="inc-followup-detail"></div></article></section>
+        <section class="inc-trends-section" aria-labelledby="incTrendsTitle">
+          <div class="inc-trends-header">
+            <div class="inc-section-heading"><div><h2 id="incTrendsTitle">Tendencias y relaciones</h2><p>Patrones recurrentes por tipo de evento o acción correctiva</p></div></div>
+            <label class="inc-trend-category">Categoría<select id="incTrendCategory"><option value="">Todas</option></select></label>
+            <div class="inc-trend-modes" id="incTrendModes" role="group" aria-label="Tipo de tendencia">
+              <button type="button" data-trend-mode="events" aria-pressed="true" class="active">Tipo de evento</button>
+              <button type="button" data-trend-mode="categories" aria-pressed="false">Categorías</button>
+              <button type="button" data-trend-mode="measures" aria-pressed="false">Medidas correctivas</button>
+            </div>
+          </div>
+          <div id="incTrendSummary" class="inc-trend-summary" aria-live="polite"></div>
+          <div id="incTrendResults" class="inc-trend-results">
+            <div id="incTrendFocus" class="inc-trend-focus" hidden>
+              <div id="incTrendSelectedCard"></div>
+              <div id="incTrendDetail"></div>
+            </div>
+            <div id="incTrendCards" class="inc-trend-grid"></div>
+          </div>
+          <p class="inc-trend-note">Selecciona una tendencia para ver su desglose en barras. La base se limita al filtro activo; las familias pueden solaparse y reflejan coincidencias del consolidado, no causas confirmadas ni cumplimiento.</p>
+        </section>
         <section class="inc-exec-panel inc-catalog" id="incidentesPanel">
           <div class="inc-catalog-header"><div><h2>Incidentes</h2><p>Listado filtrado por la selección general de la página</p></div><div class="inc-catalog-actions"><span class="inc-count" id="incCount">0 incidentes</span><button type="button" class="inc-reset-btn" id="incClearDetailFilters">Limpiar filtros</button></div></div>
           <section class="inc-manager no-print"><div class="inc-manager-tools"><div><strong>Datos y Excel</strong><span id="incSourceLabel">Consolidado local</span></div><div class="inc-actions"><label class="inc-action-btn secondary" for="incExcelFile">Importar Excel</label><input id="incExcelFile" type="file" accept=".xlsx,.xls,.csv" hidden /><button type="button" class="inc-action-btn secondary" id="incExportExcel">Exportar Excel filtrado</button></div></div><p class="inc-manager-msg" id="incManagerMsg" role="status"></p></section>
@@ -432,7 +452,7 @@
   </div>
 
   <script>window.INCIDENTS_V2 = true;</script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="data/datos.enc.js?v=8"></script>
   <script src="auth.js?v=6"></script>

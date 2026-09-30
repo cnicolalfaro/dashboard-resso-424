@@ -7,12 +7,12 @@
   const $ = (selector) => document.querySelector(selector);
   const STORAGE = "resso424.incidentes.v1";
   const SOURCE = "resso424.incidentes.source";
-  const SOURCE_VERSION = "xlsx-v13";
+  const SOURCE_VERSION = "xlsx-v14";
   const SOURCE_META = "resso424.incidentes.sourceMeta";
   const CATEGORIES = "resso424.incidentes.categories";
   const AREAS = "resso424.incidentes.areas";
   const CRITICALITY = "resso424.incidentes.categoryCriticality";
-  const EXCEL_FILE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.2026.xlsx";
+  const EXCEL_FILE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.2026 (1).xlsx";
   const QUERY_FILE = "query_incidentes.xlsx";
   const EVIDENCE_OVERRIDES = {
     "4": "002.- 28.03.25 Daño Material Choque manipulador telescópico nelson",
@@ -43,6 +43,7 @@
     "18": ["010.- 08.06.2025 Daño Material Perforación Manual Sistema de Combustión interna Genera Alza de temperatura (SIN INFORME)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/010.- 08.06.2025 Daño Material Perforación Manual Sistema de Combustión interna Genera Alza de temperatura (SIN INFORME)"],
     "19": ["00 .- 09.06.2025 Falla Operacional Traslado de Polea Motriz (NA a Proyecto 424)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/0.- INTERNO SKIC/03. Cuasi accidente significativo/00 .- 09.06.2025 Falla Operacional Traslado de Polea Motriz (NA a Proyecto 424)"],
     "21": ["008.- 13.06.2025 Daño Material Parabrisas Camioneta (Jaime)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/008.- 13.06.2025 Daño Material Parabrisas Camioneta (Jaime)"],
+    "22": ["009.- 21.06.2025 Daño Material Fibra Optica", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/009.- 21.06.2025 Daño Material Fibra Optica"],
     "23": ["010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/010.- 30.06.2025 Daño Material Minibus Trizadura de Vidrio Lateral"],
     "26": ["001.- 15-03-2025 Daño Material Ruptura foco trasero derecho (SIN INFORME COLDELCO, SOLO INFORME SKIC)", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/001.- 15-03-2025 Daño Material Ruptura foco trasero derecho (SIN INFORME COLDELCO, SOLO INFORME SKIC)"],
     "27": ["018.- 22.07.2025 Daño Materia - Caída de Tapado Sobre Plataforma de Andamio", "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/INCIDENTES/02.- DAÑO MATERIAL/Interno SKIC/018.- 22.07.2025 Daño Materia - Caída de Tapado Sobre Plataforma de Andamio"],
@@ -137,6 +138,37 @@
   const norm = (value) => clean(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const loadJson = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch (_) { return fallback; } };
   const saveJson = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+  const EVENT_TREND_PATTERNS = [
+    { key: "focus", label: "Daño y rotura de focos", signals: ["foco", "foco trasero", "luminaria"], terms: ["foco", "farol", "luminaria"], requires: ["daño", "rotura", "romper", "quebrar", "fractura"] },
+    { key: "glass", label: "Rotura de vidrios, ventanas y espejos", signals: ["vidrio", "ventana", "parabrisas", "espejo"], terms: ["vidrio", "ventana", "parabris", "espejo", "cristal"] },
+    { key: "collision", label: "Choques, colisiones y volcamientos", signals: ["choque", "colisión", "volcamiento"], terms: ["choque", "colision", "volcam"] },
+    { key: "vehicle", label: "Daños en buses, minibuses y camionetas", signals: ["bus", "minibús", "camioneta"], terms: ["camionet", "minibus", "microbus", "bus", "vehiculo"] },
+    { key: "equipment", label: "Interacción con equipos y maniobras", signals: ["manipulador", "izaje", "grúa", "maniobra"], terms: ["manipulador", "manitou", "maniobra", "izaje", "hombre maquina", "persona equipo", "interaccion", "grua"] },
+    { key: "falls", label: "Caídas y desprendimiento de objetos", signals: ["caída", "desprendimiento", "objeto"], terms: ["caida", "desprendimiento", "desprend", "colapso"] },
+    { key: "impact", label: "Golpes y contacto con objetos", signals: ["golpe", "atrapamiento", "contacto"], terms: ["golpe", "torcedura", "resbal", "atrap", "contacto"] },
+    { key: "segregation", label: "Segregación, cenefas y bloqueo", signals: ["segregación", "cenefa", "bloqueo"], terms: ["segreg", "cenefa", "barrera", "delimit", "bloqueo"] },
+    { key: "failure", label: "Fallas operacionales e infraestructura", signals: ["falla", "derrame", "cable", "estructura"], terms: ["falla", "derrame", "filtracion", "fibra", "estructura", "soporte", "perno", "cable", "manga"] },
+    { key: "other", label: "Sin patrón detectado", signals: [], terms: [] },
+  ];
+  const MEASURE_TREND_PATTERNS = [
+    { key: "administrative", label: "Sanciones y acciones administrativas", signals: ["sanción", "administrativa", "amonestación"], terms: ["sancion", "administrativ", "amonest", "disciplin"] },
+    { key: "training", label: "Refuerzo, capacitación y difusión", signals: ["reforzamiento", "capacitación", "difusión", "charla"], terms: ["reforz", "difusion", "capacit", "instruccion", "charla", "campana", "concient", "entrenamiento"] },
+    { key: "walk", label: "Caminatas expresamente registradas", signals: ["caminata"], terms: ["caminat"] },
+    { key: "field", label: "Inspecciones y verificaciones", signals: ["inspección", "verificación", "chequeo"], terms: ["inspeccion", "verificacion", "verificar", "supervision", "monitoreo", "seguimiento", "chequeo"] },
+    { key: "procedure", label: "Procedimientos, estándares y planificación", signals: ["procedimiento", "estándar", "planificación", "checklist"], terms: ["procedim", "estandar", "protocolo", "planificacion", "plan de", "instructivo", "check list", "checklist"] },
+    { key: "control", label: "Controles operacionales y segregación", signals: ["segregación", "cenefa", "bloqueo", "señalización"], terms: ["segreg", "cenefa", "barrera", "delimit", "bloqueo", "senalizacion", "control operacional"] },
+    { key: "maintenance", label: "Mantención y reparación", signals: ["mantención", "mantenimiento", "reparación"], terms: ["mantencion", "mantenimiento", "reparacion", "reparar", "componente", "recambio"] },
+    { key: "records", label: "Investigación, informes y registros", signals: ["investigación", "informe", "reporte", "registro"], terms: ["investigacion", "informe", "reporte", "registro", "document"] },
+    { key: "ppe", label: "Protección personal y conducta segura", signals: ["EPP", "cinturón", "autorescatador", "protección"], terms: ["epp", "cinturon", "autorescatador", "proteccion personal", "equipo de proteccion"] },
+    { key: "other", label: "Sin familia de medida detectada", signals: [], terms: [] },
+  ];
+  const TREND_BAR_PALETTE = ["3971C8", "168B83", "D08A25", "C85A4A", "7283B5", "4A8A5C", "A45E91", "587D91", "8B783A"];
+
+  function trendColor(key) {
+    let hash = 0;
+    for (const character of key) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+    return TREND_BAR_PALETTE[hash % TREND_BAR_PALETTE.length];
+  }
 
   function isoToDisplay(value) {
     if (value instanceof Date && !Number.isNaN(value.getTime())) return `${String(value.getDate()).padStart(2, "0")}-${String(value.getMonth() + 1).padStart(2, "0")}-${value.getFullYear()}`;
@@ -275,6 +307,8 @@
   let areas = [];
   let criticality = loadJson(CRITICALITY, {});
   const state = { search: "", category: "", shift: "", area: "", status: "", month: "", focusedItem: "", pendingCategory: "", pendingMonth: "", pendingRisk: "", followupItem: "", openItems: new Set() };
+  let trendMode = "events";
+  let expandedTrendKey = "";
 
   async function loadData() {
     let source = localStorage.getItem(SOURCE);
@@ -399,7 +433,7 @@
   }
   function populateOptions() {
     const shifts = [...new Set(data.map((item) => item.turno).filter(Boolean))].sort();
-    setOptions($("#incCat"), categories, "Todas"); setOptions($("#incTurno"), shifts, "Todos"); setOptions($("#incArea"), areas, "Todas");
+    setOptions($("#incCat"), categories, "Todas"); setOptions($("#incTrendCategory"), categories, "Todas"); $("#incTrendCategory").value = state.category; setOptions($("#incTurno"), shifts, "Todos"); setOptions($("#incArea"), areas, "Todas");
     setFormOptions($("#incForm").elements.turno, shifts, "Seleccionar turno");
     setFormOptions($("#incForm").elements.categoria, categories, "Seleccionar categoría");
     setFormOptions($("#incForm").elements.area, areas, "Por definir");
@@ -467,6 +501,211 @@
     const dots = (year) => series[year].map((value, index) => `<circle class="inc-year-dot year-${year}" cx="${x(index)}" cy="${y(value)}" r="3.5"><title>${MONTHS[index]} ${year}: ${value}</title></circle>${value ? `<text class="inc-year-value year-${year}" x="${x(index)}" y="${y(value) + (year === 2025 ? -9 : 14)}">${value}</text>` : ""}`).join("");
     const grid = [0.25,0.5,0.75,1].map((ratio)=>{const yy=height-py-ratio*(height-py*2);return `<line x1="${px}" y1="${yy}" x2="${width-px}" y2="${yy}" class="inc-chart-grid-line"></line>`;}).join("");
     $("#incTrendChart").innerHTML = `<svg viewBox="0 0 ${width} ${height}" class="inc-exec-line" role="img" aria-label="Comparación mensual de incidentes 2025 y 2026">${grid}<line x1="${px}" y1="${height-py}" x2="${width-px}" y2="${height-py}" class="inc-line-axis"></line><polyline points="${line(2025)}" class="inc-year-line year-2025"></polyline><polyline points="${line(2026)}" class="inc-year-line year-2026"></polyline>${dots(2025)}${dots(2026)}</svg><div class="inc-exec-months">${MONTHS.map((month, index) => `<button data-month="${index}" class="${state.month === String(index) ? "active" : ""}">${month}</button>`).join("")}</div>`;
+  }
+
+  function matchingTrendPatterns(text, patterns) {
+    const tokens = norm(text).split(/[^a-z0-9]+/).filter(Boolean);
+    const joined = ` ${tokens.join(" ")} `;
+    const matches = patterns.filter((pattern) => pattern.key !== "other").map((pattern) => {
+      const matchedTerms = pattern.terms.filter((term) => {
+        const normalizedTerm = norm(term);
+        return normalizedTerm.includes(" ")
+          ? joined.includes(` ${normalizedTerm} `)
+          : tokens.some((token) => token.startsWith(normalizedTerm));
+      });
+      const requiredMatch = !pattern.requires || pattern.requires.some((term) => {
+        const normalizedTerm = norm(term);
+        return normalizedTerm.includes(" ")
+          ? joined.includes(` ${normalizedTerm} `)
+          : tokens.some((token) => token.startsWith(normalizedTerm));
+      });
+      return { pattern, matchedTerms, requiredMatch };
+    }).filter((match) => match.matchedTerms.length && match.requiredMatch);
+    return matches.length ? matches : [{ pattern: patterns[patterns.length - 1], matchedTerms: [] }];
+  }
+
+  function uniqueTrendIncidents(records) {
+    return [...new Map(records.map((record) => [record.incident.item, record.incident])).values()];
+  }
+
+  function summarizeRelatedPatterns(incidents, patterns, getText) {
+    const counts = new Map();
+    incidents.forEach((incident) => {
+      const matches = new Set(matchingTrendPatterns(getText(incident), patterns)
+        .map((match) => match.pattern)
+        .filter((pattern) => pattern.key !== "other")
+        .map((pattern) => pattern.key));
+      matches.forEach((key) => counts.set(key, (counts.get(key) || 0) + 1));
+    });
+    return [...counts.entries()]
+      .map(([key, count]) => ({ pattern: patterns.find((pattern) => pattern.key === key), count }))
+      .sort((a, b) => b.count - a.count || a.pattern.label.localeCompare(b.pattern.label, "es"));
+  }
+
+  function renderTrendBreakdown(title, incidents, patterns, getText) {
+    if (!incidents.length) return "";
+    const rows = summarizeRelatedPatterns(incidents, patterns, getText);
+    if (!rows.length) return `<section class="inc-trend-breakdown"><header><h4>${escapeHtml(title)}</h4><p>No hay otra tendencia recurrente identificada en estos casos.</p></header></section>`;
+    const shortLabels = {
+      focus: "Focos", glass: "Vidrios", collision: "Choques", vehicle: "Vehículos",
+      equipment: "Equipos", falls: "Caídas", impact: "Golpes", segregation: "Segregación",
+      failure: "Fallas", administrative: "Administrativas", training: "Capacitación",
+      walk: "Caminatas", field: "Inspección", procedure: "Procedimientos",
+      control: "Controles", maintenance: "Mantención", records: "Informes", ppe: "EPP",
+    };
+    const bars = rows.map(({ pattern, count }) => {
+      const percentage = Math.round(count / incidents.length * 100);
+      const height = Math.max(4, percentage);
+      const shortLabel = shortLabels[pattern.key] || (pattern.label.length > 14 ? `${pattern.label.split(/\s+/).slice(0, 2).join(" ")}…` : pattern.label);
+      const color = trendColor(pattern.key);
+      return `<div class="inc-trend-bar-column" role="img" aria-label="${escapeHtml(pattern.label)}: ${count} de ${incidents.length} incidentes, ${percentage}%"><strong>${count}<small>${percentage}%</small></strong><span class="inc-trend-bar-rail"><span style="height:${height}%;background:#${color}"></span></span><span class="inc-trend-bar-label" title="${escapeHtml(pattern.label)}">${escapeHtml(shortLabel)}</span></div>`;
+    }).join("");
+    return `<section class="inc-trend-breakdown"><header><h4>${escapeHtml(title)}</h4><p>Casos con al menos una coincidencia · base ${incidents.length}. Las familias pueden solaparse.</p></header><div class="inc-trend-bar-chart">${bars}</div></section>`;
+  }
+
+  function trendStatusSummary(incidents) {
+    const closed = incidents.filter((incident) => followupStatus(incident).key === "closed").length;
+    return { closed, open: incidents.length - closed };
+  }
+
+  function renderTrendAnalysis() {
+    const categorySelect = $("#incTrendCategory");
+    const compareCategories = trendMode === "categories";
+    categorySelect.disabled = compareCategories;
+    categorySelect.value = compareCategories ? "" : state.category;
+    const incidents = filteredIncidents({ ignoreFocused: true, ignoreCategory: compareCategories });
+    const isMeasureMode = trendMode === "measures";
+    const records = isMeasureMode
+      ? incidents.flatMap((incident) => incident.medidas.map((measure, measureIndex) => ({ incident, measure, measureIndex })).filter((record) => clean(record.measure.medida)))
+      : incidents.map((incident) => ({ incident }));
+    const patterns = isMeasureMode ? MEASURE_TREND_PATTERNS : EVENT_TREND_PATTERNS;
+    const groups = compareCategories
+      ? [...new Set(incidents.map((incident) => incident.categoria || "SIN CATEGORÍA"))].map((category) => ({
+        key: `category:${category}`, label: category, signals: ["Categoría del consolidado"],
+        records: incidents.filter((incident) => (incident.categoria || "SIN CATEGORÍA") === category).map((incident) => ({ incident, matchedTerms: [category] })),
+      }))
+      : patterns.map((pattern) => ({ ...pattern, records: [] }));
+    if (!compareCategories) records.forEach((record) => {
+      const text = isMeasureMode
+        ? [record.measure.medida, record.measure.responsable].join(" ")
+        : [record.incident.nombre, record.incident.incidente].join(" ");
+      matchingTrendPatterns(text, patterns).forEach(({ pattern, matchedTerms }) => {
+        groups.find((group) => group.key === pattern.key).records.push({ ...record, matchedTerms });
+      });
+    });
+    const ranked = groups.filter((group) => group.records.length)
+      .sort((a, b) => b.records.length - a.records.length || a.label.localeCompare(b.label, "es"));
+    const total = records.length;
+    const top = ranked[0];
+    const denominator = isMeasureMode ? "medidas registradas" : "incidentes analizados";
+    const categoryLabel = compareCategories ? "Comparación de categorías · se conservan los demás filtros" : state.category || "Todas las categorías";
+    const topRecords = top ? top.records : [];
+    const topIncidents = uniqueTrendIncidents(topRecords);
+    const crossPatterns = trendMode === "measures" ? EVENT_TREND_PATTERNS : MEASURE_TREND_PATTERNS;
+    const crossSignals = summarizeRelatedPatterns(topIncidents, crossPatterns, (incident) => trendMode === "measures"
+      ? [incident.nombre, incident.incidente].join(" ")
+      : incident.medidas.map((measure) => [measure.medida, measure.responsable].join(" ")).join(" "))
+      .slice(0, 2);
+    const statusCounts = trendStatusSummary(topIncidents);
+    const topShare = total && top ? Math.round(top.records.length / total * 100) : 0;
+    const executiveLead = !total
+      ? "No hay registros suficientes para analizar con los filtros actuales."
+      : compareCategories
+        ? `La categoría con mayor frecuencia es ${top.label}: ${top.records.length} de ${total} incidentes (${topShare}%).`
+        : isMeasureMode
+          ? `${top.records.length} de ${total} medidas (${topShare}%) pertenecen a “${top.label}”, en ${topIncidents.length} incidentes.`
+          : `${top.records.length} de ${total} incidentes (${topShare}%) se relacionan con “${top.label}”.`;
+    const crossLead = crossSignals.length
+      ? trendMode === "measures"
+        ? `Estas medidas aparecen principalmente en incidentes de “${crossSignals[0].pattern.label}” (${crossSignals[0].count} de ${topIncidents.length} casos relacionados).`
+        : `${compareCategories ? "En esta categoría" : "Dentro de este grupo"}, la acción más observada es “${crossSignals[0].pattern.label}” en ${crossSignals[0].count} de ${topIncidents.length} incidentes relacionados.`
+      : trendMode === "measures"
+        ? "No se detecta un tipo de evento repetido dentro de este grupo con las reglas actuales."
+        : "No se detecta una familia de medidas repetida dentro de este grupo con las reglas actuales.";
+    const unitLabel = isMeasureMode ? "medidas registradas" : "incidentes analizados";
+    $("#incTrendSummary").innerHTML = total
+      ? `<section class="inc-trend-executive"><div class="inc-trend-executive-reading"><span>Lectura ejecutiva</span><strong>${escapeHtml(executiveLead)}</strong><p>${escapeHtml(crossLead)}</p><small>Base: ${total} ${unitLabel} · ${escapeHtml(categoryLabel)}</small></div><div class="inc-trend-executive-metrics"><div><span>Patrón dominante</span><strong>${topShare}%</strong><small>${top.records.length} de ${total}</small></div><div><span>Incidentes relacionados</span><strong>${topIncidents.length}</strong><small>casos únicos</small></div><div><span>Seguimiento actual</span><strong>${statusCounts.closed} cerrados · ${statusCounts.open} abiertos</strong><small>entre los casos relacionados</small></div></div></section>`
+      : `<div class="inc-trend-empty">No hay ${denominator} para ${escapeHtml(categoryLabel.toLowerCase())}.</div>`;
+    document.querySelectorAll("[data-trend-mode]").forEach((button) => {
+      const active = button.dataset.trendMode === trendMode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    const selectedGroup = ranked.find((group) => group.key === expandedTrendKey);
+    const cardMarkup = ranked.map((group, index) => {
+      const count = group.records.length;
+      const percentage = total ? Math.round(count / total * 100) : 0;
+      const frequencyLevel = percentage >= 25 ? "high" : percentage >= 10 ? "medium" : "low";
+      const frequencyLabel = frequencyLevel === "high" ? "alta" : frequencyLevel === "medium" ? "media" : "baja";
+      const isExpanded = expandedTrendKey === group.key;
+      const related = uniqueTrendIncidents(group.records).sort((a, b) => Number(a.item) - Number(b.item));
+      const signals = [...new Set(group.records.flatMap((record) => record.matchedTerms))].slice(0, 4)
+        .map((term) => group.signals.find((signal) => norm(signal).startsWith(norm(term))) || term);
+      const signalLabels = signals.length ? signals.map(escapeHtml).join(" · ") : compareCategories ? "Clasificación oficial" : "Sin términos coincidentes";
+      const matchUnit = isMeasureMode ? "medidas" : "incidentes";
+      const relatedPatterns = isMeasureMode ? EVENT_TREND_PATTERNS : MEASURE_TREND_PATTERNS;
+      const relatedPatternSummary = summarizeRelatedPatterns(related, relatedPatterns, (incident) => isMeasureMode
+        ? [incident.nombre, incident.incidente].join(" ")
+        : incident.medidas.map((measure) => [measure.medida, measure.responsable].join(" ")).join(" "))
+        .slice(0, 2);
+      const relatedSummaryLabel = isMeasureMode ? "Tipos de evento asociados" : "Medidas correctivas observadas";
+      const measureSummary = isExpanded && relatedPatternSummary.length
+        ? `<span class="inc-trend-cross-summary"><strong>${relatedSummaryLabel}</strong>${relatedPatternSummary.map(({ pattern, count: measureCount }) => `<span>${escapeHtml(pattern.label)} · ${measureCount}/${related.length} casos</span>`).join("")}</span>`
+        : "";
+      const groupStatus = trendStatusSummary(related);
+      const gauge = `<span class="inc-trend-gauge" role="img" aria-label="${count} de ${total} ${matchUnit}, ${percentage}%"><svg viewBox="0 0 120 72" aria-hidden="true"><path class="inc-trend-gauge-track" d="M 12 62 A 48 48 0 0 1 108 62" pathLength="100"></path><path class="inc-trend-gauge-value" d="M 12 62 A 48 48 0 0 1 108 62" pathLength="100" stroke-dasharray="${percentage} 100"></path></svg><span>${percentage}%</span></span>`;
+      return `<button type="button" class="inc-trend-card frequency-${frequencyLevel}${index === 0 ? " leading" : ""}${isExpanded ? " selected" : ""}${selectedGroup && !isExpanded ? " compact" : ""}" data-trend-group="${escapeHtml(group.key)}" aria-expanded="${isExpanded}" aria-controls="incTrendDetail">${gauge}<span class="inc-trend-gauge-caption">Frecuencia ${frequencyLabel} · base filtrada</span><span class="inc-trend-card-title">${escapeHtml(group.label)}</span><span class="inc-trend-count">${count} de ${total} ${matchUnit} · ${related.length} incidentes</span><span class="inc-trend-signals"><strong>Señales detectadas</strong><span>${signalLabels}</span></span>${measureSummary}${isExpanded ? `<span class="inc-trend-card-status">Seguimiento: ${groupStatus.closed} cerrados · ${groupStatus.open} abiertos</span>` : ""}<span class="inc-trend-card-action">${isExpanded ? "Ocultar análisis" : "Abrir análisis"}</span></button>`;
+    });
+    const selectedIndex = selectedGroup ? ranked.findIndex((group) => group.key === expandedTrendKey) : -1;
+    $("#incTrendFocus").hidden = !selectedGroup;
+    $("#incTrendSelectedCard").innerHTML = selectedIndex >= 0 ? cardMarkup[selectedIndex] : "";
+    $("#incTrendCards").innerHTML = (selectedGroup
+      ? cardMarkup.filter((_, index) => index !== selectedIndex)
+      : cardMarkup).join("") || '<div class="inc-trend-empty">No hay registros para mostrar.</div>';
+    if (!selectedGroup) {
+      $("#incTrendDetail").innerHTML = "";
+      return;
+    }
+    const byIncident = new Map();
+    selectedGroup.records.forEach((record) => {
+      const key = record.incident.item;
+      if (!byIncident.has(key)) byIncident.set(key, { incident: record.incident, matches: [], signals: new Set() });
+      const entry = byIncident.get(key);
+      (record.matchedTerms || []).forEach((term) => entry.signals.add(term));
+      if (record.measure) entry.matches.push(record.measure);
+    });
+    const entries = [...byIncident.values()].sort((a, b) => Number(a.incident.item) - Number(b.incident.item));
+    const incidentText = (incident) => [incident.nombre, incident.incidente].join(" ");
+    const measureText = (incident) => incident.medidas.map((measure) => [measure.medida, measure.responsable].join(" ")).join(" ");
+    const breakdowns = compareCategories
+      ? [
+        renderTrendBreakdown("Tipos de incidencia dentro de la categoría", entries.map((entry) => entry.incident), EVENT_TREND_PATTERNS, incidentText),
+        renderTrendBreakdown("Medidas correctivas asociadas", entries.map((entry) => entry.incident), MEASURE_TREND_PATTERNS, measureText),
+      ]
+      : isMeasureMode
+        ? [renderTrendBreakdown("Tipos de incidencia relacionados", entries.map((entry) => entry.incident), EVENT_TREND_PATTERNS, incidentText)]
+        : [renderTrendBreakdown("Medidas correctivas observadas en estos casos", entries.map((entry) => entry.incident), MEASURE_TREND_PATTERNS, measureText)];
+    const matchedCount = selectedGroup.records.length;
+    const matchedUnit = isMeasureMode ? "medidas" : "incidentes";
+    const analysisText = compareCategories
+      ? `Respaldo: incidentes registrados como ${selectedGroup.label} que cumplen los demás filtros.`
+      : `Respaldo de la clasificación: ${matchedCount} ${matchedUnit} coincidentes sobre ${total} analizados. Las señales son coincidencias de texto, no causas confirmadas.`;
+    const entryHtml = entries.map(({ incident, matches, signals }) => {
+      const matchList = isMeasureMode
+        ? matches.map((measure) => `<li><strong>${escapeHtml(measure.medida)}</strong><span>${escapeHtml(measure.responsable) || "Sin responsable"} · ${escapeHtml(measure.estatus) || "Sin estado"} · cierre ${escapeHtml(measure.fechaCierre) || "sin fecha"}</span></li>`).join("")
+        : incident.medidas.map((measure) => `<li><strong>${escapeHtml(measure.medida)}</strong><span>${escapeHtml(measure.responsable) || "Sin responsable"} · ${escapeHtml(measure.estatus) || "Sin estado"} · cierre ${escapeHtml(measure.fechaCierre) || "sin fecha"}</span></li>`).join("");
+      const evidence = incident.evidenciaUrl
+        ? `<a href="${escapeHtml(incident.evidenciaUrl)}" target="_blank" rel="noopener">Abrir carpeta de evidencia</a>`
+        : "";
+      const signalsText = signals.size ? [...signals].map(escapeHtml).join(", ") : escapeHtml(incident.categoria);
+      return `<article class="inc-trend-detail-item"><header><strong>Ítem ${escapeHtml(incident.item)} · ${escapeHtml(incident.nombre)}</strong><span>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.categoria)} · ${escapeHtml(followupStatus(incident).label)}</span></header><div class="inc-trend-detail-body"><div><strong>Señales que sustentan el patrón</strong><span>${signalsText}</span></div><div><strong>${isMeasureMode ? "Medidas que coinciden" : "Medidas registradas en el caso"}</strong><ul>${matchList || "<li>Sin medidas registradas.</li>"}</ul></div>${evidence}</div></article>`;
+    }).join("");
+    const selectedSignals = [...new Set(selectedGroup.records.flatMap((record) => record.matchedTerms))];
+    const signalCopy = selectedSignals.length ? selectedSignals.map(escapeHtml).join(", ") : compareCategories ? "Categoría formal del consolidado" : "No hubo términos coincidentes; el registro quedó en el grupo residual.";
+    const meaning = compareCategories
+      ? `Grupo oficial “${selectedGroup.label}” dentro de ${total} incidentes con los filtros actuales.`
+      : `${matchedCount} de ${total} ${matchedUnit} coinciden con la regla textual “${selectedGroup.label}”. Esto describe recurrencia, no causa ni cumplimiento.`;
+    $("#incTrendDetail").innerHTML = `<section class="inc-trend-detail-panel" aria-label="Desglose gráfico de ${escapeHtml(selectedGroup.label)}"><header class="inc-trend-detail-head"><div><p>ANÁLISIS DE TENDENCIA</p><h3>${escapeHtml(selectedGroup.label)}</h3><span>${matchedCount} ${matchedUnit} coincidentes · ${entries.length} incidentes relacionados</span></div><button type="button" data-close-trend-detail>Volver a tendencias</button></header><div class="inc-trend-detail-layout"><section class="inc-trend-meaning"><h4>Lectura</h4><p>${meaning}</p><h4>Señales detectadas</h4><p>${signalCopy}</p><div class="inc-trend-meaning-stat"><span>Seguimiento de los incidentes relacionados</span><strong>${statusCounts.closed} cerrados · ${statusCounts.open} abiertos</strong><small>El estado se muestra aparte del porcentaje de tendencia.</small></div></section><div class="inc-trend-breakdown-grid">${breakdowns.join("")}</div></div><details class="inc-trend-cases"><summary>Ver los ${entries.length} casos incluidos</summary><p class="inc-trend-detail-explanation">${analysisText}</p><div class="inc-trend-detail-list">${entryHtml}</div></details></section>`;
   }
 
   function pendingRecords() {
@@ -587,6 +826,7 @@
         return `<article class="inc-event-row ${open?"open":""}" style="--measure-count:${Math.max(1, incident.medidas.length)}"><div class="inc-event-summary" data-item="${escapeHtml(incident.item)}"><span class="inc-event-item">${escapeHtml(incident.item)}</span><span class="inc-event-category">${escapeHtml(incident.categoria)}</span><span class="inc-event-area">${escapeHtml(incident.area)||"Por definir"}</span><span class="inc-event-name"><strong>${escapeHtml(incident.nombre)}</strong><small>${escapeHtml(incident.fecha)} · ${escapeHtml(incident.turno)}</small></span><span class="inc-event-measures" title="${escapeHtml(measuresText)}">${measuresSummary}</span><span class="inc-event-state ${status}">${label}</span><span class="inc-row-actions"><button class="inc-open-btn">›</button>${evidenceAction}<button class="inc-edit-btn" data-edit="${escapeHtml(incident.item)}">Editar</button></span></div><div class="inc-event-detail" ${open?"":"hidden"}><div class="inc-event-facts"><div><span>Categoría</span><strong>${escapeHtml(incident.categoria)}</strong></div><div><span>Área de trabajo</span><strong>${escapeHtml(incident.area)||"Por definir"}</strong></div><div><span>Turno</span><strong>${escapeHtml(incident.turno)||"—"}</strong></div><div><span>Fecha general de cierre</span><strong>${escapeHtml(incident.fechaCierreGeneral)||"—"}</strong></div><div><span>Verificación de medidas</span><strong>${escapeHtml(incident.verifMedidas)||"—"}</strong></div><div><span>Verificación de eficacia</span><strong>${escapeHtml(incident.verifEficacia)||"—"}</strong></div></div><div class="inc-event-description"><span>Descripción del incidente</span><p>${escapeHtml(incident.incidente)||"Sin descripción"}</p></div><div class="table-wrap"><table class="records-table inc-exec-table"><thead><tr><th>Medida correctiva</th><th>Responsable</th><th>Inicio del incidente</th><th>Cierre</th><th>Estatus</th></tr></thead><tbody>${measures||'<tr><td colspan="5">Sin medidas.</td></tr>'}</tbody></table></div>${incident.comentarios?`<div class="inc-event-comments"><span>Comentarios</span><p>${escapeHtml(incident.comentarios)}</p></div>`:""}<button class="inc-download-folders" data-download="${escapeHtml(incident.item)}">Descargar carpetas</button></div></article>`;
     }).join("") || '<div class="inc-empty-state">No hay incidentes para estos filtros.</div>';
     annotateDueAlerts(rows);
+    renderTrendAnalysis();
   }
   function renderTable() {
     const rows = filteredIncidents(); $("#incCount").textContent = `${rows.length} ${rows.length === 1 ? "incidente" : "incidentes"}`;
@@ -649,6 +889,7 @@
   }
   function exportWorkbook() {
     const incidents = filteredIncidents({ ignoreFocused: true });
+    const statusLabels = { closed: "Cerrado", open: "Abierto", na: "No aplica", none: "Sin estado" };
     const filters = [
       state.category ? `Categoría: ${state.category}` : "",
       state.status ? `Estado: ${{ closed: "Cerrado", pending: "Pendiente", na: "No aplica", none: "Sin estado" }[state.status] || state.status}` : "",
@@ -657,71 +898,131 @@
       state.search ? `Búsqueda: ${state.search}` : "",
     ].filter(Boolean).join(" | ") || "Sin filtros";
     const header = ["N° REPORTE", "ITEM ORIGINAL", "FECHA", "TURNO", "CATEGORÍA", "ÁREA", "NOMBRE DEL EVENTO", "INCIDENTE", "N° MEDIDA", "MEDIDA CORRECTIVA", "RESPONSABLE", "FECHA CIERRE ACCIÓN", "ESTATUS", "CONDICIÓN MEDIDA", "VERIFICACIÓN MEDIDAS", "VERIFICACIÓN EFICACIA", "COMENTARIOS"];
-    const aoa = [
+    const rows = [
       ["CONSOLIDADO DE INCIDENTES Y MEDIDAS CORRECTIVAS"],
       [`Exportado: ${new Date().toLocaleString("es-CL")}`],
       [`Filtros aplicados: ${filters}`],
-      [`Incidentes exportados: ${incidents.length}`],
+      [`Incidentes: ${incidents.length} · Medidas: ${incidents.reduce((sum, item) => sum + item.medidas.length, 0)}`],
       [],
       header,
     ];
-    const merges = [];
     const rowKinds = ["title", "meta", "meta", "meta", "spacer", "header"];
+    const rowStates = [];
+    const merges = [];
     incidents.forEach((item, itemIndex) => {
-      const status = { closed: "Cerrado", pending: "Pendiente", na: "No aplica", none: "Sin estado" }[incidentStatus(item)] || "Sin estado";
+      const incidentState = followupStatus(item).key;
+      const incidentLabel = statusLabels[incidentState] || "Sin estado";
       const measures = item.medidas.length ? item.medidas : [{}];
-      const start = aoa.length;
-      measures.forEach((measure, index) => {
-        const condition = measure.medida ? measureDueText(measure).condition : "";
-        aoa.push([
-          index ? "" : itemIndex + 1,
-          index ? "" : item.item,
-          index ? "" : item.fecha,
-          index ? "" : item.turno,
-          index ? "" : item.categoria,
-          index ? "" : item.area,
-          index ? "" : item.nombre,
-          index ? "" : item.incidente,
-          measure.medida ? index + 1 : "",
-          measure.medida || "",
+      const start = rows.length;
+      measures.forEach((measure, measureIndex) => {
+        const due = measure.medida ? measureDueInfo(measure) : null;
+        const statusState = !measure.medida ? incidentState
+          : isClosed(measure) ? "closed"
+          : isNA(measure) ? "na"
+          : "open";
+        const conditionState = !measure.medida ? "none"
+          : isClosed(measure) ? "closed"
+          : isNA(measure) ? "na"
+          : !due || due.days == null ? "none"
+          : due.days < 0 ? "overdue"
+          : due.days <= 10 ? "soon"
+          : "onTime";
+        const condition = !measure.medida ? "Sin medidas"
+          : isClosed(measure) ? "Cerrada"
+          : isNA(measure) ? "No aplica"
+          : !due || due.days == null ? "Sin fecha"
+          : due.days < 0 ? "Atrasada"
+          : due.days <= 10 ? "Por vencer"
+          : "En plazo";
+        rows.push([
+          measureIndex ? "" : itemIndex + 1,
+          measureIndex ? "" : item.item,
+          measureIndex ? "" : item.fecha,
+          measureIndex ? "" : item.turno,
+          measureIndex ? "" : item.categoria,
+          measureIndex ? "" : item.area,
+          measureIndex ? "" : item.nombre,
+          measureIndex ? "" : item.incidente,
+          measure.medida ? measureIndex + 1 : "",
+          measure.medida || "Sin medidas correctivas registradas",
           measure.responsable || "",
           measure.fechaCierre || measure.fechaCierreNota || "",
-          measure.estatus || status,
+          measure.estatus || (measure.medida ? "ABIERTO" : incidentLabel),
           condition,
-          index ? "" : item.verifMedidas,
-          index ? "" : item.verifEficacia,
-          index ? "" : item.comentarios,
+          measureIndex ? "" : item.verifMedidas,
+          measureIndex ? "" : item.verifEficacia,
+          measureIndex ? "" : item.comentarios,
         ]);
-        rowKinds.push(index ? "measure" : "incident");
+        rowKinds.push(measureIndex ? "measure" : "incident");
+        rowStates.push({ statusState, conditionState, groupShade: itemIndex % 2 === 0 ? "F5F8FC" : "FFFFFF", groupStart: measureIndex === 0 });
       });
-      const end = aoa.length - 1;
-      if (end > start) [0,1,2,3,4,5,6,7,14,15,16].forEach((column) => merges.push({ s: { r: start, c: column }, e: { r: end, c: column } }));
-      aoa.push(Array(header.length).fill(""));
-      rowKinds.push("spacer");
+      const end = rows.length - 1;
+      if (end > start) [0, 1, 2, 3, 4, 5, 6, 7, 14, 15, 16].forEach((column) => merges.push({ s: { r: start, c: column }, e: { r: end, c: column } }));
     });
-    const worksheet = XLSX.utils.aoa_to_sheet(aoa);
-    worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: header.length - 1 } }, { s: { r: 2, c: 0 }, e: { r: 2, c: header.length - 1 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: header.length - 1 } }, ...merges];
-    worksheet["!cols"] = [
-      { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 34 }, { wch: 54 }, { wch: 9 }, { wch: 58 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 34 },
-    ];
-    worksheet["!rows"] = rowKinds.map((kind) => ({ hpt: kind === "title" ? 28 : kind === "meta" ? 20 : kind === "header" ? 26 : kind === "spacer" ? 8 : kind === "incident" ? 42 : 34 }));
-    worksheet["!freeze"] = { xSplit: 0, ySplit: 1 };
-    worksheet["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: 5, c: header.length - 1 } }) };
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    worksheet["!merges"] = [0, 1, 2, 3].map((row) => ({ s: { r: row, c: 0 }, e: { r: row, c: header.length - 1 } })).concat(merges);
+    const columnWidths = [10, 12, 13, 11, 18, 16, 36, 54, 10, 58, 28, 18, 17, 18, 22, 22, 36];
+    worksheet["!cols"] = columnWidths.map((wch) => ({ wch }));
+    const estimateWrappedLines = (value, width) => String(value == null ? "" : value).split(/\r?\n/)
+      .reduce((total, line) => total + Math.max(1, Math.ceil(line.length / Math.max(8, width * 1.05))), 0);
+    worksheet["!rows"] = rowKinds.map((kind, rowIndex) => {
+      const baseHeight = kind === "title" ? 32 : kind === "meta" ? 21 : kind === "spacer" ? 8 : kind === "header" ? 30 : kind === "incident" ? 58 : 38;
+      if (rowIndex < 6) return { hpt: baseHeight };
+      const values = rows[rowIndex] || [];
+      const wrappedLines = values.reduce((maxLines, value, colIndex) => Math.max(maxLines, estimateWrappedLines(value, columnWidths[colIndex] || 12)), 1);
+      return { hpt: Math.max(baseHeight, Math.min(190, 12 + wrappedLines * 14)) };
+    });
+    worksheet["!freeze"] = { xSplit: 0, ySplit: 6 };
+    worksheet["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: Math.max(5, rows.length - 1), c: header.length - 1 } }) };
+    worksheet["!sheetView"] = { showGridLines: false, zoomScale: 75, zoomScaleNormal: 100 };
+    const statusStyles = {
+      closed: { fill: "DFF2E8", font: "237247" },
+      open: { fill: "FCE4E2", font: "A33228" },
+      na: { fill: "E9EDF2", font: "596579" },
+      none: { fill: "EEF2F6", font: "596579" },
+    };
+    const conditionStyles = {
+      closed: { fill: "DFF2E8", font: "237247" },
+      overdue: { fill: "FCE4E2", font: "A33228" },
+      soon: { fill: "FFF0D8", font: "8A5A12" },
+      onTime: { fill: "FFF7D6", font: "806000" },
+      na: { fill: "E9EDF2", font: "596579" },
+      none: { fill: "EEF2F6", font: "596579" },
+    };
     const range = XLSX.utils.decode_range(worksheet["!ref"]);
     for (let row = range.s.r; row <= range.e.r; row++) {
       const kind = rowKinds[row] || "measure";
+      const rowState = rowStates[row - 6];
       for (let col = range.s.c; col <= range.e.c; col++) {
         const address = XLSX.utils.encode_cell({ r: row, c: col });
         if (!worksheet[address]) worksheet[address] = { t: "s", v: "" };
         const cell = worksheet[address];
+        const statusStyle = rowState && col === 12 ? statusStyles[rowState.statusState] : null;
+        const conditionStyle = rowState && col === 13 ? conditionStyles[rowState.conditionState] : null;
+        let fill = rowState ? rowState.groupShade : row % 2 ? "FFFFFF" : "F7F9FC";
+        let fontColor = "263957";
+        let bold = false;
+        if (kind === "title") { fill = "1F3C74"; fontColor = "FFFFFF"; bold = true; }
+        else if (kind === "meta") { fill = row === 3 ? "E7EEF8" : "F3F6FB"; fontColor = "43536B"; bold = row === 3; }
+        else if (kind === "header") { fill = "254985"; fontColor = "FFFFFF"; bold = true; }
+        if (statusStyle || conditionStyle) {
+          const stateStyle = statusStyle || conditionStyle;
+          fill = stateStyle.fill;
+          fontColor = stateStyle.font;
+          bold = true;
+        }
+        const centerColumns = [0, 1, 2, 3, 4, 8, 11, 12, 13, 14, 15];
         cell.s = {
-          font: { name: "Calibri", sz: kind === "title" ? 14 : kind === "header" ? 11 : 10, bold: kind === "title" || kind === "header" || kind === "incident" },
-          alignment: { vertical: "center", wrapText: true },
-          border: { top: { style: "thin", color: { rgb: "9AA6B6" } }, bottom: { style: "thin", color: { rgb: "9AA6B6" } }, left: { style: "thin", color: { rgb: "9AA6B6" } }, right: { style: "thin", color: { rgb: "9AA6B6" } } },
-          fill: { fgColor: { rgb: kind === "title" ? "1F3C74" : kind === "meta" ? "EEF3FB" : kind === "header" ? "DCE6F2" : kind === "spacer" ? "FFFFFF" : kind === "incident" ? "EEF3FB" : "FFFFFF" } },
+          font: { name: "Calibri", sz: kind === "title" ? 16 : kind === "header" ? 10 : 10, bold, color: { rgb: fontColor } },
+          alignment: { vertical: "center", wrapText: true, horizontal: centerColumns.includes(col) ? "center" : "left" },
+          border: {
+            top: { style: rowState && rowState.groupStart ? "medium" : "thin", color: { rgb: rowState && rowState.groupStart ? "9AAEC9" : "D5DEE9" } },
+            bottom: { style: "thin", color: { rgb: "D5DEE9" } },
+            left: { style: "thin", color: { rgb: "D5DEE9" } },
+            right: { style: "thin", color: { rgb: "D5DEE9" } },
+          },
+          fill: { fgColor: { rgb: fill } },
         };
-        if (kind === "title") cell.s.font.color = { rgb: "FFFFFF" };
-        if (kind === "spacer") cell.s.border = {};
       }
     }
     const workbook = XLSX.utils.book_new();
@@ -732,6 +1033,21 @@
 
   function bindEvents() {
     document.querySelector('[data-goto="viewIncidentes"]').addEventListener("click",()=>document.body.classList.add("incidents-mode")); document.querySelectorAll("#viewIncidentes [data-back]").forEach((button)=>button.addEventListener("click",()=>document.body.classList.remove("incidents-mode")));
+    $("#incTrendCategory").addEventListener("change", () => { state.category = $("#incTrendCategory").value; $("#incCat").value = state.category; state.focusedItem = ""; state.followupItem = ""; renderAll(); });
+    $("#incTrendModes").onclick = (event) => { const button = event.target.closest("[data-trend-mode]"); if (!button) return; trendMode = button.dataset.trendMode; expandedTrendKey = ""; renderTrendAnalysis(); };
+    $("#incTrendResults").onclick = (event) => {
+      const button = event.target.closest("[data-trend-group]");
+      if (!button) return;
+      expandedTrendKey = expandedTrendKey === button.dataset.trendGroup ? "" : button.dataset.trendGroup;
+      renderTrendAnalysis();
+      if (expandedTrendKey) $("#incTrendDetail").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
+    $("#incTrendDetail").onclick = (event) => {
+      if (!event.target.closest("[data-close-trend-detail]")) return;
+      expandedTrendKey = "";
+      renderTrendAnalysis();
+      $("#incTrendResults").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
     [["#incSearch","input","search"],["#incCat","change","category"],["#incTurno","change","shift"],["#incArea","change","area"],["#incEstado","change","status"]].forEach(([selector,event,key])=>$(selector).addEventListener(event,()=>{state[key]=$(selector).value;state.focusedItem="";state.followupItem="";renderAll();}));
     $("#incCategoryNav").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";state.followupItem="";renderAll();};
     $("#incOpenBars").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";state.followupItem="";renderAll();$("#incidentesPanel").scrollIntoView({behavior:"smooth"});};
