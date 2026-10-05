@@ -12,13 +12,34 @@ Módulo estático integrado al dashboard RESSO 424. La interfaz vive en esta car
 
 ## Actualización
 
-1. Reemplazar `data/avance_resso_data.js` por el nuevo snapshot manteniendo `window.AVANCE_RESSO_DATA = {...}`.
-2. Importar la query de carpetas NAMI:
+1. Sacar el snapshot actual del paquete cifrado (pide la contraseña sin mostrarla):
 
-	`python avance-resso/import_nami_links.py "C:\ruta\LINKS NAMI.xlsx"`
+	`node scripts/avance_bundle.mjs extract`
 
-3. Abrir `cifrar.html` y regenerar `data/datos.enc.js` con la contraseña habitual.
-4. Incrementar la versión de `data/datos.enc.js` en `index.html`.
-5. Validar y publicar los archivos cifrados y visuales.
+	Si hay un snapshot nuevo (nómina/avance), reemplazar `data/avance_resso_data.js` manteniendo `window.AVANCE_RESSO_DATA = {...}`.
+2. Sincronizar la dotación con la tarja del mes (agrega activos nuevos; quien ya no está queda como finiquitado/fuera de tarja: visible en la matriz con sus evidencias, pero no cuenta en dotación ni porcentajes):
 
-La matriz muestra los 68 cursos consolidados del snapshot. Un aprobado con flecha verde abre la carpeta NAMI de su categoría; una flecha naranja usa como respaldo la carpeta raíz del trabajador.
+	`python avance-resso/sync_tarja.py "TARJA OCTUBRE OBRA 424..xlsb"`
+3. Marcar lo registrado en la Maestra de Capacitación (curso con fecha en su columna de capacitación; solo suma, deja la fecha como respaldo en la matriz):
+
+	`python avance-resso/apply_maestra.py "Maestra de Capacitación 01-10-26.xlsx"`
+4. Actualizar los enlaces NAMI desde la carpeta sincronizada con OneDrive
+	(`D:\OneDrive - Empresas SK\SKCIC - ICSK HSEC - 424 - CC 101\0.- RESSO Ver. 10\02 RESSO V10\B - DO\B1 - Competencias y Formacion\Pregunta 11\Difusiones y capacitaciones`):
+
+	`python avance-resso/scan_nami_pdfs.py "<carpeta>"` — lee el curso dentro de cada certificado (los nombres `RUT_RF_3.pdf` no lo indican). Solo relee lo que cambió.
+
+	`python avance-resso/import_nami_links.py "<carpeta>" --sharepoint-path "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/0.- RESSO Ver. 10/02 RESSO V10/B - DO/B1 - Competencias y Formacion/Pregunta 11/Difusiones y capacitaciones"`
+
+	El detalle archivo → curso queda en `fuentes/nami_match_report.csv` (privado).
+
+	`python avance-resso/apply_nami_approvals.py` — marca como aprobados los cursos con certificado NAMI que aún figuran pendientes (solo suma; no quita aprobaciones de otras fuentes) y recalcula los porcentajes.
+5. Volver a cifrar solo la parte de Avance RESSO dentro de `data/datos.enc.js`:
+
+	`node scripts/avance_bundle.mjs pack`
+6. Incrementar la versión de `data/datos.enc.js` en `index.html`, validar y publicar.
+
+## Matriz trabajador × curso
+
+- Cada columna usa una sigla corta (RF-xx, R-xxx, MA-xxx, IRL-xxx…); el glosario bajo la matriz lista la sigla y el título completo.
+- Un aprobado con flecha abre, en orden de preferencia: el PDF del curso (verde), la carpeta de la familia (azul) o la carpeta del trabajador (naranja).
+- Los enlaces se reconstruyen desde la ruta de SharePoint, sin el GUID de vista que traen los hipervínculos exportados. Quien abra un enlace necesita permiso de lectura en el sitio ICSK-HSEC.

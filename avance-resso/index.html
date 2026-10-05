@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 <div class="module-status" id="moduleStatus" role="status">Ingresa al dashboard RESSO para consultar este módulo.</div>
@@ -87,13 +87,21 @@
           <option value="MA">Medio Ambiente</option>
           <option value="IRL">IRL y otras capacitaciones</option>
         </select></label>
+        <label>Personas<select id="matrixStatusFilter">
+          <option value="all">Vigentes y finiquitados</option>
+          <option value="active">Solo vigentes</option>
+          <option value="inactive">Solo finiquitados / fuera de tarja</option>
+        </select></label>
         <div class="matrix-legend" aria-label="Leyenda">
           <span><i class="matrix-demo done">✓</i>Aprobado</span>
-          <span><i class="matrix-demo linked">✓↗</i>Categoría NAMI</span>
-          <span><i class="matrix-demo fallback">✓↗</i>Carpeta trabajador</span>
+          <span><i class="matrix-demo level-doc">✓↗</i>Respaldo del curso</span>
+          <span><i class="matrix-demo level-category">✓↗</i>Carpeta de la familia</span>
+          <span><i class="matrix-demo level-root">✓↗</i>Carpeta trabajador</span>
+          <span><i class="matrix-demo nami-only">✓↗</i>Certificado NAMI, falta en fuente</span>
           <span><i class="matrix-demo pending">·</i>Pendiente</span>
         </div>
       </div>
+      <p class="matrix-nami-note" id="matrixNamiNote"></p>
       <div class="matrixwrap">
         <table class="course-matrix" id="courseMatrix">
           <thead id="matrixHead"></thead>
@@ -105,6 +113,10 @@
         <span id="matrixPageInfo"></span>
         <button type="button" id="matrixNext">Siguiente</button>
       </div>
+      <details class="matrix-glossary-wrap">
+        <summary>Glosario de siglas de los cursos visibles</summary>
+        <div class="matrix-glossary" id="matrixGlossary"></div>
+      </details>
     </div>
   </section>
 
@@ -113,6 +125,6 @@
     <span>Fuente: formularios de difusión/evaluación + tarja (dotación activa, Maestra) · AVANCE_TOTAL</span>
   </footer>
 </div>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

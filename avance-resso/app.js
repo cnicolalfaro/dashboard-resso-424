@@ -8,7 +8,9 @@
   rendered = true;
   document.body.classList.add("is-ready");
   const docs = DATA.documentos;
-  const people = DATA.personas;
+  // Personas vigentes (cuentan en KPI y %); los finiquitados / fuera de tarja solo se ven en la matriz.
+  const allPeople = DATA.personas;
+  const people = allPeople.filter(p => !p.estado);
   const nDocs = docs.length;
   const namiPeople = DATA.namiLinks && DATA.namiLinks.people ? DATA.namiLinks.people : {};
 
@@ -56,7 +58,7 @@
   const personasSinAvance = people.filter(p => p.avance_pct <= 0.05).length;
 
   const kpis = [
-    { label: 'Dotación activa (tarja)', value: DATA.total_dotacion_activa, foot: 'Personas cruzadas contra la tarja', accent: false },
+    { label: 'Dotación activa (tarja)', value: DATA.total_dotacion_activa, foot: DATA.total_no_vigentes ? `Vigentes en ${DATA.dotacion_fuente || 'la tarja'} · ${DATA.total_no_vigentes} no vigentes (finiquitados) solo se ven en la matriz` : 'Personas cruzadas contra la tarja', accent: false },
     { label: 'Avance promedio', value: fmtPct(DATA.avance_promedio_pct), foot: `Promedio simple entre los ${nDocs} documentos`, accent: true },
     { label: 'Al día en todo', value: personasAlDia, foot: `De ${DATA.total_dotacion_activa} personas · ${fmtPct(100*personasAlDia/DATA.total_dotacion_activa)}`, accent: false },
     { label: 'Sin ningún documento', value: personasSinAvance, foot: 'No aprueban aún ningún tema', accent: false },
@@ -86,12 +88,41 @@
     return 'IRL';
   }
 
+  // Enlaces NAMI. Formato compacto (import_nami_links.py v2):
+  //   namiLinks = { base, docOrder, people: { RUT: { folder, categories: {RF: "Riesgos_de_Fatalidad"}, docs: {"6": "Riesgos_de_Fatalidad/x.pdf"} } } }
+  // Formato antiguo (v1): people: { RUT: { root: url, categories: {RF: url} } }
+  const namiBase = DATA.namiLinks && DATA.namiLinks.base ? String(DATA.namiLinks.base) : '';
+  const namiDocOrderOk = !(DATA.namiLinks && Array.isArray(DATA.namiLinks.docOrder)) ||
+    DATA.namiLinks.docOrder.length === docs.length &&
+    DATA.namiLinks.docOrder.every((title, i) => title === docs[i].titulo);
+
+  function encodePath(path) {
+    return String(path).split('/').map(encodeURIComponent).join('/');
+  }
+  function namiFolderUrl(relPath) {
+    // Vista de biblioteca sin parámetro View: evita el "Error de representación"
+    // que aparece cuando la vista guardada en el enlace ya no existe.
+    const lib = namiBase.split('/').slice(0, 3).join('/');
+    return `https://empresassk.sharepoint.com/${encodePath(lib)}/Forms/AllItems.aspx?id=${encodeURIComponent('/' + namiBase + '/' + relPath)}`;
+  }
+  function namiFileUrl(relPath) {
+    return `https://empresassk.sharepoint.com/${encodePath(namiBase + '/' + relPath)}?web=1`;
+  }
+
   function namiLinkFor(person, docIndex) {
     const links = namiPeople[normalizeRut(person.rut)];
-    if (!links) return { url: '', exact: false };
-    const categoryUrl = links.categories && links.categories[categorize(docs[docIndex].titulo)];
+    if (!links) return { url: '', level: '' };
+    const category = categorize(docs[docIndex].titulo);
+    if (links.folder && namiBase) {
+      const file = namiDocOrderOk && links.docs && links.docs[docIndex];
+      if (file) return { url: safeSharePointUrl(namiFileUrl(`${links.folder}/${file}`)), level: 'doc' };
+      const catFolder = links.categories && links.categories[category];
+      if (catFolder) return { url: safeSharePointUrl(namiFolderUrl(`${links.folder}/${catFolder}`)), level: 'category' };
+      return { url: safeSharePointUrl(namiFolderUrl(links.folder)), level: 'root' };
+    }
+    const categoryUrl = links.categories && links.categories[category];
     const url = safeSharePointUrl(categoryUrl || links.root);
-    return { url, exact: Boolean(categoryUrl && url) };
+    return { url, level: url ? (categoryUrl ? 'category' : 'root') : '' };
   }
 
   const docsByCat = { RF: [], RIM: [], MA: [], IRL: [] };
@@ -264,7 +295,7 @@
   }
 
   // ---------- Filters setup ----------
-  const cargos = Array.from(new Set(people.map(p => p.especialidad).filter(Boolean))).sort();
+  const cargos = Array.from(new Set(allPeople.map(p => p.especialidad).filter(Boolean))).sort();
   const cargoSelect = document.getElementById('cargoFilter');
   cargoSelect.innerHTML = `<option value="">Todos los cargos</option>` +
     cargos.map(c => `<option value="${esc(c)}">${esc(titleCase(c))}</option>`).join('');
@@ -298,10 +329,10 @@
     renderPeople();
   }
 
-  function filteredPeople() {
+  function filteredPeople(source = people) {
     const query = document.getElementById('searchBox').value.trim().toLowerCase();
     const cargo = cargoSelect.value;
-    return people.filter(person => {
+    return source.filter(person => {
       if (cargo && person.especialidad !== cargo) return false;
       if (!query) return true;
       return person.nombre.toLowerCase().includes(query) ||
@@ -361,44 +392,163 @@
     }
   }
 
-  function courseCode(doc, index) {
-    const code = String(doc.titulo || '').match(/\b(?:RF|R)-?\s?\d{1,3}\b/i);
-    return code ? code[0].replace(/\s+/g, '') : `C${String(index + 1).padStart(2, '0')}`;
+  // Siglas de columnas (máx. 7 caracteres para caber en la cabecera).
+  // El orden importa: las reglas más específicas van primero.
+  const COURSE_CODES = [
+    [/HERRAMIENTAS DE GESTION PREVENTIVAS/, 'ART-TV'],
+    [/RIESGO CRITICO N\S*\s*20/, 'RC-20'],
+    [/R-?035/, 'R-035'],
+    [/R-?008/, 'R-008'],
+    [/\bR-01\b/, 'R-01'],
+    [/CONTROL DE INGRESO/, 'R-CI'],
+    [/CARTILLAS DE EVACUACION/, 'EVAC'],
+    [/PRO-022/, 'MA-P022'],
+    [/PROC-GMA-001/, 'MA-GMA'],
+    [/SEGREGACION.*RESIDUOS/, 'MA-RES'],
+    [/ACTA IRL MEDIO AMBIENTE/, 'MA-IRL'],
+    [/ASPECTOS E IMPACTOS AMBIENTALES/, 'MA-AIA'],
+    [/INDUCCION AMBIENTAL/, 'MA-SGA'],
+    [/SUSTANCIAS PELIGROSAS DS/, 'MA-DS43'],
+    [/ANEXO IRL/, 'IRL-ANX'],
+    [/CONSENTIMIENTO DIGITAL/, 'CCD'],
+    [/MATRIZ IPER/, 'IPER'],
+    [/RIESGOS LABORALES Y POLITICAS SSO/, 'IRL-SSO'],
+    [/LISTAS DE VERIFICACION LEGAL/, 'MIRLO'],
+    [/RIESGOS DE INCENDIO/, 'INC'],
+    [/OBLIGACIONES DE EMPRESAS CONTRATISTAS/, 'RESSO'],
+    [/HOMBRE NUEVO/, 'IHN'],
+    [/POLITICA CORPORATIVA/, 'POL-CD'],
+    [/POLITICA DE SEGURIDAD/, 'POL-SK'],
+    [/TARJETA VERDE/, 'TV'],
+    [/SEGURIDAD CONDUCTUAL/, 'PSC'],
+    [/PLAN DE TRANSITO/, 'PTR'],
+    [/PARTICIPACION DE TRABAJADORES/, 'PART'],
+    [/\bBEL\b/, 'BEL'],
+    [/ACTUALIZACION IRL/, 'IRL-ACT'],
+    [/IRL POR ESPECIALIDAD/, 'IRL-ANT'],
+    [/PLAN DE EMERGENCIAS SK/, 'PE-SK'],
+    [/AUTORRESCATADOR/, 'AUTORR'],
+    [/PLAN LOCAL DE EMERGENCIAS/, 'PLE'],
+    [/OBLIGACIONES, PROHIBICIONES/, 'OPF'],
+    [/ESTANDARES DE SALUD/, 'EST-SAL'],
+    [/MAPAS DE PROCESO/, 'MAPAS'],
+    [/METALES Y METALOIDES/, 'METAL'],
+    [/HERRAMIENTAS MANUALES/, 'HMP'],
+    [/PROTECCION AUDITIVA/, 'AUDIT'],
+    [/PROTECCION RESPIRATORIA/, 'RESP'],
+    [/SILICOSIS/, 'PLANESI'],
+    [/MANUAL DE CARGA/, 'MMC'],
+    [/PSICOSOCIALES/, 'PSICO'],
+    [/RADIACION UV/, 'UV'],
+    [/TMERT/, 'TMERT'],
+    [/ALTAS TEMPERATURAS/, 'TEMP'],
+    [/HIPOACUSIA/, 'PREXOR'],
+    [/DIFUSION TEMAS IRL/, 'IRL-DIF'],
+    [/D\.?\s?S\.?\s*N\S*\s*44/, 'DS-44'],
+    [/ELEMENTOS DE PROTECCION PERSONAL/, 'EPP'],
+  ];
+
+  function plainUpper(text) {
+    return String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
   }
 
+  const courseCodes = (() => {
+    const counters = {};
+    return docs.map(doc => {
+      const title = plainUpper(doc.titulo);
+      const rf = title.match(/\bRF-?\s?(\d{1,2})\b/);
+      if (rf) return `RF-${rf[1].padStart(2, '0')}`;
+      const rule = COURSE_CODES.find(([pattern]) => pattern.test(title));
+      if (rule) return rule[1];
+      // Sin regla: prefijo de la familia + correlativo (nunca un "C" genérico).
+      const family = categorize(doc.titulo);
+      counters[family] = (counters[family] || 0) + 1;
+      return `${family}-${String(counters[family]).padStart(2, '0')}`;
+    });
+  })();
+
+  function courseCode(doc, index) {
+    return courseCodes[index];
+  }
+
+  const LINK_LABELS = {
+    doc: 'Abrir respaldo NAMI de este curso',
+    category: 'Abrir carpeta NAMI de la familia',
+    root: 'Abrir carpeta NAMI del trabajador',
+  };
+
   function matrixCell(person, docIndex) {
+    const link = namiLinkFor(person, docIndex);
     if (person.aprob[docIndex] !== '1') {
+      if (link.level === 'doc' && link.url) {
+        // Certificado NAMI más nuevo que la fuente de avance de este snapshot.
+        const label = 'Certificado NAMI encontrado · aún no figura aprobado en la fuente de avance';
+        return `<td class="matrix-status nami-only linked"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
+      }
       return '<td class="matrix-status pending" title="Pendiente"><span>·</span></td>';
     }
-    const link = namiLinkFor(person, docIndex);
+    const rut = normalizeRut(person.rut);
+    const namiAdded = DATA.namiLinks && DATA.namiLinks.added && DATA.namiLinks.added[rut];
+    const viaNami = Boolean(namiAdded) && namiAdded.split(',').includes(String(docIndex));
+    const maestraCells = DATA.maestraAdded && DATA.maestraAdded[rut];
+    const maestraDate = maestraCells && Object.prototype.hasOwnProperty.call(maestraCells, docIndex) ? maestraCells[docIndex] : null;
+    const origin = (viaNami ? ' · aprobado por certificado NAMI' : '') +
+      (maestraDate !== null ? ` · registrado en Maestra de Capacitación${maestraDate ? ' (' + maestraDate.split('-').reverse().join('-') + ')' : ''}` : '');
     if (!link.url) {
-      return '<td class="matrix-status done" title="Aprobado · sin enlace NAMI"><span>✓</span></td>';
+      return `<td class="matrix-status done" title="Aprobado${esc(origin)}"><span>✓</span></td>`;
     }
-    const label = link.exact ? 'Abrir respaldo NAMI de la categoría' : 'Abrir carpeta NAMI del trabajador';
-    const fallbackClass = link.exact ? '' : ' fallback';
-    return `<td class="matrix-status done linked${fallbackClass}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
+    const label = LINK_LABELS[link.level] + origin;
+    return `<td class="matrix-status done linked level-${link.level}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${esc(label)}" aria-label="${esc(label)}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
+  }
+
+  function renderCodeGlossary(docIndexes) {
+    document.getElementById('matrixGlossary').innerHTML = docIndexes.map(index => {
+      const key = categorize(docs[index].titulo).toLowerCase();
+      const namiCode = namiDocOrderOk && DATA.namiLinks && DATA.namiLinks.codes && DATA.namiLinks.codes[index];
+      const namiTag = namiCode ? ` <em class="nami-code">NAMI ${esc(namiCode)}</em>` : '';
+      return `<div class="glossary-row cat-${key}"><code>${esc(courseCode(docs[index], index))}</code><span>${esc(docs[index].titulo)}${namiTag}</span></div>`;
+    }).join('');
+  }
+
+  function inactiveBadge(person) {
+    if (!person.estado) return '';
+    if (person.estado === 'finiquitado') {
+      const fecha = person.baja ? person.baja.split('-').reverse().join('-') : '';
+      return `<em class="status-badge" title="Finiquitado${fecha ? ' el ' + fecha : ''}${person.motivo_baja ? ' · ' + esc(person.motivo_baja) : ''} · no cuenta en el avance">Finiquitado${fecha ? ' ' + fecha : ''}</em>`;
+    }
+    return '<em class="status-badge" title="No figura en la tarja vigente · no cuenta en el avance">Fuera de tarja</em>';
   }
 
   function renderMatrix() {
     const category = document.getElementById('matrixCategoryFilter').value;
     const docIndexes = docs.map((_, index) => index).filter(index => !category || categorize(docs[index].titulo) === category);
-    const rows = filteredPeople().slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    const status = document.getElementById('matrixStatusFilter').value;
+    const rows = filteredPeople(allPeople)
+      .filter(person => status === 'all' || (status === 'inactive' ? person.estado : !person.estado))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    const inactiveCount = rows.filter(person => person.estado).length;
     const totalPages = Math.max(1, Math.ceil(rows.length / MATRIX_PAGE_SIZE));
     matrixPage = Math.min(matrixPage, totalPages);
     const pageRows = rows.slice((matrixPage - 1) * MATRIX_PAGE_SIZE, matrixPage * MATRIX_PAGE_SIZE);
 
-    document.getElementById('peopleHint').textContent = `${rows.length} trabajadores · ${docIndexes.length} cursos visibles`;
+    document.getElementById('peopleHint').textContent = `${rows.length} trabajadores` +
+      (inactiveCount ? ` (${inactiveCount} no vigentes, no cuentan en el avance)` : '') + ` · ${docIndexes.length} cursos visibles`;
     document.getElementById('matrixHead').innerHTML = `<tr><th class="matrix-person">Trabajador</th>${docIndexes.map(index => {
       const categoryKey = categorize(docs[index].titulo);
       const sources = (docs[index].fuentes || []).join(' + ');
       return `<th class="matrix-course cat-${categoryKey.toLowerCase()}" title="${esc(docs[index].titulo)} · Fuentes: ${esc(sources)}"><span>${esc(courseCode(docs[index], index))}</span></th>`;
     }).join('')}</tr>`;
     document.getElementById('matrixBody').innerHTML = pageRows.length ? pageRows.map(person => `
-      <tr>
-        <th class="matrix-person" scope="row"><strong>${esc(titleCase(person.nombre))}</strong><span>${esc(person.rut)} · ${esc(titleCase(person.especialidad))}</span></th>
+      <tr class="${person.estado ? 'is-inactive' : ''}">
+        <th class="matrix-person" scope="row"><strong>${esc(titleCase(person.nombre))}</strong>${inactiveBadge(person)}<span>${esc(person.rut)} · ${esc(titleCase(person.especialidad))}</span></th>
         ${docIndexes.map(index => matrixCell(person, index)).join('')}
       </tr>`).join('') : '<tr><td class="empty-state">Sin trabajadores para los filtros seleccionados.</td></tr>';
 
+    renderCodeGlossary(docIndexes);
+    const withFolder = rows.filter(person => namiPeople[normalizeRut(person.rut)]).length;
+    document.getElementById('matrixNamiNote').textContent = DATA.namiLinks
+      ? `${withFolder} de ${rows.length} trabajadores con carpeta NAMI · enlaces al ${DATA.namiLinks.updatedAt || 'sin fecha'}`
+      : 'Sin enlaces NAMI cargados en este snapshot.';
     document.getElementById('matrixPageInfo').textContent = `Página ${matrixPage} de ${totalPages}`;
     document.getElementById('matrixPrev').disabled = matrixPage <= 1;
     document.getElementById('matrixNext').disabled = matrixPage >= totalPages;
@@ -426,6 +576,7 @@
   document.getElementById('summaryViewBtn').addEventListener('click', () => setPeopleView('summary'));
   document.getElementById('matrixViewBtn').addEventListener('click', () => setPeopleView('matrix'));
   document.getElementById('matrixCategoryFilter').addEventListener('change', resetMatrixAndRender);
+  document.getElementById('matrixStatusFilter').addEventListener('change', resetMatrixAndRender);
   document.getElementById('matrixPrev').addEventListener('click', () => { matrixPage -= 1; renderMatrix(); });
   document.getElementById('matrixNext').addEventListener('click', () => { matrixPage += 1; renderMatrix(); });
 

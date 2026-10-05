@@ -36,3 +36,10 @@ RF CODELCO/
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# Fuentes con datos personales para Avance RESSO (NO publicar)
+Maestra de Capacitaci*.xlsx
+TARJA *.xlsb
+
+# Cache de Python
+__pycache__/

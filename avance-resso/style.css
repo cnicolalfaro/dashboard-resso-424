@@ -226,8 +226,20 @@
   .matrix-legend span { display: inline-flex; align-items: center; gap: 5px; }
   .matrix-demo { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 4px; font-style: normal; font-weight: 700; }
   .matrix-demo.done { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); }
-  .matrix-demo.linked { background: var(--accent-soft); color: var(--accent); }
-  .matrix-demo.fallback { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); font-size: 10px; }
+  .matrix-demo.level-doc { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); font-size: 10px; }
+  .matrix-demo.level-category { background: color-mix(in srgb, var(--cat-rf) 16%, transparent); color: var(--cat-rf); font-size: 10px; }
+  .matrix-demo.level-root { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); font-size: 10px; }
+  .matrix-nami-note { margin: 0 0 10px; color: var(--text-muted); font-size: 11.5px; }
+  .matrix-glossary-wrap { margin-top: 4px; color: var(--text-secondary); font-size: 12px; }
+  .matrix-glossary-wrap summary { cursor: pointer; padding: 6px 0; font-weight: 600; }
+  .matrix-glossary { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 16px; padding: 8px 0; }
+  .glossary-row { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: baseline; padding-left: 8px; border-left: 3px solid var(--border-strong); }
+  .glossary-row.cat-rf { border-left-color: var(--cat-rf); }
+  .glossary-row.cat-rim { border-left-color: var(--cat-rim); }
+  .glossary-row.cat-ma { border-left-color: var(--cat-ma); }
+  .glossary-row.cat-irl { border-left-color: var(--cat-irl); }
+  .glossary-row code { font: 600 11px "IBM Plex Mono", monospace; color: var(--text); }
+  .glossary-row .nami-code { margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: var(--surface-2); color: var(--text-muted); font: 500 10px "IBM Plex Mono", monospace; font-style: normal; white-space: nowrap; }
   .matrix-demo.pending { background: var(--surface-2); color: var(--text-muted); }
 
   .matrixwrap { max-height: 620px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
@@ -238,20 +250,29 @@
   .course-matrix thead .matrix-person { z-index: 4; background: var(--surface-2); }
   .course-matrix tbody .matrix-person strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font: 600 12.5px "IBM Plex Sans", sans-serif; }
   .course-matrix tbody .matrix-person span { display: block; overflow: hidden; margin-top: 2px; color: var(--text-muted); font: 400 10.5px "IBM Plex Sans", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
-  .matrix-course { width: 48px; min-width: 48px; max-width: 48px; border-top: 4px solid var(--border-strong); }
+  .matrix-course { width: 56px; min-width: 56px; max-width: 56px; border-top: 4px solid var(--border-strong); }
   .matrix-course.cat-rf { border-top-color: var(--cat-rf); }
   .matrix-course.cat-rim { border-top-color: var(--cat-rim); }
   .matrix-course.cat-ma { border-top-color: var(--cat-ma); }
   .matrix-course.cat-irl { border-top-color: var(--cat-irl); }
-  .matrix-course span { display: inline-block; max-width: 42px; overflow: hidden; color: var(--text-secondary); font: 600 9.5px "IBM Plex Mono", monospace; text-overflow: ellipsis; white-space: nowrap; }
-  .matrix-status { width: 48px; min-width: 48px; height: 42px; padding: 0; text-align: center; }
+  .matrix-course span { display: inline-block; max-width: 52px; overflow: hidden; color: var(--text-secondary); font: 600 9.5px "IBM Plex Mono", monospace; text-overflow: ellipsis; white-space: nowrap; }
+  .matrix-status { width: 56px; min-width: 56px; height: 42px; padding: 0; text-align: center; }
   .matrix-status > span, .matrix-status a { display: grid; place-items: center; width: 100%; height: 100%; font-weight: 700; text-decoration: none; }
   .matrix-status.done { background: color-mix(in srgb, var(--good) 9%, var(--surface)); color: var(--good); }
   .matrix-status.linked a { grid-template-columns: auto auto; align-content: center; justify-content: center; gap: 2px; color: var(--good); }
   .matrix-status.linked a:hover { background: color-mix(in srgb, var(--good) 18%, transparent); outline: 2px solid var(--good); outline-offset: -2px; }
-  .matrix-status.linked.fallback a { color: var(--warning); }
+  .matrix-status.linked.level-category a { color: var(--cat-rf); }
+  .matrix-status.linked.level-root a { color: var(--warning); }
+  .matrix-status.nami-only { background: var(--surface); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--good) 55%, transparent); }
+  .matrix-status.nami-only a { grid-template-columns: auto auto; align-content: center; justify-content: center; gap: 2px; color: var(--good); opacity: .8; }
+  .matrix-demo.nami-only { background: var(--surface); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--good) 55%, transparent); color: var(--good); font-size: 10px; }
   .matrix-status small { font-size: 9px; }
   .matrix-status.pending { background: var(--surface-2); color: var(--text-muted); }
+  .course-matrix tr.is-inactive .matrix-person { background: var(--surface-2); }
+  .course-matrix tr.is-inactive .matrix-person strong { color: var(--text-secondary); }
+  .course-matrix tr.is-inactive td { opacity: .55; }
+  .course-matrix tr.is-inactive td a { opacity: 1; }
+  .status-badge { display: inline-block; margin: 3px 0 1px; padding: 1px 6px; border-radius: 4px; background: color-mix(in srgb, var(--critical) 14%, transparent); color: var(--critical); font: 600 9.5px "IBM Plex Mono", monospace; font-style: normal; text-transform: uppercase; letter-spacing: .02em; }
   .matrix-pager { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 0; color: var(--text-secondary); font-size: 12px; }
   .matrix-pager button { min-height: 32px; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; }
   .matrix-pager button:disabled { opacity: .45; cursor: default; }

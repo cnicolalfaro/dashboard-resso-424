@@ -2,7 +2,8 @@
 import re, subprocess, unicodedata
 import openpyxl
 
-BASE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.2026.xlsx"
+BASE = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.2026 (1).xlsx"
+LATEST = "Consolidado Incidentes y Medidas Correctivas (Formato Interno) 05.08.2026 hoy 05-10-26.xlsx"
 
 
 def norm(v):
@@ -51,7 +52,7 @@ def status(inc):
 subprocess.run(["git", "stash", "list"], capture_output=True)
 subprocess.run(["git", "show", f"HEAD:{BASE}"], stdout=open("_prev.xlsx", "wb"), check=True)
 
-prev, new = build("_prev.xlsx"), build(BASE)
+prev, new = build("_prev.xlsx"), build(LATEST)
 sp = {k: status(v) for k, v in prev.items()}
 sn = {k: status(v) for k, v in new.items()}
 
