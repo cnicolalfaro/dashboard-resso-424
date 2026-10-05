@@ -41,5 +41,5 @@ Módulo estático integrado al dashboard RESSO 424. La interfaz vive en esta car
 ## Matriz trabajador × curso
 
 - Cada columna usa una sigla corta (RF-xx, R-xxx, MA-xxx, IRL-xxx…); el glosario bajo la matriz lista la sigla y el título completo.
-- Un aprobado con flecha abre, en orden de preferencia: el PDF del curso (verde), la carpeta de la familia (azul) o la carpeta del trabajador (naranja).
+- Un ✓↗ abre el certificado NAMI (PDF) de ese curso para ese trabajador. Solo hay link si existe el PDF: los cursos que NAMI no tiene (37 de 68, ej. Protección Auditiva, Anexo IRL) se ven como ✓ sin link y el tooltip indica su fuente (Forms, plataforma o Maestra). El filtro "Cursos con certificado NAMI" muestra los 31 que sí tienen evidencia.
 - Los enlaces se reconstruyen desde la ruta de SharePoint, sin el GUID de vista que traen los hipervínculos exportados. Quien abra un enlace necesita permiso de lectura en el sitio ICSK-HSEC.

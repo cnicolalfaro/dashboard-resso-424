@@ -89,8 +89,7 @@
   }
 
   // Enlaces NAMI. Formato compacto (import_nami_links.py v2):
-  //   namiLinks = { base, docOrder, people: { RUT: { folder, categories: {RF: "Riesgos_de_Fatalidad"}, docs: {"6": "Riesgos_de_Fatalidad/x.pdf"} } } }
-  // Formato antiguo (v1): people: { RUT: { root: url, categories: {RF: url} } }
+  //   namiLinks = { base, docOrder, people: { RUT: { folder, docs: {"6": "Riesgos_de_Fatalidad/x.pdf"} } } }
   const namiBase = DATA.namiLinks && DATA.namiLinks.base ? String(DATA.namiLinks.base) : '';
   const namiDocOrderOk = !(DATA.namiLinks && Array.isArray(DATA.namiLinks.docOrder)) ||
     DATA.namiLinks.docOrder.length === docs.length &&
@@ -99,31 +98,22 @@
   function encodePath(path) {
     return String(path).split('/').map(encodeURIComponent).join('/');
   }
-  function namiFolderUrl(relPath) {
-    // Vista de biblioteca sin parámetro View: evita el "Error de representación"
-    // que aparece cuando la vista guardada en el enlace ya no existe.
-    const lib = namiBase.split('/').slice(0, 3).join('/');
-    return `https://empresassk.sharepoint.com/${encodePath(lib)}/Forms/AllItems.aspx?id=${encodeURIComponent('/' + namiBase + '/' + relPath)}`;
-  }
   function namiFileUrl(relPath) {
     return `https://empresassk.sharepoint.com/${encodePath(namiBase + '/' + relPath)}?web=1`;
   }
 
+  // Solo se enlaza la evidencia real: el PDF NAMI de ese curso para ese trabajador.
+  // Sin PDF no hay link (antes se enlazaba la carpeta de la familia, que no contiene
+  // evidencia de cursos como Protección Auditiva o Anexo IRL).
   function namiLinkFor(person, docIndex) {
     const links = namiPeople[normalizeRut(person.rut)];
-    if (!links) return { url: '', level: '' };
-    const category = categorize(docs[docIndex].titulo);
-    if (links.folder && namiBase) {
-      const file = namiDocOrderOk && links.docs && links.docs[docIndex];
-      if (file) return { url: safeSharePointUrl(namiFileUrl(`${links.folder}/${file}`)), level: 'doc' };
-      const catFolder = links.categories && links.categories[category];
-      if (catFolder) return { url: safeSharePointUrl(namiFolderUrl(`${links.folder}/${catFolder}`)), level: 'category' };
-      return { url: safeSharePointUrl(namiFolderUrl(links.folder)), level: 'root' };
-    }
-    const categoryUrl = links.categories && links.categories[category];
-    const url = safeSharePointUrl(categoryUrl || links.root);
-    return { url, level: url ? (categoryUrl ? 'category' : 'root') : '' };
+    const file = links && links.folder && namiBase && namiDocOrderOk && links.docs && links.docs[docIndex];
+    return file ? { url: safeSharePointUrl(namiFileUrl(`${links.folder}/${file}`)), level: 'doc' } : { url: '', level: '' };
   }
+
+  // Cursos que tienen al menos un certificado en NAMI (para el filtro de la matriz).
+  const namiCourseSet = new Set();
+  if (namiDocOrderOk) Object.values(namiPeople).forEach(p => Object.keys(p.docs || {}).forEach(i => namiCourseSet.add(Number(i))));
 
   const docsByCat = { RF: [], RIM: [], MA: [], IRL: [] };
   docs.forEach((d, i) => docsByCat[categorize(d.titulo)].push(i));
@@ -472,9 +462,7 @@
   }
 
   const LINK_LABELS = {
-    doc: 'Abrir respaldo NAMI de este curso',
-    category: 'Abrir carpeta NAMI de la familia',
-    root: 'Abrir carpeta NAMI del trabajador',
+    doc: 'Abrir certificado NAMI de este curso',
   };
 
   function matrixCell(person, docIndex) {
@@ -492,10 +480,15 @@
     const viaNami = Boolean(namiAdded) && namiAdded.split(',').includes(String(docIndex));
     const maestraCells = DATA.maestraAdded && DATA.maestraAdded[rut];
     const maestraDate = maestraCells && Object.prototype.hasOwnProperty.call(maestraCells, docIndex) ? maestraCells[docIndex] : null;
-    const origin = (viaNami ? ' · aprobado por certificado NAMI' : '') +
-      (maestraDate !== null ? ` · registrado en Maestra de Capacitación${maestraDate ? ' (' + maestraDate.split('-').reverse().join('-') + ')' : ''}` : '');
+    const maestraSeen = DATA.maestraSeen && DATA.maestraSeen[rut] && DATA.maestraSeen[rut][docIndex] === '1';
+    const evidence = [];
+    if (viaNami) evidence.push('aprobado por certificado NAMI');
+    if (maestraDate !== null) evidence.push(`aprobado por registro en Maestra de Capacitación${maestraDate ? ' (' + maestraDate.split('-').reverse().join('-') + ')' : ''}`);
+    else if (maestraSeen) evidence.push('existe registro en Maestra de Capacitación');
+    const origin = evidence.length ? ' · ' + evidence.join(' · ') : '';
     if (!link.url) {
-      return `<td class="matrix-status done" title="Aprobado${esc(origin)}"><span>✓</span></td>`;
+      const sources = origin || ` · fuente del curso: ${(docs[docIndex].fuentes || []).filter(s => s !== 'Certificado NAMI').join(' / ')} · sin certificado NAMI`;
+      return `<td class="matrix-status done" title="Aprobado${esc(sources)}"><span>✓</span></td>`;
     }
     const label = LINK_LABELS[link.level] + origin;
     return `<td class="matrix-status done linked level-${link.level}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${esc(label)}" aria-label="${esc(label)}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
@@ -521,7 +514,8 @@
 
   function renderMatrix() {
     const category = document.getElementById('matrixCategoryFilter').value;
-    const docIndexes = docs.map((_, index) => index).filter(index => !category || categorize(docs[index].titulo) === category);
+    const docIndexes = docs.map((_, index) => index).filter(index => !category ||
+      (category === 'NAMI' ? namiCourseSet.has(index) : category === 'NONAMI' ? !namiCourseSet.has(index) : categorize(docs[index].titulo) === category));
     const status = document.getElementById('matrixStatusFilter').value;
     const rows = filteredPeople(allPeople)
       .filter(person => status === 'all' || (status === 'inactive' ? person.estado : !person.estado))

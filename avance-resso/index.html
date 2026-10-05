@@ -86,6 +86,8 @@
           <option value="RIM">Reglamentos Internos Mineros</option>
           <option value="MA">Medio Ambiente</option>
           <option value="IRL">IRL y otras capacitaciones</option>
+          <option value="NAMI">Cursos con certificado NAMI</option>
+          <option value="NONAMI">Cursos sin certificado NAMI</option>
         </select></label>
         <label>Personas<select id="matrixStatusFilter">
           <option value="all">Vigentes y finiquitados</option>
@@ -93,10 +95,8 @@
           <option value="inactive">Solo finiquitados / fuera de tarja</option>
         </select></label>
         <div class="matrix-legend" aria-label="Leyenda">
-          <span><i class="matrix-demo done">✓</i>Aprobado</span>
-          <span><i class="matrix-demo level-doc">✓↗</i>Respaldo del curso</span>
-          <span><i class="matrix-demo level-category">✓↗</i>Carpeta de la familia</span>
-          <span><i class="matrix-demo level-root">✓↗</i>Carpeta trabajador</span>
+          <span><i class="matrix-demo done">✓</i>Aprobado (otra fuente, sin PDF)</span>
+          <span><i class="matrix-demo level-doc">✓↗</i>Abre certificado NAMI</span>
           <span><i class="matrix-demo nami-only">✓↗</i>Certificado NAMI, falta en fuente</span>
           <span><i class="matrix-demo pending">·</i>Pendiente</span>
         </div>
@@ -125,6 +125,6 @@
     <span>Fuente: formularios de difusión/evaluación + tarja (dotación activa, Maestra) · AVANCE_TOTAL</span>
   </footer>
 </div>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

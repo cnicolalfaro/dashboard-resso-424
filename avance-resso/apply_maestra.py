@@ -5,8 +5,9 @@ Uso:
 
 Regla (la misma del generador original, verificada contra el snapshot del 28-09): un curso
 cuenta si la columna de CAPACITACIÓN de ese curso tiene fecha. Solo suma: nunca quita
-aprobaciones de otras fuentes. Cada celda agregada queda en `maestraAdded` con su fecha,
-para mostrarla en la matriz como "registrado en Maestra de Capacitación".
+aprobaciones de otras fuentes. Cada celda agregada queda en `maestraAdded` con su fecha, y
+`maestraSeen` marca TODOS los cursos con registro en la Maestra (aunque ya estuvieran aprobados
+por otra fuente), para mostrar en la matriz que esa evidencia existe.
 Matriz IPER queda fuera: el generador original no usaba la Maestra para ese curso.
 """
 from __future__ import annotations
@@ -119,6 +120,8 @@ def main() -> None:
     mapping = column_map(docs, header)
 
     added = data.get("maestraAdded", {})
+    # Presencia en la Maestra para TODOS los cursos (aprobados o no por otra fuente): 1 = hay fecha.
+    seen: dict[str, str] = {}
     added_by_doc = [0] * len(docs)
     for person in data["personas"]:
         rut = normalize_rut(person["rut"])
@@ -127,7 +130,10 @@ def main() -> None:
             continue
         aprob = list(person["aprob"])
         cells = added.get(rut, {})
+        flags = ["0"] * len(docs)
         for i, j in mapping.items():
+            if has_record(row[j]):
+                flags[i] = "1"
             if aprob[i] != "1" and has_record(row[j]):
                 aprob[i] = "1"
                 added_by_doc[i] += 1
@@ -135,12 +141,15 @@ def main() -> None:
                 cells[str(i)] = value.strftime("%Y-%m-%d") if isinstance(value, datetime) else ""
         if cells:
             added[rut] = cells
+        if "1" in flags:
+            seen[rut] = "".join(flags)
         person["aprob"] = "".join(aprob)
 
     for doc, count in zip(docs, added_by_doc):
         if count and SOURCE_LABEL not in doc.get("fuentes", []):
             doc.setdefault("fuentes", []).append(SOURCE_LABEL)
     data["maestraAdded"] = added
+    data["maestraSeen"] = seen
     data["maestraFuente"] = args.maestra.name
     recalc(data)
     args.snapshot.write_text("window.AVANCE_RESSO_DATA = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
@@ -151,6 +160,7 @@ def main() -> None:
     for doc, count in sorted(zip(docs, added_by_doc), key=lambda item: -item[1])[:12]:
         if count:
             print(f"  +{count:4d}  {doc['avance_pct']:5.1f}%  {doc['titulo'][:70]}")
+    print(f"Celdas con registro en la Maestra (ticket de existencia): {sum(f.count('1') for f in seen.values())} en {len(seen)} personas")
     print(f"Avance promedio: {data['avance_promedio_pct']}%")
 
 
