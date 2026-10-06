@@ -108,7 +108,24 @@
   function namiLinkFor(person, docIndex) {
     const links = namiPeople[normalizeRut(person.rut)];
     const file = links && links.folder && namiBase && namiDocOrderOk && links.docs && links.docs[docIndex];
-    return file ? { url: safeSharePointUrl(namiFileUrl(`${links.folder}/${file}`)), level: 'doc' } : { url: '', level: '' };
+    if (file) return { url: safeSharePointUrl(namiFileUrl(`${links.folder}/${file}`)), level: 'doc' };
+    return qrLinkFor(person, docIndex);
+  }
+
+  // Certificados QR de Microsoft Forms (import_qr_links.py): se enlazan cuando no hay certificado NAMI.
+  //   qrLinks = { base, docOrder, people: { RUT: { folder, docs: {"20": "Riesgos_de_Fatalidad/RUT_RF-01.pdf"} } } }
+  const qrBase = DATA.qrLinks && DATA.qrLinks.base ? String(DATA.qrLinks.base) : '';
+  const qrPeople = DATA.qrLinks && DATA.qrLinks.people ? DATA.qrLinks.people : {};
+  const qrDocOrderOk = Boolean(DATA.qrLinks) && Array.isArray(DATA.qrLinks.docOrder) &&
+    DATA.qrLinks.docOrder.length === docs.length &&
+    DATA.qrLinks.docOrder.every((title, i) => title === docs[i].titulo);
+
+  function qrLinkFor(person, docIndex) {
+    const links = qrPeople[normalizeRut(person.rut)];
+    const file = links && links.folder && qrBase && qrDocOrderOk && links.docs && links.docs[docIndex];
+    return file
+      ? { url: safeSharePointUrl(`https://empresassk.sharepoint.com/${encodePath(qrBase + '/' + links.folder + '/' + file)}?web=1`), level: 'qr' }
+      : { url: '', level: '' };
   }
 
   // Cursos que tienen al menos un certificado en NAMI (para el filtro de la matriz).
@@ -463,15 +480,16 @@
 
   const LINK_LABELS = {
     doc: 'Abrir certificado NAMI de este curso',
+    qr: 'Abrir certificado QR (Microsoft Forms) de este curso',
   };
 
   function matrixCell(person, docIndex) {
     const link = namiLinkFor(person, docIndex);
     if (person.aprob[docIndex] !== '1') {
-      if (link.level === 'doc' && link.url) {
-        // Certificado NAMI más nuevo que la fuente de avance de este snapshot.
-        const label = 'Certificado NAMI encontrado · aún no figura aprobado en la fuente de avance';
-        return `<td class="matrix-status nami-only linked"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
+      if (link.url) {
+        // Certificado (NAMI o QR) más nuevo que la fuente de avance de este snapshot.
+        const label = `Certificado ${link.level === 'qr' ? 'QR' : 'NAMI'} encontrado · aún no figura aprobado en la fuente de avance`;
+        return `<td class="matrix-status nami-only linked level-${link.level}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
       }
       return '<td class="matrix-status pending" title="Pendiente"><span>·</span></td>';
     }
@@ -487,7 +505,7 @@
     else if (maestraSeen) evidence.push('existe registro en Maestra de Capacitación');
     const origin = evidence.length ? ' · ' + evidence.join(' · ') : '';
     if (!link.url) {
-      const sources = origin || ` · fuente del curso: ${(docs[docIndex].fuentes || []).filter(s => s !== 'Certificado NAMI').join(' / ')} · sin certificado NAMI`;
+      const sources = origin || ` · fuente del curso: ${(docs[docIndex].fuentes || []).filter(s => s !== 'Certificado NAMI').join(' / ')} · sin certificado NAMI ni QR`;
       return `<td class="matrix-status done" title="Aprobado${esc(sources)}"><span>✓</span></td>`;
     }
     const label = LINK_LABELS[link.level] + origin;
@@ -540,9 +558,11 @@
 
     renderCodeGlossary(docIndexes);
     const withFolder = rows.filter(person => namiPeople[normalizeRut(person.rut)]).length;
-    document.getElementById('matrixNamiNote').textContent = DATA.namiLinks
+    const withQr = rows.filter(person => qrPeople[normalizeRut(person.rut)]).length;
+    document.getElementById('matrixNamiNote').textContent = (DATA.namiLinks
       ? `${withFolder} de ${rows.length} trabajadores con carpeta NAMI · enlaces al ${DATA.namiLinks.updatedAt || 'sin fecha'}`
-      : 'Sin enlaces NAMI cargados en este snapshot.';
+      : 'Sin enlaces NAMI cargados en este snapshot.') +
+      (DATA.qrLinks ? ` · ${withQr} con certificados QR al ${DATA.qrLinks.updatedAt || 'sin fecha'}` : '');
     document.getElementById('matrixPageInfo').textContent = `Página ${matrixPage} de ${totalPages}`;
     document.getElementById('matrixPrev').disabled = matrixPage <= 1;
     document.getElementById('matrixNext').disabled = matrixPage >= totalPages;

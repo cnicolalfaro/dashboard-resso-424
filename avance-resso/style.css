@@ -228,6 +228,7 @@
   .matrix-demo.done { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); }
   .matrix-demo.level-doc { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); font-size: 10px; }
   .matrix-demo.level-category { background: color-mix(in srgb, var(--cat-rf) 16%, transparent); color: var(--cat-rf); font-size: 10px; }
+  .matrix-demo.level-qr { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--cat-rf); font-size: 10px; }
   .matrix-demo.level-root { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); font-size: 10px; }
   .matrix-nami-note { margin: 0 0 10px; color: var(--text-muted); font-size: 11.5px; }
   .matrix-glossary-wrap { margin-top: 4px; color: var(--text-secondary); font-size: 12px; }
@@ -263,6 +264,8 @@
   .matrix-status.linked a:hover { background: color-mix(in srgb, var(--good) 18%, transparent); outline: 2px solid var(--good); outline-offset: -2px; }
   .matrix-status.linked.level-category a { color: var(--cat-rf); }
   .matrix-status.linked.level-root a { color: var(--warning); }
+  .matrix-status.linked.level-qr a { color: var(--cat-rf); }
+  .matrix-status.linked.level-qr a:hover { background: color-mix(in srgb, var(--cat-rf) 18%, transparent); outline-color: var(--cat-rf); }
   .matrix-status.nami-only { background: var(--surface); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--good) 55%, transparent); }
   .matrix-status.nami-only a { grid-template-columns: auto auto; align-content: center; justify-content: center; gap: 2px; color: var(--good); opacity: .8; }
   .matrix-demo.nami-only { background: var(--surface); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--good) 55%, transparent); color: var(--good); font-size: 10px; }

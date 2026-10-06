@@ -24,15 +24,26 @@ Módulo estático integrado al dashboard RESSO 424. La interfaz vive en esta car
 
 	`python avance-resso/apply_maestra.py "Maestra de Capacitación 01-10-26.xlsx"`
 4. Actualizar los enlaces NAMI desde la carpeta sincronizada con OneDrive
-	(`D:\OneDrive - Empresas SK\SKCIC - ICSK HSEC - 424 - CC 101\0.- RESSO Ver. 10\02 RESSO V10\B - DO\B1 - Competencias y Formacion\Pregunta 11\Difusiones y capacitaciones`):
+	(`D:\OneDrive - Empresas SK\SKCIC - ICSK HSEC - 424 - CC 101\0.- RESSO Ver. 10\02 RESSO V10\B - DO\B1 - Competencias y Formacion\Pregunta 11\Difusiones y capacitaciones\CERTIFICADOS NAMI`; al lado están `CERTIFICADOS QR` y `CERTIFICADOS FISICOS`):
 
-	`python avance-resso/scan_nami_pdfs.py "<carpeta>"` — lee el curso dentro de cada certificado (los nombres `RUT_RF_3.pdf` no lo indican). Solo relee lo que cambió.
+	`python avance-resso/scan_nami_pdfs.py "<carpeta CERTIFICADOS NAMI>"` — lee el curso dentro de cada certificado. Solo relee lo que cambió. Desde 2026-10 los archivos se llaman `RUT_CÓDIGO.pdf` (`195542031_RF-01.pdf`, `..._IRL-024.pdf`); el enlace igual se asigna por el curso impreso en el PDF.
 
-	`python avance-resso/import_nami_links.py "<carpeta>" --sharepoint-path "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/0.- RESSO Ver. 10/02 RESSO V10/B - DO/B1 - Competencias y Formacion/Pregunta 11/Difusiones y capacitaciones"`
+	`python avance-resso/check_nami_names.py` — revisa que el código del nombre coincida con el curso del PDF, que el RUT sea el de la carpeta y que no haya duplicados (detalle en `fuentes/nami_name_check.csv`).
+
+	`python avance-resso/import_nami_links.py "<carpeta CERTIFICADOS NAMI>" --sharepoint-path "sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/0.- RESSO Ver. 10/02 RESSO V10/B - DO/B1 - Competencias y Formacion/Pregunta 11/Difusiones y capacitaciones/CERTIFICADOS NAMI"`
 
 	El detalle archivo → curso queda en `fuentes/nami_match_report.csv` (privado).
 
 	`python avance-resso/apply_nami_approvals.py` — marca como aprobados los cursos con certificado NAMI que aún figuran pendientes (solo suma; no quita aprobaciones de otras fuentes) y recalcula los porcentajes.
+4b. Certificados QR (Microsoft Forms). Vienen en `Pregunta 11/Evidencia de QR/evidencia forms.zip` (un zip por curso, PDF `RUT_RF_01.pdf` que son imágenes). Se arman como NAMI en una copia local:
+
+	`python avance-resso/build_qr_folders.py "<Evidencia de QR>\evidencia forms.zip" "C:\Users\cnico\CERTIFICADOS_QR_LOCAL\CERTIFICADOS QR" [--ocr qr_ocr.json]`
+
+	Deja `NOMBRE_RUT/Riesgos_de_Fatalidad/RUT_RF-01.pdf` (mismo nombre de carpeta que NAMI), corrige RUT mal digitados en Forms por nombre, omite respuestas de prueba e informa en `fuentes/qr_build_report.csv`. Esa carpeta se sube a `Difusiones y capacitaciones/CERTIFICADOS QR` y después:
+
+	`python avance-resso/import_qr_links.py "<carpeta CERTIFICADOS QR>" --sharepoint-path ".../Difusiones y capacitaciones/CERTIFICADOS QR"`
+
+	En la matriz el certificado NAMI tiene prioridad; el QR (✓↗ azul) se enlaza cuando no hay NAMI.
 5. Volver a cifrar solo la parte de Avance RESSO dentro de `data/datos.enc.js`:
 
 	`node scripts/avance_bundle.mjs pack`
