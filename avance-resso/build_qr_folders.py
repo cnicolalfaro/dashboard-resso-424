@@ -39,7 +39,7 @@ FILE = re.compile(r"^([0-9]+K?|DOC\d+)_RF_(\d+)(?:_(\d+))?\.pdf$", re.IGNORECASE
 
 
 def normalize_rut(value: object) -> str:
-    return re.sub(r"[^0-9K]", "", str(value or "").upper())
+    return re.sub(r"[^0-9K]", "", str(value or "").upper()).lstrip("0")  # 08003871-2 = 8003871-2
 
 
 def plain(text: str) -> str:

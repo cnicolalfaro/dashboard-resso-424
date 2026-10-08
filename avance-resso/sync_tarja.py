@@ -25,7 +25,7 @@ from recalc import mark_calculation_base, recalc
 
 
 def normalize_rut(value: object) -> str:
-    return re.sub(r"[^0-9K]", "", str(value or "").upper())
+    return re.sub(r"[^0-9K]", "", str(value or "").upper()).lstrip("0")  # 08003871-2 = 8003871-2
 
 
 def text(value: object) -> str:

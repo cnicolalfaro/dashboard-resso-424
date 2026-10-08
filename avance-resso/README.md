@@ -20,6 +20,9 @@ Módulo estático integrado al dashboard RESSO 424. La interfaz vive en esta car
 2. Sincronizar la dotación con la tarja del mes (agrega activos nuevos; quien ya no está queda como finiquitado/fuera de tarja: visible en la matriz con sus evidencias, pero no cuenta en dotación ni porcentajes):
 
 	`python avance-resso/sync_tarja.py "TARJA OCTUBRE OBRA 424..xlsb"`
+2b. Agregar como no vigentes a quienes tienen registros en la Maestra de Capacitación pero ya no están en la tarja (se capacitaron y se fueron antes de que existiera la matriz): se ven con sus tickets, no cuentan en dotación ni porcentajes.
+
+	`python avance-resso/add_maestra_historicos.py "Maestra de Capacitación 01-10-26.xlsx" "TARJA OCTUBRE OBRA 424..xlsb"`
 3. Marcar lo registrado en la Maestra de Capacitación (curso con fecha en su columna de capacitación; solo suma, deja la fecha como respaldo en la matriz):
 
 	`python avance-resso/apply_maestra.py "Maestra de Capacitación 01-10-26.xlsx"`
