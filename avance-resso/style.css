@@ -275,6 +275,7 @@
   .course-matrix tr.is-inactive .matrix-person strong { color: var(--text-secondary); }
   .course-matrix tr.is-inactive td { opacity: .55; }
   .course-matrix tr.is-inactive td a { opacity: 1; }
+  .status-badge.is-upcoming { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--text-secondary); }
   .status-badge { display: inline-block; margin: 3px 0 1px; padding: 1px 6px; border-radius: 4px; background: color-mix(in srgb, var(--critical) 14%, transparent); color: var(--critical); font: 600 9.5px "IBM Plex Mono", monospace; font-style: normal; text-transform: uppercase; letter-spacing: .02em; }
   .matrix-pager { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 0; color: var(--text-secondary); font-size: 12px; }
   .matrix-pager button { min-height: 32px; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; }

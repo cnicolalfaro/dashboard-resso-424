@@ -3,12 +3,39 @@
 
   let rendered = false;
 
+  // "Por ingresar" (contrato futuro en la tarja): pasan a vigentes el día de su contrato, sin volver a cifrar.
+  // Si alguno se activa, se recalcula igual que avance-resso/recalc.py.
+  function activateDueEntries(DATA) {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    let activated = 0;
+    DATA.personas.forEach(p => {
+      if (p.estado === 'por_ingresar' && p.ingreso && p.ingreso <= today) {
+        delete p.estado;
+        activated++;
+      }
+    });
+    if (!activated) return;
+    const docs = DATA.documentos;
+    const active = DATA.personas.filter(p => !p.estado);
+    const total = active.length;
+    docs.forEach((doc, i) => {
+      if (doc.calculo !== 'dotacion') return;
+      doc.aprobados = active.filter(p => p.aprob[i] === '1').length;
+      doc.avance_pct = total ? Math.round(1000 * doc.aprobados / total) / 10 : 0;
+    });
+    DATA.total_dotacion_activa = total;
+    DATA.total_no_vigentes = DATA.personas.length - total;
+    DATA.avance_promedio_pct = Math.round(10 * docs.reduce((s, d) => s + d.avance_pct, 0) / docs.length) / 10;
+  }
+
   function render(DATA) {
   if (rendered || !DATA || !Array.isArray(DATA.documentos) || !Array.isArray(DATA.personas)) return;
   rendered = true;
   document.body.classList.add("is-ready");
   const docs = DATA.documentos;
-  // Personas vigentes (cuentan en KPI y %); los finiquitados / fuera de tarja solo se ven en la matriz.
+  activateDueEntries(DATA);
+  // Personas vigentes (cuentan en KPI y %); los finiquitados / fuera de tarja / por ingresar solo se ven en la matriz.
   const allPeople = DATA.personas;
   const people = allPeople.filter(p => !p.estado);
   const nDocs = docs.length;
@@ -523,6 +550,10 @@
 
   function inactiveBadge(person) {
     if (!person.estado) return '';
+    if (person.estado === 'por_ingresar') {
+      const fecha = person.ingreso ? person.ingreso.split('-').reverse().slice(0, 2).join('-') : '';
+      return `<em class="status-badge is-upcoming" title="Contrato desde ${esc(person.ingreso || '')} · cuenta en el avance desde esa fecha">Ingresa ${fecha}</em>`;
+    }
     if (person.estado === 'finiquitado') {
       const fecha = person.baja ? person.baja.split('-').reverse().join('-') : '';
       return `<em class="status-badge" title="Finiquitado${fecha ? ' el ' + fecha : ''}${person.motivo_baja ? ' · ' + esc(person.motivo_baja) : ''} · no cuenta en el avance">Finiquitado${fecha ? ' ' + fecha : ''}</em>`;
