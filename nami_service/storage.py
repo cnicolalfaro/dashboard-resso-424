@@ -1,16 +1,16 @@
 import json
 import os
 import sqlite3
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 
-def private_root(value):
+def private_root(value, public=None):
     if not value or not Path(value).is_absolute():
         raise ValueError("NAMI_DATA_DIR must be an absolute external private directory")
     root = Path(value).resolve()
     repository = Path(__file__).resolve().parent.parent
-    public = os.environ.get("NAMI_PUBLIC_ROOT")
+    public = public or os.environ.get("NAMI_PUBLIC_ROOT")
     forbidden = [repository]
     if public:
         if not Path(public).is_absolute():
@@ -21,13 +21,15 @@ def private_root(value):
     if any(part.lower() in {"static", "public", "www", "wwwroot", "htdocs"} for part in root.parts):
         raise ValueError("Private storage cannot be in a publication directory")
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if root.stat().st_mode & 0o077:
-        raise ValueError("NAMI_DATA_DIR must have permissions 0700")
+    if root.stat().st_mode & 0o077 or root.stat().st_uid != os.geteuid():
+        raise ValueError("NAMI_DATA_DIR must be owned by the service account with permissions 0700")
     for name in ("records", "scans", "rows"):
         (root / name).mkdir(mode=0o700, exist_ok=True)
         if (root / name).is_symlink() or (root / name).resolve().parent != root:
             raise ValueError("Storage subdirectories cannot be symlinks")
         os.chmod(root / name, 0o700)
+    if (root / "nami.sqlite3").is_symlink():
+        raise ValueError("SQLite storage cannot be a symlink")
     return root
 
 
@@ -41,7 +43,7 @@ def connect(root):
 
 
 def initialize(root):
-    with connect(root) as db:
+    with closing(connect(root)) as db:
         db.executescript("""
         CREATE TABLE IF NOT EXISTS records (
             id TEXT PRIMARY KEY, manifest TEXT NOT NULL, pdf TEXT NOT NULL,

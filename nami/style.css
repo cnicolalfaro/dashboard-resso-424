@@ -1,0 +1,58 @@
+:root{color-scheme:light;--green:#16703d;--green-dark:#0c4d29;--soft:#edf7f0;--bg:#f5f8f6;--ink:#193529;--muted:#52665b;--line:#d9e5dc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+[hidden]{display:none!important}
+.wrap{max-width:1160px;margin:auto;padding:24px}
+.top{background:white;border-top:5px solid var(--green);border-bottom:1px solid var(--line)}
+.top .wrap{padding-top:22px;padding-bottom:20px}
+.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:750;color:var(--green)}
+h1{margin:10px 0;font-size:32px;letter-spacing:-.03em}
+h1 span{font-size:24px;font-weight:500;letter-spacing:-.02em}
+h2{font-size:20px;margin:0 0 16px}
+p{margin:8px 0 16px}
+.top p,.hint{color:var(--muted)}
+.heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.card{background:white;border:1px solid var(--line);border-radius:12px;padding:24px;margin:20px 0;box-shadow:0 4px 16px #163b2410;scroll-margin-top:16px}
+.status{min-height:24px}
+.status.error{color:#a12d2d;font-weight:650}
+.notice{padding:14px 18px;border:1px solid #c7dfcf;border-radius:8px;background:var(--soft);margin:14px 0}
+.danger,.red-mark{background:#fff4f3;border-color:#e8b6b1;color:#852a27}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;list-style:none;padding:0}
+.steps a{display:block;background:white;border:1px solid var(--line);border-radius:8px;padding:12px;color:var(--green-dark);font-weight:700;text-decoration:none}
+.step{display:inline-grid;place-items:center;width:30px;height:30px;background:var(--soft);color:var(--green);border-radius:50%;margin-right:8px}
+.fields,.course-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:18px}
+label{display:block;font-weight:600}
+input:not([type=checkbox]):not([type=radio]),select{display:block;width:100%;margin-top:6px;padding:10px 12px;border:1px solid #aebfb3;border-radius:6px;background:white;color:var(--ink);font:inherit;min-height:44px}
+input[type=file]{overflow:hidden}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:16px;margin:20px 0}
+legend{font-weight:700;padding:0 6px}
+.check{display:flex;align-items:flex-start;gap:10px;font-weight:500}
+input[type=checkbox],input[type=radio]{accent-color:var(--green);width:18px;height:18px;flex-shrink:0;margin-top:3px}
+.course{padding:12px;border:1px solid var(--line);border-radius:8px}
+.course small{display:block;color:var(--muted);font-weight:400;white-space:pre-wrap}
+.acceptance{margin:18px 0}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+button,.download{font:inherit;font-weight:650;padding:10px 16px;border-radius:7px;border:1px solid #adc7b5;background:white;color:var(--green-dark);cursor:pointer;min-height:44px}
+.primary,.download{background:var(--green);color:white;border-color:var(--green)}
+.download{display:inline-block;text-decoration:none}
+button:hover:not(:disabled),.download:hover{filter:brightness(.93)}
+button:disabled,input:disabled,select:disabled{opacity:.6;cursor:not-allowed}
+:focus-visible{outline:3px solid #b57e00;outline-offset:3px}
+.preview:empty{display:none}
+.preview{background:#f8fbf9;padding:16px;border:1px solid var(--line);border-radius:8px;margin:16px 0}
+.people{margin:0;padding-left:22px;max-height:230px;overflow:auto}
+.page{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.page h3{margin:0 0 12px}
+.row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(200px,1.6fr);gap:20px;border:1px solid var(--line);border-radius:8px;padding:16px;margin:12px 0}
+.row img{display:block;max-width:100%;height:auto;max-height:240px;object-fit:contain;border:1px solid var(--line)}
+.row fieldset{margin-bottom:0}
+.row .check{margin:10px 0}
+.row p{overflow-wrap:anywhere}
+.table-scroll{overflow:auto}
+table{width:100%;border-collapse:collapse;text-align:left}
+caption{text-align:left;font-weight:650;margin:8px 0}
+th,td{border-bottom:1px solid var(--line);padding:12px;vertical-align:top;overflow-wrap:anywhere}
+th{background:var(--soft);font-size:13px}
+td a{color:var(--green-dark)}
+.hint{font-size:13px}
+@media(max-width:650px){.wrap{padding:16px}.card{padding:18px}.fields,.course-grid,.row{grid-template-columns:1fr}.steps{grid-template-columns:repeat(2,1fr);gap:8px}h1 span{display:block;font-size:20px}.heading{align-items:flex-start}.steps a{font-size:13px;padding:10px}th,td{padding:8px}}
