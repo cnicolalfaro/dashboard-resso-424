@@ -63,7 +63,9 @@
     panes.forEach(({ sheet, xSplit, ySplit, topLeftCell }) => {
       const entry = XLSX.CFB.find(zip, `/xl/worksheets/sheet${sheet}.xml`);
       if (!entry) return;
-      const pane = `<pane${xSplit ? ` xSplit="${xSplit}"` : ""}${ySplit ? ` ySplit="${ySplit}"` : ""} topLeftCell="${topLeftCell}" activePane="bottomRight" state="frozen"/><selection pane="bottomRight"/>`;
+      // El panel activo depende de qué se inmoviliza: solo filas = bottomLeft, solo columnas = topRight.
+      const active = xSplit && ySplit ? "bottomRight" : ySplit ? "bottomLeft" : "topRight";
+      const pane = `<pane${xSplit ? ` xSplit="${xSplit}"` : ""}${ySplit ? ` ySplit="${ySplit}"` : ""} topLeftCell="${topLeftCell}" activePane="${active}" state="frozen"/><selection pane="${active}"/>`;
       const xml = new TextDecoder().decode(entry.content)
         .replace(/<sheetView workbookViewId="0"\/>/, `<sheetView workbookViewId="0">${pane}</sheetView>`);
       entry.content = new TextEncoder().encode(xml);
