@@ -83,41 +83,38 @@
     const merges = [];
     const put = (r, c, v, s, extra) => { ws[XLSX.utils.encode_cell({ r, c })] = Object.assign({ v, t: typeof v === "number" ? "n" : "s", s }, extra || {}); };
 
-    // Fila 0: título · Fila 1: datos/filtros
-    put(0, 0, model.title, style({ sz: 15, bold: true, color: "FFFFFF", fill: "1F3C74", noBorder: true, wrap: false }));
+    // Encabezado compacto (4 filas inmovilizadas): título · datos y leyenda corta · familia · cursos.
+    const legendLine = "Leyenda: ✓ verde = aprobado (los ✓ con certificado se abren con clic) · ✓* amarillo = certificado encontrado, aún no figura en la fuente · ✗ rojo = pendiente · detalle en la hoja «Leyenda» · tabla 1/0 en la hoja «Datos»";
+    put(0, 0, model.title, style({ sz: 14, bold: true, color: "FFFFFF", fill: "1F3C74", noBorder: true, wrap: false }));
     for (let c = 1; c <= lastCol; c++) put(0, c, "", style({ fill: "1F3C74", noBorder: true }));
     merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } });
-    put(1, 0, model.subtitle, style({ sz: 9.5, color: "43536B", fill: "EEF2F8", noBorder: true }));
+    put(1, 0, `${model.subtitle}
+${legendLine}`, style({ sz: 9, color: "43536B", fill: "EEF2F8", noBorder: true, v: "top" }));
     for (let c = 1; c <= lastCol; c++) put(1, c, "", style({ fill: "EEF2F8", noBorder: true }));
     merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: lastCol } });
 
-    // Fila 2: familia · Fila 3: nombre completo del curso (vertical) · Fila 4: encabezados
-    const legendText = "LEYENDA\n" + Object.values(STATES).map(st => `${st.symbol}  ${st.label}`).join("\n") +
-      "\n\nLa hoja «Datos» tiene la misma información en formato tabla (1 = aprobado, 0 = no).";
-    put(2, 0, "FAMILIA DEL CURSO  →", style({ bold: true, color: "43536B", fill: "F3F6FB", h: "right" }));
+    put(2, 0, "FAMILIA DEL CURSO  →", style({ sz: 9, bold: true, color: "43536B", fill: "F3F6FB", h: "right", wrap: false }));
     for (let c = 1; c < first; c++) put(2, c, "", style({ fill: "F3F6FB" }));
     merges.push({ s: { r: 2, c: 0 }, e: { r: 2, c: first - 1 } });
-    put(3, 0, legendText, style({ sz: 9.5, color: "1F2D3D", fill: "FFFFFF", v: "top" }));
-    for (let c = 1; c < first; c++) put(3, c, "", style({ fill: "FFFFFF" }));
-    merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: first - 1 } });
 
     let start = 0;
     courses.forEach((course, i) => {
       const col = first + i;
       const colors = FAMILY_COLORS[course.family] || FAMILY_COLORS.IRL;
-      put(2, col, course.familyLabel, style({ bold: true, color: "FFFFFF", fill: colors.strong, h: "center", wrap: false }));
-      put(3, col, course.title, style({ sz: 8.5, color: "1F2D3D", fill: colors.soft, h: "center", v: "bottom", rotate: 90 }));
-      put(4, col, course.code, style({ sz: 9, bold: true, color: "FFFFFF", fill: colors.strong, h: "center", rotate: 90 }));
+      // Sigla + nombre completo en una sola celda vertical (sin repetir la sigla si el nombre ya la trae).
+      const header = course.title.toUpperCase().startsWith(course.code.toUpperCase()) ? course.title : `${course.code} · ${course.title}`;
+      put(2, col, course.familyLabel, style({ sz: 9, bold: true, color: "FFFFFF", fill: colors.strong, h: "center", wrap: false }));
+      put(3, col, header, style({ sz: 8, bold: true, color: "1F2D3D", fill: colors.soft, h: "center", v: "bottom", rotate: 90 }));
       const next = courses[i + 1];
       if (!next || next.family !== course.family) {
         if (i > start) merges.push({ s: { r: 2, c: first + start }, e: { r: 2, c: col } });
         start = i + 1;
       }
     });
-    FIXED.forEach((label, c) => put(4, c, label, style({ bold: true, color: "FFFFFF", fill: "254985", h: c >= 4 ? "center" : "left" })));
+    FIXED.forEach((label, c) => put(3, c, label, style({ bold: true, color: "FFFFFF", fill: "254985", h: c >= 4 ? "center" : "left", v: "bottom" })));
 
     // Filas de trabajadores
-    const r0 = 5;
+    const r0 = 4;
     people.forEach((p, n) => {
       const r = r0 + n;
       const zebra = n % 2 ? "F7F9FC" : "FFFFFF";
@@ -140,10 +137,10 @@
     const lastRow = r0 + Math.max(people.length, 1) - 1;
     ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRow, c: lastCol } });
     ws["!merges"] = merges;
-    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 4, c: 0 }, e: { r: lastRow, c: lastCol } }) };
+    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 3, c: 0 }, e: { r: lastRow, c: lastCol } }) };
     ws["!cols"] = [{ wch: 6 }, { wch: 12 }, { wch: 34 }, { wch: 26 }, { wch: 17 }, { wch: 10 }, { wch: 8 }]
-      .concat(courses.map(() => ({ wch: 5.5 })));
-    ws["!rows"] = [{ hpt: 26 }, { hpt: 30 }, { hpt: 18 }, { hpt: 230 }, { hpt: 52 }];
+      .concat(courses.map(() => ({ wch: 6 })));
+    ws["!rows"] = [{ hpt: 22 }, { hpt: 28 }, { hpt: 16 }, { hpt: 165 }];
     return ws;
   }
 
@@ -206,7 +203,7 @@
     XLSX.utils.book_append_sheet(wb, buildLegendSheet(XLSX, model), "Leyenda");
     const raw = XLSX.write(wb, { type: "array", bookType: "xlsx", bookSST: true, compression: true });
     const out = addFrozenPanes(XLSX, raw, [
-      { sheet: 1, xSplit: 3, ySplit: 5, topLeftCell: "D6" },
+      { sheet: 1, xSplit: 3, ySplit: 4, topLeftCell: "D5" },
       { sheet: 2, xSplit: 3, ySplit: 1, topLeftCell: "D2" },
       { sheet: 3, ySplit: 1, topLeftCell: "A2" },
     ]);
