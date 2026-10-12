@@ -94,6 +94,12 @@
                 <span class="menu-card-desc">Cumplimiento de capacitaciones por documento, familia y persona de la dotación activa.</span>
                 <span class="menu-card-go">Entrar →</span>
               </button>
+              <button type="button" class="menu-card" data-goto="viewNami">
+                <span class="menu-card-ico" aria-hidden="true">🖊️</span>
+                <span class="menu-card-title">NAMI · Procesar documentos</span>
+                <span class="menu-card-desc">Registro de cuadrillas con hasta cuatro RF, escaneos y revisión de firmas por persona.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
             </div>
           </div>
         </div>
@@ -430,6 +436,10 @@
       <section class="view avance-resso-view" id="viewAvanceResso" hidden>
         <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
         <iframe id="avanceRessoFrame" class="avance-resso-frame" src="avance-resso/?v=10" title="Avance de cumplimiento RESSO"></iframe>
+      </section>
+      <section class="view avance-resso-view" id="viewNami" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+        <iframe class="avance-resso-frame" src="nami/?v=1" title="NAMI · Procesar documentos" loading="lazy"></iframe>
       </section>
     </main>
 

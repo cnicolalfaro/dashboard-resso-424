@@ -1,6 +1,17 @@
 [build]
   publish = "."
 
+[[redirects]]
+  from = "/nami_service/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[headers]]
+  for = "/nami/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
 [[headers]]
   for = "/*.html"
   [headers.values]
