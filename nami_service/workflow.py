@@ -27,6 +27,9 @@ from .word_register import RenderError, check_template
 KINDS = {"tarja": {".xlsb", ".xlsx", ".xlsm"}, "crews": {".xlsb", ".xlsx", ".xlsm"}, "matrix": {".xlsx", ".xlsm"}}
 MAX_SOURCE = 20 * 1024 * 1024
 MAX_TEMPLATE = 10 * 1024 * 1024
+# Planning workbooks keep thousands of formatted rows: 3 MB zipped can be ~180 MB once expanded.
+MAX_EXPANDED_WORKBOOK = 400 * 1024 * 1024
+MAX_EXPANDED_DOCUMENT = 100 * 1024 * 1024
 MAX_BATCH = 100
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sources (
@@ -55,12 +58,12 @@ class Missing(Exception):
     pass
 
 
-def check_workbook(path):
+def check_workbook(path, expanded=MAX_EXPANDED_WORKBOOK):
     if path.stat().st_size > 40 * 1024 * 1024:
         raise ValueError("El archivo excede el tamaño permitido")
     with zipfile.ZipFile(path) as archive:
         entries = archive.infolist()
-        if len(entries) > 5000 or sum(entry.file_size for entry in entries) > 100 * 1024 * 1024:
+        if len(entries) > 5000 or sum(entry.file_size for entry in entries) > expanded:
             raise ValueError("El archivo expandido excede el tamaño permitido")
 
 
@@ -198,7 +201,7 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
                        templates={"registro": stock.register() is not None})
 
     def validate_template(kind, path):
-        check_workbook(path)
+        check_workbook(path, MAX_EXPANDED_DOCUMENT)
         document = Document(str(path))
         if kind == "evaluation":
             if not has_placeholder(document):

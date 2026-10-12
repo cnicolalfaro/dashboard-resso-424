@@ -144,7 +144,9 @@ def fill_people(table, people, first_number):
                 role.runs[0].text = text
                 for extra in role.runs[1:]:
                     extra.text = ""
-        for position, key in ((2, "rut"), (3, "cargo"), (4, "especialidad")):
+        # The RUT cell stays blank: each worker writes it by hand when signing. The RUT is kept only in the manifest.
+        set_text(cells[2], "", size=8)
+        for position, key in ((3, "cargo"), (4, "especialidad")):
             set_text(cells[position], person.get(key, ""), size=8)
         set_text(cells[5], "")
 

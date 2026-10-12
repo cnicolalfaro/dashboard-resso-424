@@ -1,6 +1,8 @@
+import datetime
 import io
 import json
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -97,6 +99,59 @@ def build_matrix(book):
     legend.append(["RF-034", "Difusión, entrega y evaluación de RF-01 Energía Eléctrica vs 03", "RF", "034"])
     legend.append(["RF-020", "Difusión, entrega y evaluación de RF-02 Trabajo en altura vs 03", "RF", "020"])
     legend.append(["RF-033", "Difusión, entrega y evaluación de RF-03 Maniobras de Izajes vs 02", "RF", "033"])
+
+
+def build_planning_crews(book):
+    """Daily roster: each CAPATAZ row opens a crew; only 'Trabajando' people count; latest date wins."""
+    sheet = book.active
+    sheet.title = "Dia 11-10-26"
+    sheet.append(["ITEM", "FECHA", "ROL", "RUT", "NOMBRE", "A. PATERNO", "A. MATERNO", "ESPECIALIDAD",
+                  "CATEGORIA", "TURNO", "ESTADO PERSONAL"])
+    old, day = datetime.datetime(2026, 10, 10), datetime.datetime(2026, 10, 11)
+    rows = [(old, "foreman_day", "CAPATAZ", "Trabajando"), (old, "b1", "MAESTRO PRIMERA", "Trabajando"),
+            (day, "a3", "MAESTRO PRIMERA", "Trabajando"),
+            (day, "foreman_day", "CAPATAZ", "Trabajando"), (day, "a1", "MAESTRO PRIMERA", "Trabajando"),
+            (day, "a2", "MAESTRO PRIMERA", "Inducción"),
+            (day, "foreman_night", "CAPATAZ", "Trabajando"), (day, "b1", "MAESTRO PRIMERA", "Trabajando"),
+            (day, "b2", "MAESTRO PRIMERA", "Trabajando"),
+            (day, "foreman_day3", "CAPATAZ", "Trabajando"), (day, "c1", "MAESTRO PRIMERA", "Trabajando"),
+            (day, "ghost", "MAESTRO PRIMERA", "Trabajando")]
+    for item, (date, key, category, state) in enumerate(rows, 1):
+        if key == "ghost":
+            sheet.append([item, date, "", make_rut(19999999), "NO", "EXISTE", "", "MONTAJE", category, "10X10 B", state])
+            continue
+        first, paternal, maternal = PEOPLE[key][1:4]
+        sheet.append([item, date, "", RUTS[key], first, paternal, maternal, "MONTAJE", category, PEOPLE[key][4], state])
+    decoy = book.create_sheet("Cuadrillas")
+    decoy.append(["ITEM", "ROL", "RUT", "NOMBRE", "CATEGORIA", "ESTADO PERSONAL"])
+    decoy.append([1, "", RUTS["a1"], "DECOY", "CAPATAZ", "Trabajando"])
+
+
+def build_matrix_titled(book):
+    """Matrix whose headers carry the course name and whose approvals are check marks."""
+    sheet = book.active
+    sheet.title = "Matriz"
+    for _ in range(3):
+        sheet.append([])
+    titles = ["RF-01 Evaluación RF Energía Eléctrica vs 03", "RF-02 Evaluación RF Trabajo en altura vs 03",
+              "RF-03 Evaluación RF Maniobras de Izajes vs 02"]
+    sheet.append(["N°", "RUT", "Trabajador", "Cargo", "Estado", *titles])
+    marks = {"a1": ("✓", "✗", "✗"), "a2": ("✓*", "✓", "✗"), "a3": ("✓", "✓", "✓"),
+             "foreman_day": ("✗", "✗", "✗"), "b2": ("✓", "✓", "✗")}
+    for number, (key, values) in enumerate(marks.items(), 1):
+        sheet.append([number, RUTS[key], key, "MAESTRO", "Vigente", *values])
+    data = book.create_sheet("Datos")
+    data.append(["N", "RUT", "NOMBRE", "RF-01", "RF-02", "RF-03"])
+    data.append([1, RUTS["a1"], "decoy", 0, 0, 0])
+    courses = book.create_sheet("Cursos")
+    courses.append(["CODIGO", "FAMILIA", "CURSO", "FUENTES"])
+    for code, title in zip(("RF-01", "RF-02", "RF-03"), titles):
+        courses.append([code, "Riesgos de Fatalidad", title, "Forms"])
+    courses.append(["IRL-024", "Inducción", "IRL-024 Curso que no es RF", "Forms"])
+    legend = book.create_sheet("Leyenda")
+    legend.append(["Símbolo", "Significado"])
+    legend.append(["✓", "Aprobado"])
+    legend.append(["✓*", "Certificado encontrado, aún no figura aprobado"])
 
 
 def build_register_template(path):
@@ -247,6 +302,57 @@ class PlanillasTests(unittest.TestCase):
         self.assertFalse(any("crew_label" in p for p in people))
         with self.assertRaises(ValueError):
             compose_unit(sources, ["1", "2"], courses)
+
+    def test_daily_roster_opens_a_crew_at_each_capataz_and_keeps_only_working_people(self):
+        path = Path(self.directory.name) / "planificacion.xlsx"
+        path.write_bytes(workbook_bytes(build_planning_crews))
+        result = read_crews(path, self.people, self.known, self.shifts)
+        crews = {crew["id"]: crew for crew in result["crews"]}
+        self.assertEqual(list(crews), ["SIN-CUADRILLA", "1", "2", "3"])
+        self.assertEqual(crews["1"]["name"], "CUADRILLA 1 - CAPATAZ DIA UNO")
+        self.assertEqual(crews["1"]["foreman"], "CAPATAZ DIA UNO")
+        self.assertEqual({p["rut"] for p in crews["1"]["participants"]}, {RUTS["foreman_day"], RUTS["a1"]})
+        self.assertEqual([item["motivo"] for item in crews["1"]["excluded"]], ["No está trabajando (Inducción)"])
+        self.assertEqual({p["rut"] for p in crews["2"]["participants"]},
+                         {RUTS["foreman_night"], RUTS["b1"], RUTS["b2"]})
+        self.assertEqual((crews["1"]["shift"], crews["2"]["shift"]), ("DIA", "NOCHE"))
+        self.assertEqual([item["motivo"] for item in crews["3"]["excluded"]], ["No figura en la TARJA"])
+        self.assertEqual(crews["SIN-CUADRILLA"]["foreman"], "")
+        self.assertEqual([p["rut"] for p in crews["SIN-CUADRILLA"]["participants"]], [RUTS["a3"]])
+        warnings = result["warnings"]
+        self.assertEqual((warnings["hoja"], warnings["fecha_planificacion"]), ("Dia 11-10-26", "2026-10-11"))
+        self.assertEqual((warnings["sin_capataz"], warnings["no_trabajando"], warnings["excluidos"]), (1, 1, 1))
+        self.assertTrue(all(RUTS["b1"] != p["rut"] for p in crews["1"]["participants"]))
+
+    def test_matrix_with_course_names_in_headers_and_check_marks(self):
+        path = Path(self.directory.name) / "matriz-nueva.xlsx"
+        path.write_bytes(workbook_bytes(build_matrix_titled))
+        matrix = read_matrix(path)
+        self.assertEqual(matrix["modules"], ["RF-01", "RF-02", "RF-03"])
+        self.assertTrue(matrix["workers"][RUTS["a1"]]["RF-01"])
+        self.assertFalse(matrix["workers"][RUTS["a1"]]["RF-02"])
+        self.assertFalse(matrix["workers"][RUTS["a2"]]["RF-01"], "✓* is not an approval")
+        self.assertTrue(matrix["workers"][RUTS["a2"]]["RF-02"])
+        courses = matrix_courses(matrix["legend"])
+        self.assertEqual([(c["code"], c["id"]) for c in courses], [("RF-01", "RF-01"), ("RF-02", "RF-02"), ("RF-03", "RF-03")])
+        self.assertEqual(courses[0]["title"], "RF-01 Evaluación RF Energía Eléctrica vs 03")
+        self.assertNotIn("IRL-024", [c["id"] for c in courses])
+
+    def test_matrix_headers_alone_name_the_courses_without_a_courses_sheet(self):
+        def only_matrix(book):
+            build_matrix_titled(book)
+            del book["Cursos"]
+        path = Path(self.directory.name) / "matriz-sin-cursos.xlsx"
+        path.write_bytes(workbook_bytes(only_matrix))
+        courses = matrix_courses(read_matrix(path)["legend"])
+        self.assertEqual(courses[1]["title"], "RF-02 Evaluación RF Trabajo en altura vs 03")
+
+    def test_numeric_approvals_count_only_when_exactly_one(self):
+        from .planillas import is_approved
+        for value in ("Aprobado", "aprobado", "✓", 1, 1.0, True, "1"):
+            self.assertTrue(is_approved(value), value)
+        for value in ("✓*", "✗", "Pendiente", 0, 2, False, None, "", "0"):
+            self.assertFalse(is_approved(value), value)
 
     def test_invalid_workbooks_are_rejected_with_clear_messages(self):
         empty = Path(self.directory.name) / "empty.xlsx"
@@ -414,6 +520,20 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(response.json["summary"]["evaluation_sheets"], 4)
         self.assertEqual(response.json["summary"]["courses_without_evaluation"], [])
 
+    def test_plan_with_daily_roster_and_titled_matrix_through_the_page_api(self):
+        self.assertEqual(self.upload("tarja").status_code, 201)
+        crews = self.upload("crews", name="cuadrillas dia 11_10.xlsx", data=workbook_bytes(build_planning_crews))
+        self.assertEqual(crews.status_code, 201, crews.json)
+        self.assertEqual(self.upload("matrix", name="Matriz_RESSO.xlsx", data=workbook_bytes(build_matrix_titled)).status_code, 201)
+        plan = self.client.get("/api/nami/plan?courses=RF-01").json
+        self.assertEqual([(c["code"], c["title"]) for c in plan["courses"]][:2],
+                         [("RF-01", "RF-01 Evaluación RF Energía Eléctrica vs 03"),
+                          ("RF-02", "RF-02 Evaluación RF Trabajo en altura vs 03")])
+        by_id = {crew["id"]: crew for crew in plan["crews"]}
+        self.assertEqual(by_id["1"]["foreman"], "CAPATAZ DIA UNO")
+        self.assertEqual((by_id["1"]["pending"], by_id["2"]["pending"], by_id["3"]["pending"]), (1, 2, 2))
+        self.assertEqual(plan["warnings"]["fecha_planificacion"], "2026-10-11")
+
     def test_requires_authentication_and_csrf(self):
         anonymous = self.app.test_client()
         self.assertEqual(anonymous.get("/api/nami/plan").status_code, 401)
@@ -490,6 +610,26 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(status, 201, content[:200])
         self.assertEqual(json.loads(content)["source"]["size"], len(data))
 
+    def test_expanded_size_limits_differ_for_planning_workbooks_and_word_documents(self):
+        from .workflow import MAX_EXPANDED_DOCUMENT, MAX_EXPANDED_WORKBOOK, check_workbook
+        directory = Path(self.base.name)
+
+        def bomb(name, megabytes):
+            path = directory / name
+            with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+                with archive.open("xl/worksheets/sheet1.xml", "w", force_zip64=True) as stream:
+                    chunk = bytes(1024 * 1024)
+                    for _ in range(megabytes):
+                        stream.write(chunk)
+            return path
+
+        mid = bomb("mid.zip", 180)
+        check_workbook(mid)
+        with self.assertRaises(ValueError):
+            check_workbook(mid, MAX_EXPANDED_DOCUMENT)
+        with self.assertRaises(ValueError):
+            check_workbook(bomb("huge.zip", MAX_EXPANDED_WORKBOOK // (1024 * 1024) + 20))
+
     def test_uploaded_files_are_private_hashed_and_kept_in_history(self):
         self.upload_all()
         first = self.upload("matrix", data=None)
@@ -559,6 +699,10 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn("CAPATAZ: CAPATAZ DIA UNO", text)
             self.assertIn("12-10-2026", text)
             self.assertNotIn("CARLA", text)
+            digits = re.sub(r"\D", "", text)
+            for key in ("a1", "a2", "foreman_day"):
+                self.assertNotIn(RUTS[key], text, "the RUT must stay blank for the worker to write")
+                self.assertNotIn(RUTS[key].split("-")[0], digits)
         register.close()
         bundle = self.client.get(response.json["bundle_url"])
         self.assertIn("CUADRILLA 1 - CAPATAZ DIA UNO.pdf", bundle.headers["Content-Disposition"])

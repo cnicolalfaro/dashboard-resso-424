@@ -463,8 +463,14 @@
     planState.ready = true;
     renderPlanCourses(data.courses);
     const warnings = data.warnings || {};
-    [['capataz_no_hallado', 'cuadrilla(s) con capataz que no se encontró en la TARJA vigente: no se agrega solo'],
+    if (warnings.hoja) {
+      const when = warnings.fecha_planificacion ? ` con fecha ${warnings.fecha_planificacion}` : '';
+      $('planNotices').append(node('p', `Cuadrillas leídas de la hoja «${warnings.hoja}»${when}: cada fila CAPATAZ abre una cuadrilla y las filas siguientes son su equipo.`, 'notice'));
+    }
+    [['sin_capataz', 'cuadrilla(s) sin capataz (personal que aparece antes del primer capataz del archivo)'],
+      ['capataz_no_hallado', 'cuadrilla(s) con capataz que no se encontró en la TARJA vigente: no se agrega solo'],
       ['turno_mixto', 'cuadrilla(s) con integrantes de otro turno que su capataz (manda el turno del capataz)'],
+      ['no_trabajando', 'persona(s) que no figuran como «Trabajando» ese día (por ejemplo en inducción): se omiten'],
       ['excluidos', 'persona(s) de las cuadrillas sin vigencia en la TARJA: se omiten']].forEach(([key, text]) => {
       if (warnings[key]) $('planNotices').append(node('p', `${warnings[key]} ${text}.`, 'notice'));
     });
