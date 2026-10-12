@@ -140,7 +140,7 @@ ${legendLine}`, style({ sz: 9, color: "43536B", fill: "EEF2F8", noBorder: true, 
     ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 3, c: 0 }, e: { r: lastRow, c: lastCol } }) };
     ws["!cols"] = [{ wch: 6 }, { wch: 12 }, { wch: 34 }, { wch: 26 }, { wch: 17 }, { wch: 10 }, { wch: 8 }]
       .concat(courses.map(() => ({ wch: 6 })));
-    ws["!rows"] = [{ hpt: 22 }, { hpt: 28 }, { hpt: 16 }, { hpt: 165 }];
+    ws["!rows"] = [{ hpt: 22 }, { hpt: 28 }, { hpt: 16 }, { hpt: 87 }];
     return ws;
   }
 
