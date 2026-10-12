@@ -83,19 +83,23 @@
     const merges = [];
     const put = (r, c, v, s, extra) => { ws[XLSX.utils.encode_cell({ r, c })] = Object.assign({ v, t: typeof v === "number" ? "n" : "s", s }, extra || {}); };
 
-    // Encabezado compacto (4 filas inmovilizadas): título · datos y leyenda corta · familia · cursos.
-    const legendLine = "Leyenda: ✓ verde = aprobado (los ✓ con certificado se abren con clic) · ✓* amarillo = certificado encontrado, aún no figura en la fuente · ✗ rojo = pendiente · detalle en la hoja «Leyenda» · tabla 1/0 en la hoja «Datos»";
-    put(0, 0, model.title, style({ sz: 14, bold: true, color: "FFFFFF", fill: "1F3C74", noBorder: true, wrap: false }));
-    for (let c = 1; c <= lastCol; c++) put(0, c, "", style({ fill: "1F3C74", noBorder: true }));
-    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } });
-    put(1, 0, `${model.subtitle}
-${legendLine}`, style({ sz: 9, color: "43536B", fill: "EEF2F8", noBorder: true, v: "top" }));
-    for (let c = 1; c <= lastCol; c++) put(1, c, "", style({ fill: "EEF2F8", noBorder: true }));
-    merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: lastCol } });
-
-    put(2, 0, "FAMILIA DEL CURSO  →", style({ sz: 9, bold: true, color: "43536B", fill: "F3F6FB", h: "right", wrap: false }));
-    for (let c = 1; c < first; c++) put(2, c, "", style({ fill: "F3F6FB" }));
-    merges.push({ s: { r: 2, c: 0 }, e: { r: 2, c: first - 1 } });
+    // Encabezado compacto (4 filas inmovilizadas). Ninguna celda combinada cruza la columna
+    // inmovilizada (C|D): si la cruza, Excel corta el texto al desplazarse a la derecha.
+    const FROZEN_COLS = 3; // N°, RUT, Trabajador
+    const band = (r, c0, c1, v, st) => {
+      put(r, c0, v, st);
+      for (let c = c0 + 1; c <= c1; c++) put(r, c, "", st);
+      if (c1 > c0) merges.push({ s: { r, c: c0 }, e: { r, c: c1 } });
+    };
+    // Izquierda (siempre visible): título y leyenda corta.
+    band(0, 0, FROZEN_COLS - 1, "Matriz RESSO · SKIC 424", style({ sz: 13, bold: true, color: "FFFFFF", fill: "1F3C74", noBorder: true, wrap: false }));
+    band(1, 0, FROZEN_COLS - 1, "✓ aprobado  ·  ✓* certificado sin registro  ·  ✗ pendiente", style({ sz: 9.5, bold: true, color: "1F2D3D", fill: "EEF2F8", noBorder: true, wrap: false }));
+    band(2, 0, FROZEN_COLS - 1, "FAMILIA DEL CURSO  →", style({ sz: 9, bold: true, color: "43536B", fill: "F3F6FB", h: "right", wrap: false }));
+    // Derecha (se desplaza con los cursos): datos del archivo y detalle de la leyenda.
+    band(0, FROZEN_COLS, lastCol, model.subtitle, style({ sz: 9.5, color: "FFFFFF", fill: "1F3C74", noBorder: true, wrap: false }));
+    band(1, FROZEN_COLS, lastCol, "Verde: aprobado (los ✓ con certificado NAMI o QR se abren con clic) · Amarillo ✓*: hay certificado pero aún no figura en la fuente (no cuenta) · Rojo ✗: pendiente · Detalle en la hoja «Leyenda» · Tabla 1/0 en la hoja «Datos»",
+      style({ sz: 9, color: "43536B", fill: "EEF2F8", noBorder: true, wrap: false }));
+    band(2, FROZEN_COLS, first - 1, "", style({ fill: "F3F6FB" }));
 
     let start = 0;
     courses.forEach((course, i) => {
@@ -121,12 +125,13 @@ ${legendLine}`, style({ sz: 9, color: "43536B", fill: "EEF2F8", noBorder: true, 
       const textColor = p.vigente ? "1F2D3D" : "7A8699";
       put(r, 0, n + 1, style({ color: textColor, fill: zebra, h: "center" }));
       put(r, 1, p.rut, style({ color: textColor, fill: zebra, wrap: false }));
-      put(r, 2, p.nombre, style({ bold: p.vigente, italic: !p.vigente, color: textColor, fill: zebra }));
-      put(r, 3, p.cargo, style({ color: textColor, fill: zebra }));
-      put(r, 4, p.estadoTexto, style({ sz: 9, bold: !p.vigente, color: p.vigente ? "1E6B1E" : "9C1C1C", fill: p.vigente ? "E8F5E8" : "F1F1F1", h: "center" }));
+      // Nombre, cargo y estado en una sola línea: con ajuste de texto Excel no agranda la fila y se montan.
+      put(r, 2, p.nombre, style({ bold: p.vigente, italic: !p.vigente, color: textColor, fill: zebra, wrap: false }));
+      put(r, 3, p.cargo, style({ color: textColor, fill: zebra, wrap: false }));
+      put(r, 4, p.estadoTexto, style({ sz: 9, bold: !p.vigente, color: p.vigente ? "1E6B1E" : "9C1C1C", fill: p.vigente ? "E8F5E8" : "F1F1F1", h: "center", wrap: false }));
       put(r, 5, `${p.aprobados} de ${courses.length}`, style({ color: textColor, fill: zebra, h: "center", wrap: false }));
       const pc = pctFill(p.avance);
-      put(r, 6, p.avance, style({ bold: true, color: pc.color, fill: pc.fill, h: "center" }), { z: "0%" });
+      put(r, 6, p.avance, style({ bold: true, color: pc.color, fill: pc.fill, h: "center", wrap: false }), { z: "0%" });
       p.cells.forEach((cell, i) => {
         const st = STATES[cell.state];
         const extra = cell.url ? { l: { Target: cell.url, Tooltip: `${courses[i].code}: abrir certificado` } } : undefined;
@@ -138,9 +143,11 @@ ${legendLine}`, style({ sz: 9, color: "43536B", fill: "EEF2F8", noBorder: true, 
     ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRow, c: lastCol } });
     ws["!merges"] = merges;
     ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 3, c: 0 }, e: { r: lastRow, c: lastCol } }) };
-    ws["!cols"] = [{ wch: 6 }, { wch: 12 }, { wch: 34 }, { wch: 26 }, { wch: 17 }, { wch: 10 }, { wch: 8 }]
+    // Anchos según el texto más largo (con tope), para que nombres y cargos quepan en una línea.
+    const widest = (key, min, max) => Math.min(max, Math.max(min, ...people.map(p => String(p[key] || "").length * 1.1 + 2)));
+    ws["!cols"] = [{ wch: 6 }, { wch: 12 }, { wch: widest("nombre", 34, 48) }, { wch: widest("cargo", 22, 40) }, { wch: 22 }, { wch: 11 }, { wch: 9 }]
       .concat(courses.map(() => ({ wch: 6 })));
-    ws["!rows"] = [{ hpt: 22 }, { hpt: 28 }, { hpt: 16 }, { hpt: 87 }];
+    ws["!rows"] = [{ hpt: 24 }, { hpt: 18 }, { hpt: 16 }, { hpt: 87 }].concat(people.map(() => ({ hpt: 17 })));
     return ws;
   }
 
