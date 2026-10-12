@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>NAMI · Difusión RF</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <div class="heading"><span class="eyebrow">RESSO · Registro de difusión</span><button id="logout" type="button" hidden>Cerrar sesión</button></div>
+      <h1>NAMI <span>Difusión de riesgos fatales</span></h1>
+      <p>Una cuadrilla, de 1 a 4 cursos RF y una firma por participante.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <div id="unavailable" class="notice danger" role="alert" hidden>Servicio NAMI no disponible. El alojamiento estático requiere un servicio privado desplegado en el mismo origen, bajo /api/nami. No se ha simulado ningún resultado.</div>
+    <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true">Comprobando sesión…</p>
+    <section id="loginPanel" class="card" aria-labelledby="loginTitle" hidden>
+      <h2 id="loginTitle">Acceso privado a NAMI</h2>
+      <p>Este acceso es independiente de la contraseña del dashboard.</p>
+      <form id="loginForm">
+        <div class="fields">
+          <label>Usuario<input id="username" name="username" autocomplete="username" required maxlength="200"></label>
+          <label>Contraseña<input id="password" name="password" type="password" autocomplete="current-password" required></label>
+        </div>
+        <div class="actions"><button class="primary" type="submit">Ingresar</button><button id="retrySession" type="button">Comprobar servicio</button></div>
+      </form>
+    </section>
+    <div id="workspace" hidden>
+      <div class="notice">Este módulo registra <strong>difusión y evidencia de firma</strong>. No modifica la matriz de aprobación ni acredita evaluaciones aprobadas.</div>
+      <nav aria-label="Pasos del registro"><ol class="steps"><li><a href="#planillas">1 · Preparar</a></li><li><a href="#upload">2 · Subir escaneo</a></li><li><a href="#review">3 · Revisar filas</a></li><li><a href="#confirm">4 · Confirmar</a></li></ol></nav>
+      <section id="planillas" class="card" aria-labelledby="planillasTitle">
+        <h2 id="planillasTitle"><span class="step">1</span> Preparar desde planillas</h2>
+        <p>Sube la TARJA, las cuadrillas y la matriz de capacitación. Quedan guardadas en el servidor privado con su historial; nunca se publican. NAMI cruza la matriz <strong>tal como la subas</strong> y no la modifica.</p>
+        <div id="templatesWarning" class="notice danger" role="alert" hidden>Falta la plantilla privada <strong>registro.docx</strong> en la carpeta <code>templates</code> del directorio de datos de NAMI. Sin ella no se pueden generar registros.</div>
+        <h3>A · Planillas</h3>
+        <div class="sources">
+          <form class="source" data-kind="tarja"><label>TARJA (.xlsb, .xlsx)<input type="file" accept=".xlsb,.xlsx,.xlsm" required></label><button type="submit">Subir TARJA</button><p class="hint" data-status>Sin archivo activo.</p></form>
+          <form class="source" data-kind="crews"><label>Cuadrillas (.xlsx)<input type="file" accept=".xlsb,.xlsx,.xlsm" required></label><button type="submit">Subir cuadrillas</button><p class="hint" data-status>Sin archivo activo.</p></form>
+          <form class="source" data-kind="matrix"><label>Matriz de capacitación (.xlsx)<input type="file" accept=".xlsx,.xlsm" required></label><button type="submit">Subir matriz</button><p class="hint" data-status>Sin archivo activo.</p></form>
+        </div>
+        <p class="hint">Se usa siempre la última planilla subida de cada tipo. Sube primero la TARJA: las cuadrillas se validan contra ella.</p>
+        <div id="planNotices" aria-live="polite"></div>
+        <h3>B · Fecha, cursos y cuadrillas</h3>
+        <form id="planForm">
+          <div class="fields">
+            <label>Fecha de difusión<input id="plDate" type="date" required></label>
+            <label>Objetivo (opcional)<input id="plObjectives" maxlength="500" placeholder="Si lo dejas vacío se usa el texto estándar de difusión RF"></label>
+          </div>
+          <fieldset><legend>Cursos · selecciona entre 1 y 4</legend><div id="plCourses" class="course-grid"><p class="hint">Sube las planillas para ver los cursos de la matriz.</p></div><p id="plCourseCount" class="hint" aria-live="polite">0 de 4 seleccionados</p></fieldset>
+          <label class="check"><input id="plGroup" type="checkbox"><span><strong>Agrupar cuadrillas chicas</strong>: junta cuadrillas del mismo turno con hasta 4 personas pendientes en una sola hoja (hasta 15 personas). Las personas quedan ordenadas por cuadrilla y cada evaluación lleva a su capataz.</span></label>
+          <fieldset><legend>Cuadrillas por turno</legend><div id="plCrews"><p class="hint">Sube las planillas para ver las cuadrillas.</p></div><p id="plCrewCount" class="hint" aria-live="polite">0 cuadrillas seleccionadas</p></fieldset>
+          <div id="plGroups" class="preview" aria-live="polite"></div>
+          <button id="plGenerate" class="primary" type="submit" disabled>Generar registros y evaluaciones</button>
+        </form>
+        <h3>C · Descargas</h3>
+        <p id="plProgress" class="hint" role="status" aria-live="polite"></p>
+        <div id="plResult" class="preview" hidden></div>
+      </section>
+      <details class="legacy"><summary>Método anterior: catálogo privado (una cuadrilla por registro)</summary>
+      <section id="prepare" class="card" aria-labelledby="prepareTitle">
+        <h2 id="prepareTitle">Preparar registro desde catálogo</h2>
+        <form id="recordForm">
+          <div class="fields">
+            <label>Cuadrilla<select id="crew" required><option value="">Seleccionar cuadrilla</option></select></label>
+            <label>Fecha de difusión<input id="date" type="date" required></label>
+          </div>
+          <div id="crewPreview" class="preview" aria-live="polite"></div>
+          <fieldset><legend>Cursos RF · selecciona entre 1 y 4</legend><div id="courses" class="course-grid"></div><p id="courseCount" class="hint" aria-live="polite">0 de 4 seleccionados</p></fieldset>
+          <label class="check acceptance"><input id="formatAccepted" type="checkbox" required><span>Entiendo que el PDF generado es un diseño de difusión que requiere validación contra <strong>SGR-R-006.DCH</strong>; no se afirma que sea la plantilla oficial exacta.</span></label>
+          <button id="generate" class="primary" type="submit" disabled>Generar PDF de difusión</button>
+        </form>
+        <div id="recordOutput" class="preview" hidden></div>
+      </section>
+      </details>
+      <section id="upload" class="card" aria-labelledby="uploadTitle">
+        <h2 id="uploadTitle"><span class="step">2</span> Subir PDF escaneado</h2>
+        <p>Imprime el registro, recoge las firmas y escanea todas las páginas en un único PDF.</p>
+        <div class="notice red-mark"><strong>Marca roja RUT → FIRMA:</strong> conserva esta referencia visible y escanea en color, sin cortar los bordes. Revisa cada recorte: una sugerencia automática no es una decisión.</div>
+        <form id="scanForm">
+          <label>Archivo PDF (registro generado por NAMI)<input id="scanFile" type="file" accept=".pdf,application/pdf" required></label>
+          <p class="hint">También puedes subir un registro NAMI generado anteriormente. Las páginas sin identificación impiden confirmar.</p>
+          <button id="scanSubmit" class="primary" type="submit" disabled>Procesar escaneo</button>
+        </form>
+      </section>
+      <section id="review" class="card" aria-labelledby="reviewTitle">
+        <h2 id="reviewTitle"><span class="step">3</span> Revisar recortes y decidir</h2>
+        <p id="scanSummary">Sube un escaneo para revisar sus filas.</p>
+        <div id="reviewRows"></div>
+      </section>
+      <section id="confirm" class="card" aria-labelledby="confirmTitle">
+        <h2 id="confirmTitle"><span class="step">4</span> Confirmar difusión</h2>
+        <p>Selecciona manualmente «Firmó» o «No firmó» en <strong>cada fila</strong>. La decisión se aplicará a los cursos del registro identificado.</p>
+        <p id="decisionCount" class="hint" aria-live="polite">No hay filas para confirmar.</p>
+        <button id="confirmSubmit" class="primary" type="button" disabled>Guardar decisiones de difusión</button>
+        <div id="confirmation" class="notice" role="status" hidden></div>
+      </section>
+      <section class="card" aria-labelledby="historyTitle">
+        <div class="heading"><h2 id="historyTitle">Historial por persona y curso</h2><span class="actions"><a id="exportExcel" class="download" href="/api/nami/results/export.xlsx" hidden>Exportar Excel de difusión</a><button id="refreshHistory" type="button">Actualizar historial</button></span></div>
+        <p class="hint">Estados de firma de difusión, no resultados de evaluación. El Excel no modifica la matriz ni Avance RESSO.</p>
+        <div id="history" class="table-scroll"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

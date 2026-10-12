@@ -43,3 +43,10 @@ TARJA *.xlsb
 
 # Cache de Python
 __pycache__/
+
+# Servicio NAMI: secretos y almacenamiento privado fuera del sitio publicado
+.venv/
+.env
+nami_service/.env*
+nami_service/*.sqlite*
+nami_service/private/
