@@ -89,8 +89,9 @@ def register(image, page, qr_corners):
         targets.append(target_marker)
     if len({tuple(point) for point in sources}) != 4:
         return None
+    width, height = page.get("size") or (WIDTH, HEIGHT)
     final = cv2.getPerspectiveTransform(np.asarray(sources, np.float32), np.asarray(targets, np.float32))
-    corners = np.array([[[0, 0], [WIDTH * SCALE, 0], [WIDTH * SCALE, HEIGHT * SCALE], [0, HEIGHT * SCALE]]],
+    corners = np.array([[[0, 0], [width * SCALE, 0], [width * SCALE, height * SCALE], [0, height * SCALE]]],
                        np.float32)
     inverse = cv2.perspectiveTransform(corners, np.linalg.inv(final))[0]
     ih, iw = image.shape[:2]
@@ -100,7 +101,7 @@ def register(image, page, qr_corners):
     qr_registered = cv2.perspectiveTransform(source[None], final)[0]
     if np.max(np.linalg.norm(qr_registered - target, axis=1)) > 8 * SCALE:
         return None
-    return cv2.warpPerspective(image, final, (round(WIDTH * SCALE), round(HEIGHT * SCALE)),
+    return cv2.warpPerspective(image, final, (round(width * SCALE), round(height * SCALE)),
                                borderValue=(255, 255, 255))
 
 

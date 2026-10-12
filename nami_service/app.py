@@ -18,6 +18,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash
 
 from .catalog import load_catalog
+from . import workflow
 from .documents import make_document
 from .scanning import process_scan
 from .storage import connect, initialize, load_manifests, private_root, transaction, write_private
@@ -77,8 +78,9 @@ def create_app(config=None):
     app = Flask(__name__, static_folder=None)
     app.request_class = PrivateRequest
     app.config.update(
+        # Must exceed Werkzeug's 64 KiB multipart read chunk, otherwise any upload of that size fails with 413.
         SECRET_KEY=secret, MAX_CONTENT_LENGTH=MAX_UPLOAD,
-        MAX_FORM_MEMORY_SIZE=64 * 1024, MAX_FORM_PARTS=4,
+        MAX_FORM_MEMORY_SIZE=512 * 1024, MAX_FORM_PARTS=4,
         SESSION_COOKIE_NAME="__Host-nami", SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SECURE=True, SESSION_COOKIE_SAMESITE="Strict",
         SESSION_COOKIE_PATH="/", PERMANENT_SESSION_LIFETIME=datetime.timedelta(hours=8),
@@ -384,4 +386,6 @@ def create_app(config=None):
         finally:
             db.close()
 
+    app.extensions["nami_workspace"] = workflow.register(
+        app, root, secret, protected, username, PREFIX, options.get("NAMI_TARJA_SHEET", "TARJA"))
     return app

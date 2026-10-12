@@ -54,6 +54,7 @@
     scan = null;
     confirmed = false;
     decisions.clear();
+    resetPlanning();
     ['crewPreview', 'courses', 'recordOutput', 'reviewRows', 'history', 'confirmation'].forEach((id) => $(id).replaceChildren());
     $('recordOutput').hidden = true;
     $('confirmation').hidden = true;
@@ -148,6 +149,7 @@
       selected.length < 1 || selected.length > 4 || !$('formatAccepted').checked;
     $('scanSubmit').disabled = busy || !authenticated || !$('scanFile').files.length;
     $('confirmSubmit').disabled = busy || !authenticated || !canConfirm();
+    updatePlanningControls();
     $('reviewRows').querySelectorAll('input').forEach((input) => { input.disabled = busy || confirmed; });
     $('decisionCount').textContent = scan ?
       `${decisions.size} de ${rows().length} filas con decisión explícita.${canConfirm() ? ' Listo para confirmar.' : ''}` :
@@ -161,7 +163,7 @@
     updateControls();
     try { await action(); } catch (error) {
       if ($('workspace').hidden) $('loginPanel').hidden = false;
-      if (!scan) $('scanSummary').textContent = 'No hay un escaneo procesado. Selecciona un PDF y vuelve a intentarlo.';
+      if (!scan && /Procesando/.test($('scanSummary').textContent)) $('scanSummary').textContent = 'No hay un escaneo procesado. Selecciona un PDF y vuelve a intentarlo.';
       message(error.message || 'No fue posible completar la operación.', true);
     }
     finally {
@@ -295,6 +297,319 @@
     renderHistory(data.results);
   }
 
+  // ---- Planillas, cuadrillas y descargas -------------------------------------------------
+  const planState = { data: null, ready: false, templates: true, picked: new Set(), timer: 0, refresh: 0, batchRunning: false };
+  const kindNames = { tarja: 'TARJA', crews: 'Cuadrillas', matrix: 'Matriz de capacitación' };
+
+  function todayISO() {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }
+
+  function planCourses() {
+    return [...$('plCourses').querySelectorAll('input[type=checkbox]:checked')].map((input) => input.value);
+  }
+
+  function resetPlanning() {
+    window.clearInterval(planState.timer);
+    window.clearTimeout(planState.refresh);
+    Object.assign(planState, { data: null, ready: false, templates: true, timer: 0, refresh: 0, batchRunning: false });
+    planState.picked.clear();
+    $('plCourses').dataset.signature = '';
+    $('plCourses').replaceChildren(node('p', 'Sube las planillas para ver los cursos de la matriz.', 'hint'));
+    $('plCrews').replaceChildren(node('p', 'Sube las planillas para ver las cuadrillas.', 'hint'));
+    ['plGroups', 'plResult', 'planNotices'].forEach((id) => $(id).replaceChildren());
+    $('plResult').hidden = true;
+    $('plProgress').textContent = '';
+    $('templatesWarning').hidden = true;
+    document.querySelectorAll('.source').forEach((form) => {
+      form.reset();
+      form.querySelector('[data-status]').textContent = 'Sin archivo activo.';
+    });
+    $('planForm').reset();
+    $('exportExcel').hidden = true;
+  }
+
+  function renderSources(data) {
+    document.querySelectorAll('.source').forEach((form) => {
+      const active = data.active[form.dataset.kind];
+      form.querySelector('[data-status]').textContent = active ?
+        `Activa: ${active.filename} · subida ${active.uploaded_at} UTC · huella ${active.sha256}` : 'Sin archivo activo.';
+    });
+    planState.templates = Boolean(data.templates && data.templates.registro);
+    $('templatesWarning').hidden = planState.templates;
+  }
+
+  async function loadSources() {
+    const data = await api('/sources');
+    if (!data || typeof data.active !== 'object' || data.active === null) throw new Error('La lista de planillas recibida no es válida.');
+    renderSources(data);
+  }
+
+  function planQuery() {
+    const params = new URLSearchParams();
+    const codes = planCourses();
+    if (codes.length) params.set('courses', codes.join(','));
+    if (codes.length && $('plGroup').checked && planState.picked.size) {
+      params.set('group', '1');
+      params.set('crews', [...planState.picked].join(','));
+    }
+    const query = params.toString();
+    return `/plan${query ? `?${query}` : ''}`;
+  }
+
+  function renderPlanCourses(courses) {
+    const box = $('plCourses');
+    const signature = courses.map((course) => `${course.code}:${course.evaluation ? 1 : 0}`).join('|');
+    if (box.dataset.signature === signature) return;
+    const previous = new Set(planCourses());
+    box.dataset.signature = signature;
+    box.replaceChildren();
+    courses.forEach((course, index) => {
+      const wrapper = node('div', undefined, 'course-box');
+      const label = node('label', undefined, 'check course');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = String(course.code);
+      input.id = `plcourse-${index}`;
+      input.checked = previous.has(input.value);
+      label.append(input, node('span', `${course.code} · ${course.title}`));
+      const evaluation = node('div', undefined, 'evaluation');
+      evaluation.hidden = !input.checked;
+      evaluation.append(node('p', course.evaluation ?
+        'Evaluación Word cargada. Puedes reemplazarla (se guarda la versión anterior).' :
+        'Falta la evaluación Word de este curso: sin ella se genera solo el registro.',
+      course.evaluation ? 'hint ok' : 'hint warn'));
+      const picker = node('label', course.evaluation ? 'Reemplazar evaluación (.docx)' : 'Cargar evaluación (.docx)', 'file-picker');
+      const file = document.createElement('input');
+      file.type = 'file';
+      file.accept = '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      file.dataset.course = String(course.code);
+      file.addEventListener('change', () => uploadEvaluation(course.code, file));
+      picker.append(file);
+      evaluation.append(picker);
+      input.addEventListener('change', () => { evaluation.hidden = !input.checked; });
+      wrapper.append(label, evaluation);
+      box.append(wrapper);
+    });
+  }
+
+  function uploadEvaluation(code, file) {
+    const chosen = file.files[0];
+    if (!chosen || !authenticated) return;
+    if (!/\.docx$/i.test(chosen.name)) {
+      file.value = '';
+      message('Selecciona un archivo Word (.docx).', true);
+      return;
+    }
+    run(async () => {
+      message(`Subiendo y validando la evaluación de ${code}…`);
+      const body = new FormData();
+      body.append('kind', 'evaluation');
+      body.append('course', code);
+      body.append('file', chosen);
+      const data = await api('/templates', { method: 'POST', body });
+      message(`Evaluación de ${data.course} ${data.replaced ? 'reemplazada; la versión anterior quedó guardada' : 'cargada'}.`);
+      await loadPlan();
+    });
+  }
+
+  function renderGroupPreview(data) {
+    const box = $('plGroups');
+    box.replaceChildren();
+    if (!$('plGroup').checked || !Array.isArray(data.groups) || !planState.picked.size) return;
+    const merged = data.groups.filter((group) => Array.isArray(group) && group.length > 1);
+    box.append(node('p', merged.length ? `Se agruparán ${merged.length} hoja(s):` :
+      'Ninguna cuadrilla elegida se puede agrupar: se necesitan 2 o más del mismo turno con hasta 4 pendientes cada una.'));
+    if (merged.length) {
+      const list = node('ul');
+      merged.forEach((group) => list.append(node('li', `Cuadrillas ${group.join(' + ')}`)));
+      box.append(list);
+    }
+  }
+
+  function syncPickedBoxes() {
+    $('plCrews').querySelectorAll('input[type=checkbox]').forEach((input) => { input.checked = planState.picked.has(input.value); });
+  }
+
+  function schedulePlanRefresh() {
+    updateControls();
+    window.clearTimeout(planState.refresh);
+    if (!$('plGroup').checked || !planState.data) return;
+    planState.refresh = window.setTimeout(async () => {
+      try {
+        const data = await api(planQuery());
+        if (planState.data && Array.isArray(data.groups)) {
+          planState.data.groups = data.groups;
+          renderGroupPreview(planState.data);
+        }
+      } catch (error) { message(error.message || 'No se pudo actualizar la vista previa de agrupación.', true); }
+    }, 350);
+  }
+
+  function renderPlan() {
+    const data = planState.data;
+    $('plCrews').replaceChildren();
+    $('plGroups').replaceChildren();
+    $('planNotices').replaceChildren();
+    if (!data) {
+      planState.ready = false;
+      $('plCourses').dataset.signature = '';
+      $('plCourses').replaceChildren(node('p', 'Sube las tres planillas para ver los cursos de la matriz.', 'hint'));
+      $('plCrews').append(node('p', 'Sube las tres planillas para ver las cuadrillas.', 'hint'));
+      updateControls();
+      return;
+    }
+    planState.ready = true;
+    renderPlanCourses(data.courses);
+    const warnings = data.warnings || {};
+    [['capataz_no_hallado', 'cuadrilla(s) con capataz que no se encontró en la TARJA vigente: no se agrega solo'],
+      ['turno_mixto', 'cuadrilla(s) con integrantes de otro turno que su capataz (manda el turno del capataz)'],
+      ['excluidos', 'persona(s) de las cuadrillas sin vigencia en la TARJA: se omiten']].forEach(([key, text]) => {
+      if (warnings[key]) $('planNotices').append(node('p', `${warnings[key]} ${text}.`, 'notice'));
+    });
+    const valid = new Set(data.crews.map((crew) => String(crew.id)));
+    [...planState.picked].forEach((id) => { if (!valid.has(id)) planState.picked.delete(id); });
+    ['Turno Día', 'Turno Noche', 'Sin turno'].forEach((shift) => {
+      const crews = data.crews.filter((crew) => crew.shift === shift);
+      if (!crews.length) return;
+      const section = node('div', undefined, 'shift');
+      const head = node('div', undefined, 'heading');
+      head.append(node('h4', `${shift} · ${crews.length} cuadrillas`));
+      const toggle = node('button', 'Marcar o desmarcar las que tienen pendientes');
+      toggle.type = 'button';
+      toggle.addEventListener('click', () => {
+        const usable = crews.filter((crew) => crew.pending !== 0).map((crew) => String(crew.id));
+        const all = usable.every((id) => planState.picked.has(id));
+        usable.forEach((id) => (all ? planState.picked.delete(id) : planState.picked.add(id)));
+        syncPickedBoxes();
+        schedulePlanRefresh();
+      });
+      head.append(toggle);
+      section.append(head);
+      const list = node('div', undefined, 'crew-list');
+      crews.forEach((crew) => {
+        const id = String(crew.id);
+        const label = node('label', undefined, 'check crew');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = id;
+        input.checked = planState.picked.has(id);
+        input.dataset.empty = crew.pending === 0 ? '1' : '0';
+        input.addEventListener('change', () => {
+          if (input.checked) planState.picked.add(id); else planState.picked.delete(id);
+          schedulePlanRefresh();
+        });
+        const detail = [crew.pending === null ? `${crew.members} integrantes` : `${crew.pending} pendientes de ${crew.members}`];
+        if (!crew.foreman_found) detail.push('capataz no hallado en TARJA');
+        if (crew.shift_mixed) detail.push('turno mixto');
+        const text = node('span', crew.name);
+        text.append(node('small', detail.join(' · ')));
+        label.append(input, text);
+        list.append(label);
+      });
+      section.append(list);
+      $('plCrews').append(section);
+    });
+    renderGroupPreview(data);
+    updateControls();
+  }
+
+  async function loadPlan() {
+    let data;
+    try {
+      data = await api(planQuery());
+    } catch (error) {
+      if (!/Faltan planillas/.test(error.message || '')) throw error;
+      planState.data = null;
+      renderPlan();
+      return;
+    }
+    if (!Array.isArray(data.crews) || !Array.isArray(data.courses)) throw new Error('El plan recibido no es válido.');
+    planState.data = data;
+    renderPlan();
+  }
+
+  async function refreshPlanning() {
+    if (!$('plDate').value) $('plDate').value = todayISO();
+    await loadSources();
+    await loadPlan();
+  }
+
+  function updatePlanningControls() {
+    const codes = planCourses();
+    const locked = busy || planState.batchRunning;
+    $('plCourses').querySelectorAll('input[type=checkbox]').forEach((input) => { input.disabled = locked || (codes.length >= 4 && !input.checked); });
+    $('plCourses').querySelectorAll('input[type=file]').forEach((input) => { input.disabled = locked; });
+    $('plCrews').querySelectorAll('input, button').forEach((element) => { element.disabled = locked || element.dataset.empty === '1'; });
+    $('plGroup').disabled = locked;
+    $('plCourseCount').textContent = `${codes.length} de 4 seleccionados`;
+    $('plCrewCount').textContent = `${planState.picked.size} cuadrilla(s) seleccionada(s)`;
+    document.querySelectorAll('.source').forEach((form) => {
+      form.querySelector('button').disabled = locked || !form.querySelector('input').files.length;
+    });
+    $('plGenerate').disabled = locked || !authenticated || !planState.ready || !planState.templates ||
+      !$('plDate').value || codes.length < 1 || codes.length > 4 || planState.picked.size < 1;
+  }
+
+  async function finishBatch(status) {
+    let records = [];
+    if (status.records.length) {
+      const data = await api('/records');
+      const wanted = new Set(status.records);
+      records = (Array.isArray(data.records) ? data.records : []).filter((item) => wanted.has(item.id));
+    }
+    const box = $('plResult');
+    box.replaceChildren();
+    const problems = status.errors.length ? ` · ${status.errors.length} con problemas` : '';
+    box.append(node('p', `${status.records.length} documento(s) generado(s)${problems}${status.status === 'failed' ? ' · el lote se interrumpió' : ''}.`));
+    if (status.records.length) {
+      box.append(link(status.zip_url, 'Descargar ZIP (carpetas Turno Día y Turno Noche)', 'download'));
+      const list = node('ul', undefined, 'people');
+      records.forEach((item) => {
+        const missing = item.summary && Array.isArray(item.summary.courses_without_evaluation) ? item.summary.courses_without_evaluation : [];
+        const li = node('li', `${item.crew} · ${item.shift || 'Sin turno'} · ${item.participants} persona(s) · ${item.pages} hoja(s)${missing.length ? ` · sin evaluación para ${missing.join(', ')}` : ''} · `);
+        li.append(link(item.bundle_url, 'PDF registro + evaluaciones'));
+        list.append(li);
+      });
+      box.append(list);
+    }
+    if (status.errors.length) {
+      const list = node('ul', undefined, 'people');
+      status.errors.forEach((item) => list.append(node('li', `Cuadrilla ${item.crew_id}: ${item.error}`)));
+      box.append(node('p', 'No se pudieron generar estos documentos:', 'notice danger'), list);
+    }
+    box.hidden = false;
+    $('plProgress').textContent = 'Listo. Imprime, recoge las firmas y sube el escaneo en el paso 2.';
+    message('Generación terminada.');
+    updateControls();
+  }
+
+  function startPolling(batch) {
+    window.clearInterval(planState.timer);
+    planState.batchRunning = true;
+    const epoch = generation;
+    $('plProgress').textContent = `Generando 0 de ${batch.total} documentos…`;
+    planState.timer = window.setInterval(async () => {
+      try {
+        const status = await api(`/batches/${encodeURIComponent(String(batch.id))}`);
+        if (epoch !== generation) return;
+        $('plProgress').textContent = `Generando ${status.done} de ${status.total} documentos…`;
+        if (status.status !== 'running') {
+          window.clearInterval(planState.timer);
+          planState.batchRunning = false;
+          await finishBatch(status);
+        }
+      } catch (error) {
+        window.clearInterval(planState.timer);
+        planState.batchRunning = false;
+        message(error.message || 'No se pudo consultar el avance de la generación.', true);
+        updateControls();
+      }
+    }, 2000);
+    updateControls();
+  }
+
   async function openWorkspace(session) {
     if (!session.authenticated) {
       clearSensitive();
@@ -317,7 +632,9 @@
     $('loginPanel').hidden = true;
     $('workspace').hidden = false;
     $('logout').hidden = false;
-    message('Sesión privada activa. Prepara un registro o sube uno anterior.');
+    message('Sesión privada activa. Sube las planillas y prepara los registros, o sube un escaneo.');
+    $('exportExcel').hidden = false;
+    await refreshPlanning();
     await loadHistory();
   }
 
@@ -342,6 +659,46 @@
     }
   }));
   $('crew').addEventListener('change', () => { previewCrew(); updateControls(); });
+  document.querySelectorAll('.source').forEach((form) => {
+    form.querySelector('input').addEventListener('change', updateControls);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const file = form.querySelector('input').files[0];
+      if (!file || !authenticated) return;
+      const kind = form.dataset.kind;
+      run(async () => {
+        message(`Subiendo y validando ${kindNames[kind]}…`);
+        const body = new FormData();
+        body.append('kind', kind);
+        body.append('file', file);
+        const data = await api('/sources', { method: 'POST', body });
+        form.reset();
+        message(`${kindNames[kind]} ${data.duplicate ? 'ya estaba subida: se volvió a activar' : 'subida y validada'}.`);
+        await refreshPlanning();
+      });
+    });
+  });
+  $('plCourses').addEventListener('change', (event) => { if (event.target.type !== 'file') run(loadPlan); });
+  $('plGroup').addEventListener('change', () => run(loadPlan));
+  $('planForm').addEventListener('input', updateControls);
+  $('planForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const codes = planCourses();
+    if (!authenticated || !planState.ready || !planState.picked.size || codes.length < 1 || !$('planForm').reportValidity()) return;
+    run(async () => {
+      $('plResult').replaceChildren();
+      $('plResult').hidden = true;
+      const ids = planState.data.crews.map((crew) => String(crew.id)).filter((id) => planState.picked.has(id));
+      const body = { crew_ids: ids, date: $('plDate').value, courses: codes, group_small: $('plGroup').checked };
+      const objectives = $('plObjectives').value.trim();
+      if (objectives) body.objectives = objectives;
+      message('Iniciando la generación…');
+      const batch = await post('/batches', body);
+      if (!batch || typeof batch.id !== 'string') throw new Error('El servicio devolvió un lote no válido.');
+      startPolling(batch);
+      message('Generando. Puedes seguir el avance en «Descargas».');
+    });
+  });
   $('recordForm').addEventListener('change', updateControls);
   $('scanFile').addEventListener('change', updateControls);
   $('recordForm').addEventListener('submit', (event) => {

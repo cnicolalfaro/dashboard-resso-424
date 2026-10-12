@@ -56,3 +56,20 @@ th{background:var(--soft);font-size:13px}
 td a{color:var(--green-dark)}
 .hint{font-size:13px}
 @media(max-width:650px){.wrap{padding:16px}.card{padding:18px}.fields,.course-grid,.row{grid-template-columns:1fr}.steps{grid-template-columns:repeat(2,1fr);gap:8px}h1 span{display:block;font-size:20px}.heading{align-items:flex-start}.steps a{font-size:13px;padding:10px}th,td{padding:8px}}
+
+/* Planillas y registros por cuadrilla */
+.sources{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:12px 0}
+.source{border:1px solid var(--line);border-radius:8px;padding:14px;background:#f8fbf9;display:flex;flex-direction:column;gap:10px}
+.source .hint{margin:0;overflow-wrap:anywhere}
+.shift{margin:14px 0}
+.shift h4{margin:0}
+.crew-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin-top:8px}
+.crew small,.course small{display:block;color:var(--muted);font-weight:400}
+details.legacy{margin:20px 0}
+details.legacy>summary{cursor:pointer;font-weight:650;color:var(--green-dark);padding:10px 0}
+@media(max-width:650px){.sources,.crew-list{grid-template-columns:1fr}}.course-box{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:white}
+.evaluation{margin-left:28px}
+.evaluation .hint{margin:4px 0}
+.hint.ok{color:var(--green-dark)}
+.hint.warn{color:#852a27}
+.file-picker{font-size:13px;font-weight:600}
