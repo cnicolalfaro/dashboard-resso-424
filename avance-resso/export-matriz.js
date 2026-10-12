@@ -17,6 +17,7 @@
   const STATES = {
     nami: { symbol: "✓", fill: "C6EFCE", font: "006100", label: "Aprobado · con certificado NAMI (clic abre el PDF)" },
     qr: { symbol: "✓", fill: "C6EFCE", font: "1F5FA8", label: "Aprobado · con certificado QR de Forms (clic abre el PDF)" },
+    fisico: { symbol: "✓", fill: "C6EFCE", font: "B4501E", label: "Aprobado · con certificado físico escaneado (clic abre el PDF)" },
     otra: { symbol: "✓", fill: "E2F0D9", font: "2E7D32", label: "Aprobado · por otra fuente (sin PDF enlazado)" },
     cert: { symbol: "✓*", fill: "FFEB9C", font: "7F6000", label: "Certificado encontrado, aún no figura aprobado en la fuente (no cuenta en el avance)" },
     pend: { symbol: "✗", fill: "FDE2E1", font: "C00000", label: "Pendiente" },
@@ -97,7 +98,7 @@
     band(2, 0, FROZEN_COLS - 1, "FAMILIA DEL CURSO  →", style({ sz: 9, bold: true, color: "43536B", fill: "F3F6FB", h: "right", wrap: false }));
     // Derecha (se desplaza con los cursos): datos del archivo y detalle de la leyenda.
     band(0, FROZEN_COLS, lastCol, model.subtitle, style({ sz: 9.5, color: "FFFFFF", fill: "1F3C74", noBorder: true, wrap: false }));
-    band(1, FROZEN_COLS, lastCol, "Verde: aprobado (los ✓ con certificado NAMI o QR se abren con clic) · Amarillo ✓*: hay certificado pero aún no figura en la fuente (no cuenta) · Rojo ✗: pendiente · Detalle en la hoja «Leyenda» · Tabla 1/0 en la hoja «Datos»",
+    band(1, FROZEN_COLS, lastCol, "Verde: aprobado (los ✓ con certificado NAMI, QR o físico se abren con clic) · Amarillo ✓*: hay certificado pero aún no figura en la fuente (no cuenta) · Rojo ✗: pendiente · Detalle en la hoja «Leyenda» · Tabla 1/0 en la hoja «Datos»",
       style({ sz: 9, color: "43536B", fill: "EEF2F8", noBorder: true, wrap: false }));
     band(2, FROZEN_COLS, first - 1, "", style({ fill: "F3F6FB" }));
 

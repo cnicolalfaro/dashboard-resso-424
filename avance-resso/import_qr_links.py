@@ -8,6 +8,9 @@ enlaces se arman con --sharepoint-path, así que funcionan una vez que la carpet
 la misma estructura <NOMBRE_RUT>/Riesgos_de_Fatalidad/<RUT>_RF-01.pdf. El curso sale de la sigla
 del nombre del archivo; si hay más de un certificado del mismo curso (RUT_RF-02_2.pdf) se enlaza
 el primero. En la matriz, el certificado NAMI tiene prioridad y el QR se enlaza cuando no hay NAMI.
+
+Con --key fisicoLinks importa CERTIFICADOS FISICOS (evaluaciones en papel escaneadas, misma estructura);
+en la matriz se enlazan cuando no hay certificado NAMI ni QR.
 """
 from __future__ import annotations
 
@@ -28,6 +31,7 @@ def main() -> None:
     parser.add_argument("folder", type=Path)
     parser.add_argument("--sharepoint-path", required=True)
     parser.add_argument("--snapshot", type=Path, default=ROOT / "data" / "avance_resso_data.js")
+    parser.add_argument("--key", default="qrLinks", choices=["qrLinks", "fisicoLinks"], help="capa a importar")
     args = parser.parse_args()
 
     text = args.snapshot.read_text(encoding="utf-8")
@@ -57,7 +61,7 @@ def main() -> None:
             entry = people.setdefault(folder_rut, {"folder": folder, "docs": {}})
             entry["docs"].setdefault(str(by_code[match.group(2).zfill(2)]), "/".join(rel_dir.split("/")[1:] + [name]))
 
-    data["qrLinks"] = {
+    data[args.key] = {
         "version": 1,
         "updatedAt": datetime.fromtimestamp(newest).strftime("%Y-%m-%d %H:%M") if newest else "",
         "base": args.sharepoint_path.strip("/"),
@@ -69,7 +73,7 @@ def main() -> None:
     nami = (data.get("namiLinks") or {}).get("people", {})
     cells = sum(len(v["docs"]) for v in people.values())
     only_qr = sum(1 for rut, v in people.items() for i in v["docs"] if i not in nami.get(rut, {}).get("docs", {}))
-    print(f"Archivos QR: {files} · trabajadores en la matriz: {len(people)} · celdas con certificado QR: {cells}"
+    print(f"[{args.key}] archivos: {files} · trabajadores en la matriz: {len(people)} · celdas con certificado: {cells}"
           f" (sin NAMI: {only_qr}, con NAMI: {cells - only_qr})")
     for path in skipped:
         print("  omitido:", path)

@@ -7,6 +7,8 @@ Solo suma: nunca quita una aprobación que venga de Forms, la plataforma o la ma
 Recalcula con las mismas reglas del snapshot (ver recalc.py): % persona = aprobados / cursos;
 aprobados y % por curso solo con personas vigentes; promedio = media de los % por curso.
 Las celdas agregadas quedan registradas en namiLinks.added para mostrarlas como "por certificado NAMI".
+
+Con --key fisicoLinks hace lo mismo con los certificados físicos escaneados (import_qr_links.py --key fisicoLinks).
 """
 from __future__ import annotations
 
@@ -17,7 +19,7 @@ from pathlib import Path
 
 from recalc import mark_calculation_base, recalc
 
-SOURCE_LABEL = "Certificado NAMI"
+SOURCE_LABELS = {"namiLinks": "Certificado NAMI", "fisicoLinks": "Certificado físico"}
 
 
 def normalize_rut(value: object) -> str:
@@ -27,13 +29,15 @@ def normalize_rut(value: object) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--snapshot", type=Path, default=Path(__file__).resolve().parents[1] / "data" / "avance_resso_data.js")
+    parser.add_argument("--key", default="namiLinks", choices=list(SOURCE_LABELS), help="capa de certificados")
     args = parser.parse_args()
+    SOURCE_LABEL = SOURCE_LABELS[args.key]
 
     text = args.snapshot.read_text(encoding="utf-8")
     data = json.loads(text.split("=", 1)[1].strip().removesuffix(";"))
-    nami = data.get("namiLinks") or {}
+    nami = data.get(args.key) or {}
     if nami.get("docOrder") != [d["titulo"] for d in data["documentos"]]:
-        raise SystemExit("Los enlaces NAMI no corresponden a este snapshot: vuelve a correr import_nami_links.py.")
+        raise SystemExit(f"Los enlaces {args.key} no corresponden a este snapshot: vuelve a importarlos.")
 
     docs = data["documentos"]
     mark_calculation_base(data)
@@ -65,7 +69,7 @@ def main() -> None:
 
     args.snapshot.write_text("window.AVANCE_RESSO_DATA = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
 
-    print(f"Aprobaciones agregadas por certificado NAMI: {sum(added_by_doc)} en {sum(1 for c in added_by_doc if c)} cursos")
+    print(f"Aprobaciones agregadas por {SOURCE_LABEL}: {sum(added_by_doc)} en {sum(1 for c in added_by_doc if c)} cursos")
     for doc, count in sorted(zip(docs, added_by_doc), key=lambda item: -item[1]):
         if count:
             print(f"  +{count:4d}  {doc['avance_pct']:5.1f}%  {doc['titulo'][:80]}")
