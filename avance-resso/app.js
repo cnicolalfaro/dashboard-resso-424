@@ -561,7 +561,7 @@
     return '<em class="status-badge" title="No figura en la tarja vigente · no cuenta en el avance">Fuera de tarja</em>';
   }
 
-  function renderMatrix() {
+  function matrixSelection() {
     const category = document.getElementById('matrixCategoryFilter').value;
     const docIndexes = docs.map((_, index) => index).filter(index => !category ||
       (category === 'NAMI' ? namiCourseSet.has(index) : category === 'NONAMI' ? !namiCourseSet.has(index) : categorize(docs[index].titulo) === category));
@@ -569,6 +569,12 @@
     const rows = filteredPeople(allPeople)
       .filter(person => status === 'all' || (status === 'inactive' ? person.estado : !person.estado))
       .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    return { docIndexes, rows };
+  }
+
+  function renderMatrix() {
+    const { docIndexes, rows } = matrixSelection();
+    document.getElementById('matrixExportBtn').textContent = `Exportar a Excel (${rows.length})`;
     const inactiveCount = rows.filter(person => person.estado).length;
     const totalPages = Math.max(1, Math.ceil(rows.length / MATRIX_PAGE_SIZE));
     matrixPage = Math.min(matrixPage, totalPages);
@@ -618,6 +624,75 @@
     renderPeople();
   }
 
+  // ---------- Exportar matriz a Excel (export-matriz.js) ----------
+  function exportCell(person, docIndex) {
+    const link = namiLinkFor(person, docIndex);
+    if (person.aprob[docIndex] !== '1') return link.url ? { state: 'cert', url: link.url, aprobado: false } : { state: 'pend', aprobado: false };
+    if (!link.url) return { state: 'otra', aprobado: true };
+    return { state: link.level === 'qr' ? 'qr' : 'nami', url: link.url, aprobado: true };
+  }
+
+  function exportStatus(person) {
+    const dmy = iso => (iso ? iso.split('-').reverse().join('-') : '');
+    if (!person.estado) return 'Vigente';
+    if (person.estado === 'por_ingresar') return `Ingresa ${dmy(person.ingreso)}`.trim();
+    if (person.estado === 'finiquitado') return `Finiquitado ${dmy(person.baja)}`.trim();
+    return 'Fuera de tarja';
+  }
+
+  async function exportMatrixExcel() {
+    const button = document.getElementById('matrixExportBtn');
+    const { docIndexes, rows } = matrixSelection();
+    const familyOrder = ['RF', 'RIM', 'MA', 'IRL'];
+    const ordered = docIndexes.slice().sort((a, b) =>
+      familyOrder.indexOf(categorize(docs[a].titulo)) - familyOrder.indexOf(categorize(docs[b].titulo)) ||
+      courseCode(docs[a], a).localeCompare(courseCode(docs[b], b), 'es', { numeric: true }));
+    const courses = ordered.map(index => {
+      const family = categorize(docs[index].titulo);
+      return {
+        code: courseCode(docs[index], index), title: docs[index].titulo, family, familyLabel: CATEGORIES[family].label,
+        fuentes: (docs[index].fuentes || []).join(' + '),
+        namiCode: namiDocOrderOk && DATA.namiLinks && DATA.namiLinks.codes ? DATA.namiLinks.codes[index] || '' : '',
+      };
+    });
+    const people = rows.map(person => {
+      const cells = ordered.map(index => exportCell(person, index));
+      const aprobados = cells.filter(cell => cell.aprobado).length;
+      return {
+        rut: person.rut, nombre: titleCase(person.nombre), cargo: titleCase(person.especialidad),
+        vigente: !person.estado, estadoTexto: exportStatus(person), cells, aprobados,
+        avance: courses.length ? aprobados / courses.length : 0,
+      };
+    });
+    const optionText = id => { const el = document.getElementById(id); return el.options[el.selectedIndex].text; };
+    const filters = [optionText('matrixCategoryFilter'), optionText('matrixStatusFilter')];
+    if (cargoSelect.value) filters.push(`Cargo: ${titleCase(cargoSelect.value)}`);
+    const query = document.getElementById('searchBox').value.trim();
+    if (query) filters.push(`Búsqueda: "${query}"`);
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const vigentes = people.filter(p => p.vigente).length;
+    const model = {
+      title: 'Matriz trabajador × curso · Avance RESSO SKIC 424',
+      subtitle: `Datos al ${DATA.generado} · exportado el ${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())} · ` +
+        `${people.length} trabajadores (${vigentes} vigentes) · ${courses.length} cursos · Filtros: ${filters.join(' · ')}`,
+      fileName: `Matriz_RESSO_424_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.xlsx`,
+      courses, people,
+    };
+    const label = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Generando Excel…';
+    try {
+      await window.AvanceExport.exportMatrix(model);
+    } catch (error) {
+      alert(`No se pudo generar el Excel: ${error.message}`);
+    } finally {
+      button.disabled = false;
+      button.textContent = label;
+    }
+  }
+
+  document.getElementById('matrixExportBtn').addEventListener('click', exportMatrixExcel);
   document.getElementById('summaryViewBtn').addEventListener('click', () => setPeopleView('summary'));
   document.getElementById('matrixViewBtn').addEventListener('click', () => setPeopleView('matrix'));
   document.getElementById('matrixCategoryFilter').addEventListener('change', resetMatrixAndRender);
