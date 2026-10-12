@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "NAMI: servicio privado (WSL/Linux)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "nami_service",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "console": "integratedTerminal",
+      "envFile": "${env:HOME}/.config/nami/dev.env",
+      "env": {
+        "NAMI_ORIGIN": "https://localhost:8443",
+        "NAMI_PORT": "8001",
+        "NAMI_PUBLIC_ROOT": "${workspaceFolder}"
+      },
+      "subProcess": true,
+      "justMyCode": true
+    }
+  ]
+}

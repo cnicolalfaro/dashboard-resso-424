@@ -112,3 +112,70 @@ El directorio privado debe pertenecer a la cuenta del servicio y tener permisos
 Las pruebas del servicio usan datos sintéticos y se ejecutan con
 `python -m unittest nami_service.test_service`; no necesitan la TARJA real ni
 credenciales de producción.
+
+## Continuar NAMI en VS Code (WSL / Linux)
+
+1. En GitHub, identifica la rama que contiene estos cambios. En VS Code,
+   descarga los cambios y selecciona esa rama; no es necesario que ya estén
+   integrados en `main`. En Windows, instala WSL con Ubuntu y abre la carpeta
+   mediante **WSL: Open Folder in WSL**. Guarda el repositorio en el sistema de
+   archivos de Linux, no en una carpeta pública o sincronizada con OneDrive.
+2. Instala las extensiones recomendadas por VS Code. Necesitas Python 3.12 con
+   soporte `venv` y Caddy instalado en WSL/Linux siguiendo su distribución
+   oficial. Caddy se usa únicamente como proxy local; no sustituye el despliegue
+   privado de producción.
+3. Ejecuta **Terminal → Run Task → NAMI: instalar dependencias**. Esta tarea
+   crea `.venv` y utiliza las versiones de `nami_service/requirements.txt`.
+   Selecciona `.venv/bin/python` mediante **Python: Select Interpreter** si VS
+   Code conserva un intérprete anterior.
+4. Prepara un directorio privado externo, por ejemplo `$HOME/.local/share/nami`,
+   con permisos `0700`. Allí coloca `catalog.json` y la TARJA. Para comenzar,
+   usa datos sintéticos; nunca copies datos reales a archivos del repositorio.
+5. Crea `$HOME/.config/nami/dev.env` con permisos `0600` y su carpeta con `0700`.
+   Es el archivo externo que carga el depurador; **no se crea automáticamente**.
+   Añade estas variables con tus propios valores:
+
+   ```dotenv
+   NAMI_DATA_DIR=/home/TU_USUARIO/.local/share/nami
+   NAMI_TARJA_PATH=/home/TU_USUARIO/.local/share/nami/TARJA.xlsx
+   NAMI_USERNAME=operador-local
+   NAMI_SECRET_KEY=REEMPLAZAR_CON_UN_SECRETO_ALEATORIO
+   NAMI_PASSWORD_HASH=REEMPLAZAR_CON_HASH_WERKZEUG
+   ```
+
+   Usa rutas absolutas reales: el archivo no expande `$HOME`. Genera el secreto
+   con el intérprete del entorno mediante
+   `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+   Para generar el hash sin escribir la contraseña en el historial, utiliza
+   `python -c "from getpass import getpass; from werkzeug.security import generate_password_hash; print(generate_password_hash(getpass('Contraseña local: ')))"`.
+   Guarda ambos resultados solo en el archivo externo; no los compartas en
+   chats, capturas ni commits. La configuración de depuración fija el origen en
+   `https://localhost:8443` y el puerto del servicio en `8001`.
+6. Ejecuta **NAMI: pruebas** para comprobar el servicio con sus fixtures
+   sintéticos. No requiere el archivo `dev.env` ni los documentos reales.
+7. Ejecuta **NAMI: proxy HTTPS local**, y luego **Run and Debug → NAMI: servicio
+   privado (WSL/Linux)** con F5. Abre **https://localhost:8443/nami/**. El acceso
+   directo a NAMI permite probarlo sin descifrar el dashboard de producción;
+   exige su propia cuenta configurada en `dev.env`.
+
+### HTTPS local y archivos publicados
+
+Caddy genera una autoridad de certificación **local** e intenta instalar su
+certificado raíz. Si no tiene permisos, importa manualmente su `root.crt` al
+almacén de confianza de tu equipo; normalmente está en
+`$HOME/.local/share/caddy/pki/authorities/local/root.crt` (puede variar si
+configuraste `XDG_DATA_HOME`). En Windows debes importar también esa raíz local
+al almacén que use tu navegador. Importa solo el certificado, nunca
+`root.key`, y confía únicamente en la autoridad de tu equipo de desarrollo.
+La API administrativa de Caddy está deshabilitada en esta configuración.
+No desactives las cookies seguras ni la verificación TLS para solucionar avisos.
+
+`dev/Caddyfile` escucha solo en loopback. Publica exclusivamente los archivos
+actuales de la interfaz `/nami/` y
+dirige `/api/nami` al servicio; el resto de rutas devuelve 404. No publica la
+TARJA, la configuración, el código Python ni el paquete de datos del dashboard.
+Live Server por sí solo no proporciona este proxy.
+
+Detén la depuración y termina la tarea de Caddy al finalizar. Los registros y
+evidencias permanecen en el directorio privado. Esta configuración no modifica
+aprobaciones de evaluaciones ni despliega nada en producción.
