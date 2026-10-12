@@ -121,16 +121,31 @@ credenciales de producción.
    mediante **WSL: Open Folder in WSL**. Guarda el repositorio en el sistema de
    archivos de Linux, no en una carpeta pública o sincronizada con OneDrive.
 2. Instala las extensiones recomendadas por VS Code. Necesitas Python 3.12 con
-   soporte `venv` y Caddy instalado en WSL/Linux siguiendo su distribución
-   oficial. Caddy se usa únicamente como proxy local; no sustituye el despliegue
+   soporte `venv`, Caddy instalado en WSL/Linux siguiendo su distribución
+   oficial y LibreOffice para convertir los Word a PDF:
+
+   ```bash
+   sudo apt install -y python3.12-venv
+   sudo apt install -y --no-install-recommends libreoffice-writer fonts-liberation fonts-crosextra-carlito fonts-crosextra-caladea fonts-dejavu
+   ```
+
+   Caddy se usa únicamente como proxy local; no sustituye el despliegue
    privado de producción.
 3. Ejecuta **Terminal → Run Task → NAMI: instalar dependencias**. Esta tarea
    crea `.venv` y utiliza las versiones de `nami_service/requirements.txt`.
    Selecciona `.venv/bin/python` mediante **Python: Select Interpreter** si VS
    Code conserva un intérprete anterior.
 4. Prepara un directorio privado externo, por ejemplo `$HOME/.local/share/nami`,
-   con permisos `0700`. Allí coloca `catalog.json` y la TARJA. Para comenzar,
-   usa datos sintéticos; nunca copies datos reales a archivos del repositorio.
+   con permisos `0700`. El servicio exige allí un `catalog.json` y una TARJA al
+   arrancar. Para comenzar crea datos **sintéticos** con este comando, desde la
+   raíz del proyecto, y nunca copies datos reales a archivos del repositorio:
+
+   ```bash
+   .venv/bin/python -c "import json, pathlib; from nami_service.test_workflow import build_tarja, workbook_bytes, RUTS; d = pathlib.Path.home()/'.local/share/nami'; d.mkdir(mode=0o700, parents=True, exist_ok=True); (d/'TARJA.xlsx').write_bytes(workbook_bytes(build_tarja)); (d/'catalog.json').write_text(json.dumps({'crews': [{'id': '1', 'name': 'Cuadrilla sintética', 'ruts': [RUTS['a1']]}], 'courses': [{'id': 'rf1', 'code': 'RF-01', 'title': 'Curso sintético', 'content': 'Contenido sintético.'}]}))"
+   chmod 600 ~/.local/share/nami/TARJA.xlsx ~/.local/share/nami/catalog.json
+   ```
+
+   Las planillas reales se suben después desde la página (ver más abajo).
 5. Crea `$HOME/.config/nami/dev.env` con permisos `0600` y su carpeta con `0700`.
    Es el archivo externo que carga el depurador; **no se crea automáticamente**.
    Añade estas variables con tus propios valores:
@@ -152,11 +167,47 @@ credenciales de producción.
    chats, capturas ni commits. La configuración de depuración fija el origen en
    `https://localhost:8443` y el puerto del servicio en `8001`.
 6. Ejecuta **NAMI: pruebas** para comprobar el servicio con sus fixtures
-   sintéticos. No requiere el archivo `dev.env` ni los documentos reales.
+   sintéticos. No requiere el archivo `dev.env` ni los documentos reales. Para
+   incluir también las pruebas del flujo con planillas (algunas necesitan
+   LibreOffice): `python -m unittest nami_service.test_service nami_service.test_workflow`.
 7. Ejecuta **NAMI: proxy HTTPS local**, y luego **Run and Debug → NAMI: servicio
    privado (WSL/Linux)** con F5. Abre **https://localhost:8443/nami/**. El acceso
    directo a NAMI permite probarlo sin descifrar el dashboard de producción;
    exige su propia cuenta configurada en `dev.env`.
+
+### Registros desde planillas y plantillas Word
+
+Con el servicio en marcha, el paso **1 · Preparar** de la página trabaja así:
+
+- **Planillas.** Sube la TARJA, las cuadrillas y la matriz de capacitación. Se
+  validan, se guardan en `sources/` del directorio privado con su huella y se
+  usa siempre la última de cada tipo; el historial se conserva. La matriz se lee
+  tal como se sube y **no se modifica**: solo cuenta la celda «Aprobado».
+- **Cuadrillas.** El capataz es el nombre que sigue a «N - » en la columna
+  `CUADRILLA`. El turno lo decide el `TURNO` del capataz en la TARJA: si termina
+  en `N` (por ejemplo `10X10 A-N`) es noche; si no, día.
+- **Plantilla del registro.** Copia tu Word a
+  `$NAMI_DATA_DIR/templates/registro.docx` con permisos `0600`. También puede
+  reemplazarse con `POST /api/nami/templates` (`kind=register`).
+- **Evaluaciones.** Bajo cada curso marcado aparece un selector para cargar su
+  Word. Debe tener `[NOMBRETRABAJADOR]` en el pie de página; la versión anterior
+  queda en `templates/anteriores/`. También pueden copiarse a mano como
+  `templates/eval-rf01.docx`, `eval-rf02.docx`, etc.
+- **Quién entra.** En cada registro quedan las personas a las que les falta algún
+  curso elegido, incluidos los capataces. Solo quedan fuera quienes ya lo tienen
+  aprobado. Quien no figura en la matriz se incluye como pendiente.
+- **Descargas.** Un PDF por cuadrilla (registro y evaluaciones) y un ZIP con las
+  carpetas *Turno Día* y *Turno Noche*. La casilla «Agrupar cuadrillas chicas»
+  junta las de hasta 4 pendientes del mismo turno en una sola hoja.
+
+Firmar acredita la difusión, no aprueba evaluaciones, y nada de esto modifica la
+matriz ni Avance RESSO. El paquete fija `OPENBLAS_NUM_THREADS=1` para que el
+proceso de escaneo respete su límite de memoria.
+
+**Qué no va a GitHub.** Las planillas reales, las plantillas Word de la
+empresa, `dev.env` y cualquier PDF generado contienen datos del contrato o de
+personas: se comparten por un canal privado, nunca con un commit. Este
+repositorio es público.
 
 ### HTTPS local y archivos publicados
 
