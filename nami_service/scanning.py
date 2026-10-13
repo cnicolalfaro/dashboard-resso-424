@@ -8,14 +8,15 @@ import cv2
 import pymupdf as fitz
 import numpy as np
 
-from .documents import HEIGHT, WIDTH, valid_payload
+from .documents import HEIGHT, WIDTH, valid_evaluation_payload, valid_payload
+from .evaluation_scan import find_person, read_evaluation, crops, tesseract_path
 from .storage import write_private
 
 
 MAX_PAGES = 25
 MAX_PIXELS = 12_000_000
 RASTER_DPI = 150
-SCAN_SECONDS = 45
+SCAN_SECONDS = 120
 WORKER_MEMORY_BYTES = 2 * 1024 * 1024 * 1024
 SCALE = RASTER_DPI / 72
 
@@ -37,7 +38,7 @@ def decode_page(image, secret, detectors):
                 if text and corner is not None:
                     candidates = [(text, corner[0])]
             for text, corner in candidates:
-                value = valid_payload(text, secret)
+                value = valid_payload(text, secret) or valid_evaluation_payload(text, secret)
                 if value is None:
                     continue
                 center = np.mean(corner, axis=0)
@@ -54,7 +55,7 @@ def register(image, page, qr_corners):
     target = np.asarray(page["qr_corners"], dtype=np.float32) * SCALE
     approximate = cv2.getPerspectiveTransform(source, target)
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    _, dark = cv2.threshold(gray, 65, 255, cv2.THRESH_BINARY_INV)
+    _, dark = cv2.threshold(gray, 110, 255, cv2.THRESH_BINARY_INV)
     contours, _ = cv2.findContours(dark, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     candidates = []
     expected_area = (10 * SCALE) ** 2
@@ -95,8 +96,9 @@ def register(image, page, qr_corners):
                        np.float32)
     inverse = cv2.perspectiveTransform(corners, np.linalg.inv(final))[0]
     ih, iw = image.shape[:2]
-    # Even a small cropped edge is not accepted as complete evidence.
-    if any(x < -3 or y < -3 or x > iw + 3 or y > ih + 3 for x, y in inverse):
+    # Markers sit 15 pt inside the page, so up to 8 pt of blank margin may be cut by the scanner.
+    margin = 8 * SCALE
+    if any(x < -margin or y < -margin or x > iw + margin or y > ih + margin for x, y in inverse):
         return None
     qr_registered = cv2.perspectiveTransform(source[None], final)[0]
     if np.max(np.linalg.norm(qr_registered - target, axis=1)) > 8 * SCALE:
@@ -140,11 +142,29 @@ def suggestion(crop, row, has_color):
     return "REVISAR", "Marcas rojas ambiguas, múltiples o parciales"
 
 
+def save_preview(root, row_id, preview):
+    ok, png = cv2.imencode(".png", preview)
+    if not ok:
+        raise ValueError("Could not preserve preview")
+    write_private(root / "rows" / f"{row_id}.png", png.tobytes())
+
+
+def evaluation_page(root, scan_id, number, preview, match, method):
+    row_id = f"{scan_id}-{number}-eval"
+    save_preview(root, row_id, preview)
+    return {"page": number, "record_id": match["record_id"], "kind": "evaluation", "rows": [],
+            "evaluation": {"rut": match["rut"], "nombre": match["nombre"], "code": match["code"],
+                           "course_id": match["course_id"], "method": method},
+            "preview_id": row_id,
+            "preview_url": f"/api/nami/scans/{scan_id}/rows/{row_id}/image"}
+
+
 def analyze(root, scan_id, pdf_path, manifests, secret):
     start = time.monotonic()
     detectors = [cv2.QRCodeDetector(), cv2.QRCodeDetectorAruco()]
     cv2.setNumThreads(1)
-    pages, seen = [], set()
+    pages, seen, seen_evaluations, read_later = [], set(), set(), []
+    ocr = tesseract_path()
     with fitz.open(pdf_path) as document:
         if document.is_encrypted or not 1 <= len(document) <= MAX_PAGES:
             raise ValueError("Invalid PDF page count")
@@ -160,9 +180,37 @@ def analyze(root, scan_id, pdf_path, manifests, secret):
                 raise ValueError("Total raster size exceeds limit")
             pix = pdf_page.get_pixmap(matrix=fitz.Matrix(SCALE, SCALE), colorspace=fitz.csRGB, alpha=False)
             image = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width, 3)
-            recognized = decode_page(image, secret, detectors)
-            if len(recognized) != 1:
+            found = decode_page(image, secret, detectors)
+            recognized = [item for item in found if len(item[0]) == 4]
+            tagged = [item for item in found if len(item[0]) == 3]
+            if len(recognized) + len(tagged) > 1:
                 pages.append(unidentified(number, "Página sin un único QR NAMI válido"))
+                continue
+            if tagged:
+                _, record_id, index = tagged[0][0]
+                entries = (manifests.get(record_id) or {}).get("evaluation_pages", [])
+                if not 0 <= index < len(entries):
+                    pages.append(unidentified(number, "Documento o versión no identificados"))
+                    continue
+                match = {"record_id": record_id, **entries[index]}
+                key = (record_id, match["rut"], match["course_id"])
+                if key in seen_evaluations:
+                    pages.append(unidentified(number, "Evaluación repetida o ambigua"))
+                    continue
+                seen_evaluations.add(key)
+                pages.append(evaluation_page(Path(root), scan_id, number, np.vstack(crops(image)), match, "qr"))
+                continue
+            if not recognized:
+                # Sheets printed before evaluations carried a QR are identified by their title and footer name.
+                if ocr is None:
+                    pages.append(unidentified(number, "Página sin QR NAMI y el lector de texto (Tesseract) no está instalado"))
+                    continue
+                code_number, name, preview = read_evaluation(ocr, image)
+                if code_number is None or len(name) < 5:
+                    pages.append(unidentified(number, "Página sin QR NAMI ni título RF y nombre legibles"))
+                    continue
+                pages.append(None)
+                read_later.append((len(pages) - 1, number, code_number, name, preview))
                 continue
             (record_id, version, page_no, total), corner = recognized[0]
             manifest = manifests.get(record_id)
@@ -193,6 +241,17 @@ def analyze(root, scan_id, pdf_path, manifests, secret):
                              "suggested": status, "reason": reason,
                              "image_url": f"/api/nami/scans/{scan_id}/rows/{row_id}/image"})
             pages.append({"page": number, "record_id": record_id, "document_page": page_no, "rows": rows})
+    preferred = list(dict.fromkeys(page["record_id"] for page in pages if page and page.get("record_id")))
+    for position, number, code_number, name, preview in read_later:
+        match, reason = find_person(code_number, name, manifests, preferred)
+        key = match and (match["record_id"], match["rut"], match["course_id"])
+        if match is None:
+            pages[position] = unidentified(number, reason)
+        elif key in seen_evaluations:
+            pages[position] = unidentified(number, "Evaluación repetida o ambigua")
+        else:
+            seen_evaluations.add(key)
+            pages[position] = evaluation_page(Path(root), scan_id, number, preview, match, "texto")
     return pages
 
 

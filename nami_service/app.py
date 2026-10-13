@@ -314,7 +314,9 @@ def create_app(config=None):
     @protected("read")
     def row_image(identifier, row_id):
         scan = find("scans", identifier)
-        ids = {row["id"] for page in json.loads(scan["pages"]) for row in page["rows"]}
+        pages = json.loads(scan["pages"])
+        ids = {row["id"] for page in pages for row in page["rows"]}
+        ids |= {page["preview_id"] for page in pages if page.get("preview_id")}
         if row_id not in ids:
             abort(404)
         return send_file(root / "rows" / f"{row_id}.png", mimetype="image/png", conditional=False)

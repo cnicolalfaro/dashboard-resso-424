@@ -217,6 +217,17 @@
       section.append(node('h3', `Página ${page.page}`));
       if (page.record_id === null || page.record_id === undefined || page.record_id === '') {
         section.append(node('p', `Página no identificada: ${page.reason || 'registro no reconocido'}. La confirmación está bloqueada; corrige y vuelve a subir el PDF completo.`, 'notice danger'));
+      } else if (page.kind === 'evaluation' && page.evaluation) {
+        const how = page.evaluation.method === 'qr' ? 'por su código QR' : 'por el título RF y el nombre del pie (lectura de texto)';
+        section.append(node('p', `Evaluación ${page.evaluation.code} de ${page.evaluation.nombre}, identificada ${how}. Es evidencia de la evaluación: no cambia aprobaciones.`, 'hint'));
+        const preview = safeURL(page.preview_url);
+        if (preview) {
+          const image = document.createElement('img');
+          image.src = preview;
+          image.alt = `Encabezado y pie de la evaluación, página ${page.page}`;
+          image.loading = 'lazy';
+          section.append(image, link(page.preview_url, 'Abrir recorte'));
+        }
       } else {
         section.append(node('p', `Registro identificado: ${page.record_id}`, 'hint'));
       }
@@ -298,8 +309,20 @@
   }
 
   // ---- Planillas, cuadrillas y descargas -------------------------------------------------
-  const planState = { data: null, ready: false, templates: true, picked: new Set(), timer: 0, refresh: 0, batchRunning: false };
+  const planState = { data: null, ready: false, templates: true, picked: new Set(), cargos: new Set(), timer: 0, refresh: 0, batchRunning: false };
   const kindNames = { tarja: 'TARJA', crews: 'Cuadrillas', matrix: 'Matriz de capacitación' };
+
+  function planMode() {
+    const checked = document.querySelector('input[name=plMode]:checked');
+    return checked && checked.value === 'cargos' ? 'cargos' : 'crews';
+  }
+
+  function applyMode() {
+    const mode = planMode();
+    $('plCrewsMode').hidden = mode !== 'crews';
+    $('plCargosMode').hidden = mode !== 'cargos';
+    updateControls();
+  }
 
   function todayISO() {
     const today = new Date();
@@ -315,9 +338,11 @@
     window.clearTimeout(planState.refresh);
     Object.assign(planState, { data: null, ready: false, templates: true, timer: 0, refresh: 0, batchRunning: false });
     planState.picked.clear();
+    planState.cargos.clear();
     $('plCourses').dataset.signature = '';
     $('plCourses').replaceChildren(node('p', 'Sube las planillas para ver los cursos de la matriz.', 'hint'));
     $('plCrews').replaceChildren(node('p', 'Sube las planillas para ver las cuadrillas.', 'hint'));
+    $('plCargos').replaceChildren(node('p', 'Sube las planillas y elige un curso para ver los cargos.', 'hint'));
     ['plGroups', 'plResult', 'planNotices'].forEach((id) => $(id).replaceChildren());
     $('plResult').hidden = true;
     $('plProgress').textContent = '';
@@ -327,6 +352,9 @@
       form.querySelector('[data-status]').textContent = 'Sin archivo activo.';
     });
     $('planForm').reset();
+    $('plCrewsMode').hidden = false;
+    $('plCargosMode').hidden = true;
+    $('plCargoDropdown').open = false;
     $('exportExcel').hidden = true;
   }
 
@@ -350,7 +378,7 @@
     const params = new URLSearchParams();
     const codes = planCourses();
     if (codes.length) params.set('courses', codes.join(','));
-    if (codes.length && $('plGroup').checked && planState.picked.size) {
+    if (codes.length && planMode() === 'crews' && $('plGroup').checked && planState.picked.size) {
       params.set('group', '1');
       params.set('crews', [...planState.picked].join(','));
     }
@@ -447,6 +475,62 @@
     }, 350);
   }
 
+  function renderCargos(data) {
+    const box = $('plCargos');
+    box.replaceChildren();
+    const cargos = Array.isArray(data.cargos) ? data.cargos : [];
+    const valid = new Set(cargos.map((cargo) => String(cargo.key)));
+    [...planState.cargos].forEach((key) => { if (!valid.has(key)) planState.cargos.delete(key); });
+    if (!cargos.length) {
+      box.append(node('p', 'La TARJA vigente no trae cargos.', 'hint'));
+      return;
+    }
+    const head = node('div', undefined, 'heading');
+    head.append(node('h4', `${cargos.length} cargos en la TARJA vigente`));
+    const toggle = node('button', 'Marcar o desmarcar los que tienen pendientes');
+    toggle.type = 'button';
+    toggle.addEventListener('click', () => {
+      const visible = new Set([...list.querySelectorAll('label:not([hidden]) input')].map((input) => input.value));
+      const usable = cargos.filter((cargo) => cargo.pending !== 0 && visible.has(String(cargo.key))).map((cargo) => String(cargo.key));
+      const all = usable.every((key) => planState.cargos.has(key));
+      usable.forEach((key) => (all ? planState.cargos.delete(key) : planState.cargos.add(key)));
+      box.querySelectorAll('input[type=checkbox]').forEach((input) => { input.checked = planState.cargos.has(input.value); });
+      updateControls();
+    });
+    head.append(toggle);
+    const search = document.createElement('input');
+    search.type = 'search';
+    search.placeholder = 'Buscar cargo…';
+    search.setAttribute('aria-label', 'Buscar cargo');
+    const fold = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    search.addEventListener('input', () => {
+      const wanted = fold(search.value.trim());
+      list.querySelectorAll('label').forEach((item) => { item.hidden = !fold(item.dataset.label).includes(wanted); });
+    });
+    const list = node('div', undefined, 'crew-list');
+    cargos.forEach((cargo) => {
+      const key = String(cargo.key);
+      const label = node('label', undefined, 'check crew');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = key;
+      input.checked = planState.cargos.has(key);
+      input.dataset.empty = cargo.pending === 0 ? '1' : '0';
+      input.addEventListener('change', () => {
+        if (input.checked) planState.cargos.add(key); else planState.cargos.delete(key);
+        updateControls();
+      });
+      const text = node('span', cargo.label);
+      text.append(node('small', cargo.pending === null || cargo.pending === undefined ?
+        `${cargo.total} persona(s) · elige un curso para ver los pendientes` :
+        `${cargo.pending} pendiente(s) de ${cargo.total}`));
+      label.dataset.label = cargo.label;
+      label.append(input, text);
+      list.append(label);
+    });
+    box.append(head, search, list);
+  }
+
   function renderPlan() {
     const data = planState.data;
     $('plCrews').replaceChildren();
@@ -457,11 +541,13 @@
       $('plCourses').dataset.signature = '';
       $('plCourses').replaceChildren(node('p', 'Sube las tres planillas para ver los cursos de la matriz.', 'hint'));
       $('plCrews').append(node('p', 'Sube las tres planillas para ver las cuadrillas.', 'hint'));
+      $('plCargos').replaceChildren(node('p', 'Sube las tres planillas para ver los cargos.', 'hint'));
       updateControls();
       return;
     }
     planState.ready = true;
     renderPlanCourses(data.courses);
+    renderCargos(data);
     const warnings = data.warnings || {};
     if (warnings.hoja) {
       const when = warnings.fecha_planificacion ? ` con fecha ${warnings.fecha_planificacion}` : '';
@@ -548,14 +634,22 @@
     $('plCourses').querySelectorAll('input[type=checkbox]').forEach((input) => { input.disabled = locked || (codes.length >= 4 && !input.checked); });
     $('plCourses').querySelectorAll('input[type=file]').forEach((input) => { input.disabled = locked; });
     $('plCrews').querySelectorAll('input, button').forEach((element) => { element.disabled = locked || element.dataset.empty === '1'; });
+    $('plCargos').querySelectorAll('input, button').forEach((element) => { element.disabled = locked || element.dataset.empty === '1'; });
+    document.querySelectorAll('input[name=plMode]').forEach((element) => { element.disabled = locked; });
+    $('plRelator').disabled = locked;
     $('plGroup').disabled = locked;
     $('plCourseCount').textContent = `${codes.length} de 4 seleccionados`;
     $('plCrewCount').textContent = `${planState.picked.size} cuadrilla(s) seleccionada(s)`;
+    $('plCargoCount').textContent = `${planState.cargos.size} cargo(s) seleccionado(s)`;
+    const names = ((planState.data && planState.data.cargos) || [])
+      .filter((cargo) => planState.cargos.has(String(cargo.key))).map((cargo) => cargo.label);
+    $('plCargoSummary').textContent = names.length ? `${names.length} elegido(s): ${names.join(', ')}` : 'Elegir cargos…';
     document.querySelectorAll('.source').forEach((form) => {
       form.querySelector('button').disabled = locked || !form.querySelector('input').files.length;
     });
+    const chosen = planMode() === 'cargos' ? planState.cargos.size : planState.picked.size;
     $('plGenerate').disabled = locked || !authenticated || !planState.ready || !planState.templates ||
-      !$('plDate').value || codes.length < 1 || codes.length > 4 || planState.picked.size < 1;
+      !$('plDate').value || codes.length < 1 || codes.length > 4 || chosen < 1;
   }
 
   async function finishBatch(status) {
@@ -570,7 +664,7 @@
     const problems = status.errors.length ? ` · ${status.errors.length} con problemas` : '';
     box.append(node('p', `${status.records.length} documento(s) generado(s)${problems}${status.status === 'failed' ? ' · el lote se interrumpió' : ''}.`));
     if (status.records.length) {
-      box.append(link(status.zip_url, 'Descargar ZIP (carpetas Turno Día y Turno Noche)', 'download'));
+      box.append(link(status.zip_url, 'Descargar ZIP (una carpeta por turno, o «Por cargo»)', 'download'));
       const list = node('ul', undefined, 'people');
       records.forEach((item) => {
         const missing = item.summary && Array.isArray(item.summary.courses_without_evaluation) ? item.summary.courses_without_evaluation : [];
@@ -686,18 +780,39 @@
   });
   $('plCourses').addEventListener('change', (event) => { if (event.target.type !== 'file') run(loadPlan); });
   $('plGroup').addEventListener('change', () => run(loadPlan));
+  document.querySelectorAll('input[name=plMode]').forEach((radio) => radio.addEventListener('change', applyMode));
+  document.addEventListener('click', (event) => {
+    const menu = $('plCargoDropdown');
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  });
+  document.addEventListener('keydown', (event) => {
+    const menu = $('plCargoDropdown');
+    if (event.key === 'Escape' && menu.open) {
+      menu.open = false;
+      $('plCargoSummary').focus();
+    }
+  });
   $('planForm').addEventListener('input', updateControls);
   $('planForm').addEventListener('submit', (event) => {
     event.preventDefault();
     const codes = planCourses();
-    if (!authenticated || !planState.ready || !planState.picked.size || codes.length < 1 || !$('planForm').reportValidity()) return;
+    const byCargo = planMode() === 'cargos';
+    const chosen = byCargo ? planState.cargos.size : planState.picked.size;
+    if (!authenticated || !planState.ready || !chosen || codes.length < 1 || !$('planForm').reportValidity()) return;
     run(async () => {
       $('plResult').replaceChildren();
       $('plResult').hidden = true;
-      const ids = planState.data.crews.map((crew) => String(crew.id)).filter((id) => planState.picked.has(id));
-      const body = { crew_ids: ids, date: $('plDate').value, courses: codes, group_small: $('plGroup').checked };
+      const body = { date: $('plDate').value, courses: codes };
+      if (byCargo) {
+        body.cargos = planState.data.cargos.map((cargo) => String(cargo.key)).filter((key) => planState.cargos.has(key));
+      } else {
+        body.crew_ids = planState.data.crews.map((crew) => String(crew.id)).filter((id) => planState.picked.has(id));
+        body.group_small = $('plGroup').checked;
+      }
       const objectives = $('plObjectives').value.trim();
       if (objectives) body.objectives = objectives;
+      const relator = $('plRelator').value.trim();
+      if (relator) body.relator = relator;
       message('Iniciando la generación…');
       const batch = await post('/batches', body);
       if (!batch || typeof batch.id !== 'string') throw new Error('El servicio devolvió un lote no válido.');

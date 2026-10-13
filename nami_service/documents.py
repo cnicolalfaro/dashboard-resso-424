@@ -57,6 +57,26 @@ def valid_payload(payload, secret):
         return None
 
 
+def evaluation_payload(record_id, index, secret):
+    """Short uppercase payload so the QR stays in alphanumeric mode and prints small."""
+    message = f"NAMIE:{uuid.UUID(record_id).hex.upper()}:{index}"
+    signature = hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest()[:12].upper()
+    return f"{message}:{signature}"
+
+
+def valid_evaluation_payload(payload, secret):
+    try:
+        tag, compact, index, _ = payload.split(":")
+        record_id = str(uuid.UUID(compact))
+        index = int(index)
+        expected = evaluation_payload(record_id, index, secret)
+        if tag != "NAMIE" or not hmac.compare_digest(payload.encode(), expected.encode()):
+            return None
+        return "evaluation", record_id, index
+    except (ValueError, TypeError):
+        return None
+
+
 def make_document(crew, courses, date, secret):
     identifier = str(uuid.uuid4())
     participants = [dict(person) for person in crew["participants"]]

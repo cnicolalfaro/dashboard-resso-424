@@ -18,7 +18,8 @@ from openpyxl import Workbook
 from .evaluations import has_placeholder
 from .catalog import import_tarja
 from .planillas import matrix_courses, plan_groups, read_crews, read_matrix, read_shifts, select_pending
-from .prepare import OBJECTIVES, SHIFT_FOLDERS, load_sources, merge_pdfs, prepare, resolve_courses, safe_name
+from .prepare import (CARGO_PREFIX, OBJECTIVES, SHIFT_FOLDERS, cargo_key, compose_cargo, folder_name, list_cargos,
+                      load_sources, merge_pdfs, prepare, resolve_courses, safe_name, unit_label)
 from .storage import connect, transaction, write_private
 from .templates import FolderTemplates, course_slug
 from .word_register import RenderError, check_template
@@ -134,7 +135,13 @@ def request_parameters(value):
     objectives = value.get("objectives", OBJECTIVES)
     if not isinstance(objectives, str) or not objectives.strip() or len(objectives) > 500:
         abort(400)
-    return codes, valid_date(value.get("date")), objectives.strip()
+    relator = value.get("relator", "")
+    if not isinstance(relator, str) or re.search(r"[\x00-\x1f\x7f]", relator):
+        abort(400)
+    relator = " ".join(relator.split())
+    if len(relator) > 100:
+        abort(400)
+    return codes, valid_date(value.get("date")), objectives.strip(), relator
 
 
 def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA"):
@@ -155,9 +162,9 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         except Missing as error:
             return None, None, (jsonify(error="Faltan planillas activas", missing=error.args[0]), 409)
 
-    def generate(crew_id, codes, date, objectives):
+    def generate(unit, codes, date, objectives, relator=""):
         data, rows = workspace.load()
-        result = prepare(data, crew_id, codes, date, templates, work, secret, objectives)
+        result = prepare(data, unit, codes, date, templates, work, secret, objectives, relator)
         manifest, register_pdf, evaluations = result["manifest"], result["register"], result["evaluations"]
         manifest["sources"] = {kind: {"id": row["id"], "filename": row["filename"], "sha256": row["sha256"]}
                                for kind, row in rows.items()}
@@ -182,7 +189,8 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
     def record_summary(identifier, manifest, created):
         return {"id": identifier, "date": manifest.get("date"), "created_at": created,
                 "crew": manifest["crew"]["name"], "foreman": manifest["crew"].get("foreman", ""),
-                "shift": SHIFT_FOLDERS.get(manifest["crew"].get("shift")),
+                "relator": manifest.get("relator", ""),
+                "shift": folder_name(manifest["crew"]),
                 "pages": len(manifest["pages"]), "participants": len(manifest["participants"]),
                 "courses": [course["code"] for course in manifest["courses"]],
                 "evaluations": bool(manifest.get("evaluations_pdf")),
@@ -341,11 +349,15 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
                           "pending": len(pending) if chosen else None})
         wanted = {item for item in request.args.get("crews", "").split(",") if item}
         group_items = [item for item in items if item["id"] in wanted] if wanted else items
+        cargos = []
+        for item in list_cargos(data):
+            pending = len(compose_cargo(data, item["key"], chosen)[1]) if chosen else None
+            cargos.append({**item, "pending": pending})
         return jsonify(ready=True, sources={kind: public_source(row) for kind, row in rows.items()},
                        courses=[{"code": course["code"], "title": course["title"],
                                  "evaluation": course["id"] in available}
                                 for course in matrix_courses(data["matrix"]["legend"])],
-                       crews=crews, warnings=data["crews"]["warnings"],
+                       crews=crews, cargos=cargos, warnings=data["crews"]["warnings"],
                        groups=plan_groups(group_items) if chosen and request.args.get("group") == "1" else None,
                        templates={"registro": stock.register() is not None})
 
@@ -355,9 +367,9 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         value = request.get_json(silent=True) if request.mimetype == "application/json" else None
         if not isinstance(value, dict) or not isinstance(value.get("crew_id"), (str, int)) or isinstance(value.get("crew_id"), bool):
             abort(400)
-        codes, date, objectives = request_parameters(value)
+        codes, date, objectives, relator = request_parameters(value)
         try:
-            manifest = generate(str(value["crew_id"]), codes, date, objectives)
+            manifest = generate(str(value["crew_id"]), codes, date, objectives, relator)
         except Missing as error:
             return jsonify(error="Faltan planillas activas", missing=error.args[0]), 409
         except (ValueError, RenderError) as error:
@@ -399,12 +411,13 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         try:
             for index, unit in enumerate(params["units"], 1):
                 try:
-                    manifest = generate(unit, params["courses"], params["date"], params["objectives"])
+                    manifest = generate(unit, params["courses"], params["date"], params["objectives"],
+                                        params.get("relator", ""))
                     records.append(manifest["id"])
                 except (ValueError, RenderError) as error:
-                    errors.append({"crew_id": "+".join(unit), "error": str(error)[:160]})
+                    errors.append({"crew_id": unit_label(unit), "error": str(error)[:160]})
                 except Exception:
-                    errors.append({"crew_id": "+".join(unit), "error": "No fue posible generar el documento"})
+                    errors.append({"crew_id": unit_label(unit), "error": "No fue posible generar el documento"})
                 with transaction(root) as db:
                     db.execute("UPDATE batches SET done=?, records=?, errors=? WHERE id=?",
                                (index, json.dumps(records), json.dumps(errors), batch_id))
@@ -422,19 +435,31 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         value = request.get_json(silent=True) if request.mimetype == "application/json" else None
         if not isinstance(value, dict):
             abort(400)
-        crew_ids = value.get("crew_ids")
-        if (not isinstance(crew_ids, list) or not 1 <= len(crew_ids) <= MAX_BATCH or
-                any(not isinstance(item, (str, int)) or isinstance(item, bool) for item in crew_ids) or
-                len({str(item) for item in crew_ids}) != len(crew_ids)):
+        crew_ids, cargos = value.get("crew_ids"), value.get("cargos")
+        if (crew_ids is None) == (cargos is None):
+            abort(400)
+        if cargos is not None:
+            if (not isinstance(cargos, list) or not 1 <= len(cargos) <= MAX_BATCH or
+                    any(not isinstance(item, str) or len(item) > 100 for item in cargos)):
+                abort(400)
+            crew_ids = [CARGO_PREFIX + cargo_key({"cargo": item}) for item in cargos]
+        elif (not isinstance(crew_ids, list) or not 1 <= len(crew_ids) <= MAX_BATCH or
+                any(not isinstance(item, (str, int)) or isinstance(item, bool) for item in crew_ids)):
+            abort(400)
+        if len({str(item) for item in crew_ids}) != len(crew_ids):
             abort(400)
         group_small = value.get("group_small", False)
-        if not isinstance(group_small, bool):
+        if not isinstance(group_small, bool) or (group_small and cargos is not None):
             abort(400)
-        codes, date, objectives = request_parameters(value)
+        codes, date, objectives, relator = request_parameters(value)
         data, _, problem = need_sources()
         if problem:
             return problem
         ids = [str(item) for item in crew_ids]
+        if cargos is not None:
+            known = {item["key"] for item in list_cargos(data)}
+            if any(item[len(CARGO_PREFIX):] not in known for item in ids):
+                abort(400)
         if group_small:
             try:
                 courses = resolve_courses(data["matrix"], codes)
@@ -449,7 +474,7 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         if not batch_lock.acquire(blocking=False):
             abort(429)
         batch_id = str(uuid.uuid4())
-        params = {"units": units, "courses": codes, "date": date, "objectives": objectives}
+        params = {"units": units, "courses": codes, "date": date, "objectives": objectives, "relator": relator}
         try:
             with transaction(root) as db:
                 db.execute("INSERT INTO batches(id,params,status,total,created_by) VALUES (?,?,?,?,?)",
@@ -491,7 +516,7 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         with zipfile.ZipFile(stream, "w", zipfile.ZIP_STORED) as archive:
             for record_id in record_ids:
                 data, manifest = bundle_bytes(record_id)
-                folder = SHIFT_FOLDERS.get(manifest["crew"].get("shift"), "Sin turno")
+                folder = folder_name(manifest["crew"])
                 base = safe_name(manifest["crew"]["name"])
                 name, counter = f"{folder}/{base}.pdf", 1
                 while name in used:
@@ -513,7 +538,7 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         sheet = book.active
         sheet.title = "Difusión confirmada"
         headers = ["Fecha del registro", "Cuadrilla", "Capataz", "Turno", "RUT", "Nombre", "Curso", "Título del curso",
-                   "Difusión", "Confirmado por", "Fecha de confirmación", "ID del registro"]
+                   "Difusión", "Confirmado por", "Fecha de confirmación", "ID del registro", "Relator"]
         rows = [headers]
         for item in results:
             manifest = manifests.get(item["record_id"], {})
@@ -522,10 +547,10 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
             crew = manifest.get("crew", {})
             rows.append([manifest.get("date", ""), person.get("crew_name") or crew.get("name", ""),
                          person.get("foreman") or crew.get("foreman", ""),
-                         SHIFT_FOLDERS.get(crew.get("shift"), ""), item["rut"], person.get("nombre", ""),
+                         folder_name(crew), item["rut"], person.get("nombre", ""),
                          course.get("code", item["course_id"]), course.get("title", ""),
                          "Firmó" if item["status"] == "FIRMO" else "No firmó", item["confirmed_by"],
-                         item["created_at"], item["record_id"]])
+                         item["created_at"], item["record_id"], manifest.get("relator", "")])
         for number, values in enumerate(rows, 1):
             for column, value in enumerate(values, 1):
                 cell = sheet.cell(row=number, column=column, value=value)

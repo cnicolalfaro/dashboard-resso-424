@@ -4,11 +4,12 @@ import os
 import re
 import secrets
 import sys
+from collections import Counter
 from pathlib import Path
 
 import pymupdf as fitz
 
-from .catalog import import_tarja
+from .catalog import import_tarja, normalize
 from .evaluations import make_evaluations
 from .planillas import matrix_courses, read_crews, read_matrix, read_shifts, select_pending
 from .templates import as_templates
@@ -59,9 +60,59 @@ def find_crew(sources, crew_id):
     return crew
 
 
+CARGO_PREFIX = "cargo:"
+NO_CARGO = "SIN CARGO"
+
+
+def cargo_key(person):
+    """The cargo is the TARJA CATEGORIA; when that is blank or '.' it is the ESPECIALIDAD."""
+    for field in ("cargo", "especialidad"):
+        text = " ".join(str(person.get(field) or "").split()).upper()
+        if text not in {"", "."}:
+            return text
+    return ""
+
+
+def cargo_label(key):
+    return key or NO_CARGO
+
+
+def list_cargos(sources):
+    """Every cargo (CATEGORIA, else ESPECIALIDAD) present in the active TARJA with its head count, blank last."""
+    counts = Counter(cargo_key(person) for person in sources["people"].values())
+    return sorted(({"key": key, "label": cargo_label(key), "total": total} for key, total in counts.items()),
+                  key=lambda item: (item["key"] == "", normalize(item["label"])))
+
+
+def compose_cargo(sources, key, courses):
+    """Everyone in the TARJA with this cargo, as a crew-like unit without foreman or shift."""
+    people = sorted((dict(person) for person in sources["people"].values() if cargo_key(person) == key),
+                    key=lambda person: normalize(person["nombre"]))
+    if not people:
+        raise ValueError("Cargo no encontrado en la TARJA")
+    slug = re.sub(r"[^a-z0-9]+", "-", normalize(cargo_label(key))).strip("-") or "sin-cargo"
+    unit = {"id": f"cargo-{slug}", "name": f"CARGO {cargo_label(key)}", "foreman": "", "foreman_found": True,
+            "shift": None, "shift_mixed": False, "participants": people, "excluded": [],
+            "cargo": cargo_label(key)}
+    pending, approved = select_pending(unit, courses, sources["matrix"])
+    return unit, pending, approved
+
+
+def folder_name(crew):
+    """ZIP and summary folder: by cargo for cargo registers, otherwise by shift."""
+    return "Por cargo" if crew.get("cargo") else SHIFT_FOLDERS.get(crew.get("shift"), "Sin turno")
+
+
+def unit_label(unit):
+    return " + ".join(cargo_label(item[len(CARGO_PREFIX):]) if item.startswith(CARGO_PREFIX) else item
+                      for item in unit)
+
+
 def compose_unit(sources, crew_ids, courses):
-    """One crew, or several small crews of the same shift sharing a sheet."""
+    """One crew, several small crews of the same shift sharing a sheet, or everyone with one cargo."""
     ids = [str(crew_ids)] if isinstance(crew_ids, (str, int)) else [str(item) for item in crew_ids]
+    if len(ids) == 1 and ids[0].startswith(CARGO_PREFIX):
+        return compose_cargo(sources, ids[0][len(CARGO_PREFIX):], courses)
     crews = [find_crew(sources, item) for item in ids]
     if len(crews) == 1:
         pending, approved = select_pending(crews[0], courses, sources["matrix"])
@@ -90,20 +141,22 @@ def compose_unit(sources, crew_ids, courses):
     return composite, pending, approved
 
 
-def prepare(sources, crew_ids, codes, date, templates, workdir, secret, objectives=OBJECTIVES):
+def prepare(sources, crew_ids, codes, date, templates, workdir, secret, objectives=OBJECTIVES, relator=""):
     templates = as_templates(templates)
     courses = resolve_courses(sources["matrix"], codes)
     crew, pending, approved = compose_unit(sources, crew_ids, courses)
     if not pending:
-        raise ValueError("Nadie en la cuadrilla tiene pendientes los cursos seleccionados")
+        raise ValueError("Nadie en la selección tiene pendientes los cursos elegidos")
     register_template = templates.register()
     if register_template is None:
         raise ValueError("Falta la plantilla privada del registro")
-    manifest, register = make_word_document(register_template, crew, pending, courses, date, secret, workdir, objectives)
+    manifest, register = make_word_document(register_template, crew, pending, courses, date, secret, workdir,
+                                            objectives, relator=relator)
     with_template = templates.available(courses)
     evaluations, info = None, {"sheets": 0, "pages": 0}
     if with_template:
-        evaluations, info = make_evaluations(templates, manifest, workdir)
+        evaluations, info = make_evaluations(templates, manifest, workdir, secret)
+        manifest["evaluation_pages"] = info["index"]
     without_evaluation = [c["code"] for c in courses if c["id"] not in with_template]
     manifest["crew"]["shift"] = crew.get("shift")
     manifest["summary"] = {"members": len(crew["participants"]), "included": len(pending),
@@ -115,7 +168,7 @@ def prepare(sources, crew_ids, codes, date, templates, workdir, secret, objectiv
     return {"manifest": manifest, "register": register, "evaluations": evaluations,
             "combined": merge_pdfs(register, evaluations),
             "summary": {"crew": crew["name"], "foreman": crew.get("foreman", ""),
-                        "shift": SHIFT_FOLDERS[crew.get("shift")], "shift_mixed": crew.get("shift_mixed", False),
+                        "shift": folder_name(crew), "shift_mixed": crew.get("shift_mixed", False),
                         "foreman_included": any(p.get("capataz") for p in pending),
                         "foreman_not_found": bool(crew.get("foreman")) and not crew.get("foreman_found"),
                         "members": len(crew["participants"]), "included": len(pending),
@@ -149,7 +202,9 @@ def write_unique(directory, name, data):
 
 
 def safe_name(text):
-    return re.sub(r"\s+", " ", re.sub(r'[\\/:*?"<>|\x00-\x1f]', "", text)).strip(" .")[:90] or "cuadrilla"
+    # A slash would split a ZIP path, so it becomes a hyphen instead of disappearing.
+    text = re.sub(r"[\\/]", "-", text)
+    return re.sub(r"\s+", " ", re.sub(r'[:*?"<>|\x00-\x1f]', "", text)).strip(" .")[:90] or "cuadrilla"
 
 
 def main(argv=None):

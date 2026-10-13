@@ -45,16 +45,33 @@
         </div>
         <p class="hint">Se usa siempre la última planilla subida de cada tipo. Sube primero la TARJA: las cuadrillas se validan contra ella.</p>
         <div id="planNotices" aria-live="polite"></div>
-        <h3>B · Fecha, cursos y cuadrillas</h3>
+        <h3>B · Fecha, cursos y personas</h3>
         <form id="planForm">
           <div class="fields">
             <label>Fecha de difusión<input id="plDate" type="date" required></label>
-            <label>Objetivo (opcional)<input id="plObjectives" maxlength="500" placeholder="Si lo dejas vacío se usa el texto estándar de difusión RF"></label>
+            <label>Relator (opcional)<input id="plRelator" maxlength="100" autocomplete="off" placeholder="Si lo dejas vacío se mantiene el de la plantilla"></label>
+            <label class="wide">Objetivo (opcional)<input id="plObjectives" maxlength="500" placeholder="Si lo dejas vacío se usa el texto estándar de difusión RF"></label>
           </div>
           <fieldset><legend>Cursos · selecciona entre 1 y 4</legend><div id="plCourses" class="course-grid"><p class="hint">Sube las planillas para ver los cursos de la matriz.</p></div><p id="plCourseCount" class="hint" aria-live="polite">0 de 4 seleccionados</p></fieldset>
-          <label class="check"><input id="plGroup" type="checkbox"><span><strong>Agrupar cuadrillas chicas</strong>: junta cuadrillas del mismo turno con hasta 4 personas pendientes en una sola hoja (hasta 15 personas). Las personas quedan ordenadas por cuadrilla y cada evaluación lleva a su capataz.</span></label>
-          <fieldset><legend>Cuadrillas por turno</legend><div id="plCrews"><p class="hint">Sube las planillas para ver las cuadrillas.</p></div><p id="plCrewCount" class="hint" aria-live="polite">0 cuadrillas seleccionadas</p></fieldset>
-          <div id="plGroups" class="preview" aria-live="polite"></div>
+          <fieldset class="mode"><legend>¿Cómo quieres elegir a las personas?</legend>
+            <label class="check"><input type="radio" name="plMode" value="crews" checked><span><strong>Por cuadrilla y turno</strong>: se arma un registro por cuadrilla.</span></label>
+            <label class="check"><input type="radio" name="plMode" value="cargos"><span><strong>Por cargo</strong>: se arma un registro por cada cargo elegido, con todas las personas de la TARJA vigente que tengan ese cargo (columna ESPECIALIDAD de la TARJA).</span></label>
+          </fieldset>
+          <div id="plCrewsMode">
+            <label class="check"><input id="plGroup" type="checkbox"><span><strong>Agrupar cuadrillas chicas</strong>: junta cuadrillas del mismo turno con hasta 4 personas pendientes en una sola hoja (hasta 15 personas). Las personas quedan ordenadas por cuadrilla y cada evaluación lleva a su capataz.</span></label>
+            <fieldset><legend>Cuadrillas por turno</legend><div id="plCrews"><p class="hint">Sube las planillas para ver las cuadrillas.</p></div><p id="plCrewCount" class="hint" aria-live="polite">0 cuadrillas seleccionadas</p></fieldset>
+            <div id="plGroups" class="preview" aria-live="polite"></div>
+          </div>
+          <div id="plCargosMode" hidden>
+            <fieldset><legend>Cargos · puedes elegir varios</legend>
+              <details id="plCargoDropdown" class="dropdown">
+                <summary id="plCargoSummary">Elegir cargos…</summary>
+                <div id="plCargos" class="dropdown-panel"><p class="hint">Sube las planillas y elige un curso para ver los cargos.</p></div>
+              </details>
+              <p id="plCargoCount" class="hint" aria-live="polite">0 cargos seleccionados</p>
+            </fieldset>
+            <p class="hint">«SIN ESPECIALIDAD» reúne a quienes no tienen especialidad en la TARJA. Cada registro lleva solo a quien tiene pendiente algún curso elegido.</p>
+          </div>
           <button id="plGenerate" class="primary" type="submit" disabled>Generar registros y evaluaciones</button>
         </form>
         <h3>C · Descargas</h3>

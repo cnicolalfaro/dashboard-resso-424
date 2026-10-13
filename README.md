@@ -199,6 +199,19 @@ Con el servicio en marcha, el paso **1 · Preparar** de la página trabaja así:
 - **Descargas.** Un PDF por cuadrilla (registro y evaluaciones) y un ZIP con las
   carpetas *Turno Día* y *Turno Noche*. La casilla «Agrupar cuadrillas chicas»
   junta las de hasta 4 pendientes del mismo turno en una sola hoja.
+- **Por cargo y relator.** En lugar de cuadrillas puede elegirse «Por cargo»: lista
+  desplegable de los cargos de la TARJA vigente (columna ESPECIALIDAD; vacía o «.»
+  se agrupa como «SIN ESPECIALIDAD»); se genera un registro por cargo, sin capataz, en la carpeta
+  *Por cargo* del ZIP. «Relator» es un texto libre que se escribe en el registro;
+  vacío, se conserva el de la plantilla.
+- **Escaneo de evaluaciones.** Cada hoja de evaluación nueva lleva un QR firmado
+  pequeño. Las ya impresas (sin QR) se identifican leyendo con OCR el título «RF-NN»
+  y el nombre del pie, y se cruzan con los registros generados (el nombre debe
+  coincidir y la persona debía tener pendiente ese RF). Necesita Tesseract:
+  `sudo apt install -y tesseract-ocr tesseract-ocr-spa`. Es solo evidencia: no
+  aprueba nada. Las evaluaciones pueden imprimirse en blanco y negro; el registro,
+  en cambio, lleva un control azul y debe imprimirse a color para que el escáner
+  sugiera firmas y ausencias (si no, todas las filas piden revisión humana).
 
 Firmar acredita la difusión, no aprueba evaluaciones, y nada de esto modifica la
 matriz ni Avance RESSO. El paquete fija `OPENBLAS_NUM_THREADS=1` para que el

@@ -19,10 +19,11 @@ from werkzeug.security import generate_password_hash
 
 from .app import create_app
 from .catalog import import_tarja, rut
-from .documents import valid_payload
+from .documents import valid_evaluation_payload, valid_payload
+from .evaluation_scan import find_person, normalize, tesseract_path
 from .planillas import (crew_shift, find_foreman, is_night, matrix_courses, plan_groups, read_crews, read_matrix,
                         read_shifts, select_pending, tokens)
-from .prepare import compose_unit, resolve_courses
+from .prepare import CARGO_PREFIX, cargo_key, compose_unit, list_cargos, resolve_courses, safe_name
 from .storage import connect
 
 SECRET = "unittest-session-signing-secret-not-for-production"
@@ -60,6 +61,18 @@ def workbook_bytes(build):
     return stream.getvalue()
 
 
+CARGOS = {"c1": "."}
+SPECIALTIES = {"c1": "CARPINTERO"}
+
+
+def cargo_of(key):
+    return CARGOS.get(key) or ("CAPATAZ" if key.startswith("foreman") else "MAESTRO PRIMERA")
+
+
+def specialty_of(key):
+    return SPECIALTIES.get(key, "MONTAJE")
+
+
 def build_tarja(book):
     sheet = book.active
     sheet.title = "TARJA"
@@ -68,7 +81,7 @@ def build_tarja(book):
     sheet.append(["ROL", "RUT", "NOMBRE", "A PATERNO", "A MATERNO", "ESPECIALIDAD", "CATEGORIA", "TURNO"])
     for index, (key, (body, first, paternal, maternal, shift)) in enumerate(PEOPLE.items(), 1):
         sheet.append([f"90000{index}", make_rut(body, dotted=True), first, paternal, maternal,
-                      "MONTAJE", "MAESTRO PRIMERA", shift])
+                      specialty_of(key), cargo_of(key), shift])
 
 
 def build_crews(book):
@@ -354,6 +367,30 @@ class PlanillasTests(unittest.TestCase):
         for value in ("✓*", "✗", "Pendiente", 0, 2, False, None, "", "0"):
             self.assertFalse(is_approved(value), value)
 
+    def test_cargo_units_cover_the_whole_tarja_and_name_the_missing_cargo(self):
+        sources = {"people": self.people, "crews": {"crews": list(self.crews.values())}, "matrix": self.matrix}
+        self.assertEqual([(c["key"], c["label"], c["total"]) for c in list_cargos(sources)],
+                         [("CAPATAZ", "CAPATAZ", 3), ("CARPINTERO", "CARPINTERO", 1),
+                          ("MAESTRO PRIMERA", "MAESTRO PRIMERA", 5)])
+        courses = resolve_courses(self.matrix, ["RF-01"])
+        unit, pending, approved = compose_unit(sources, CARGO_PREFIX + "CAPATAZ", courses)
+        self.assertEqual((unit["name"], unit["foreman"], unit["shift"], unit["cargo"]),
+                         ("CARGO CAPATAZ", "", None, "CAPATAZ"))
+        self.assertEqual({p["rut"] for p in pending}, {RUTS["foreman_day"], RUTS["foreman_day3"]})
+        self.assertEqual(approved, 1)
+        names = [p["nombre"] for p in pending]
+        self.assertEqual(names, sorted(names))
+        self.assertEqual({p["rut"] for p in compose_unit(sources, CARGO_PREFIX + "MAESTRO PRIMERA", courses)[1]},
+                         {RUTS["a2"], RUTS["b1"]})
+        self.assertEqual([p["rut"] for p in compose_unit(sources, CARGO_PREFIX + "CARPINTERO", courses)[1]],
+                         [RUTS["c1"]])
+        with self.assertRaises(ValueError):
+            compose_unit(sources, CARGO_PREFIX + "NO EXISTE", courses)
+        self.assertEqual(cargo_key({"cargo": " maestro   primera ", "especialidad": "X"}), "MAESTRO PRIMERA")
+        self.assertEqual(cargo_key({"cargo": ".", "especialidad": " carpintero  "}), "CARPINTERO")
+        self.assertEqual(cargo_key({"cargo": "", "especialidad": "."}), "")
+        self.assertEqual(cargo_key({"cargo": None}), "")
+        self.assertEqual(safe_name("OOCC MOLDAJE/ENFIERRADURA"), "OOCC MOLDAJE-ENFIERRADURA")
     def test_invalid_workbooks_are_rejected_with_clear_messages(self):
         empty = Path(self.directory.name) / "empty.xlsx"
         empty.write_bytes(workbook_bytes(lambda book: book.active.append(["nada"])))
@@ -361,6 +398,42 @@ class PlanillasTests(unittest.TestCase):
             read_matrix(empty)
         with self.assertRaises(ValueError):
             read_crews(empty, self.people, self.known)
+
+
+class EvaluationMatchTests(unittest.TestCase):
+    ONE = str(uuid.uuid4())
+    TWO = str(uuid.uuid4())
+
+    def manifests(self):
+        courses = [{"id": "c1", "code": "RF-01"}, {"id": "c2", "code": "RF-02"}]
+        people = [{"nombre": "CARLOS ANDRES PRUEBA SINTETICO", "rut": "1", "pending": ["c1", "c2"]},
+                  {"nombre": "ÁNGELA MARÍA SOTO PÉREZ", "rut": "2", "pending": ["c2"]}]
+        return {self.ONE: {"courses": courses, "participants": people},
+                self.TWO: {"courses": courses, "participants": [dict(people[0])]}}
+
+    def test_text_read_with_noise_and_accents_matches_the_pending_person(self):
+        match, _ = find_person(2, normalize("[Angela Maria Soto Perez]"), self.manifests(), [self.ONE])
+        self.assertEqual((match["rut"], match["code"], match["record_id"]), ("2", "RF-02", self.ONE))
+        match, _ = find_person(1, normalize("CARLOS ANDRES PRUEBA SINTETIC0"), self.manifests(), [self.TWO])
+        self.assertEqual(match["record_id"], self.TWO)
+
+    def test_a_course_the_person_was_not_pending_for_is_not_matched(self):
+        match, reason = find_person(1, normalize("ANGELA MARIA SOTO PEREZ"), self.manifests(), [self.ONE])
+        self.assertIsNone(match)
+        self.assertTrue(reason)
+
+    def test_same_person_in_several_records_is_ambiguous_without_a_scanned_register(self):
+        match, reason = find_person(1, normalize("CARLOS ANDRES PRUEBA SINTETICO"), self.manifests(), [])
+        self.assertIsNone(match)
+        self.assertIn("más de una", reason)
+
+    def test_tampered_evaluation_qr_is_rejected(self):
+        from .documents import evaluation_payload
+        payload = evaluation_payload(self.ONE, 3, SECRET)
+        self.assertEqual(valid_evaluation_payload(payload, SECRET), ("evaluation", self.ONE, 3))
+        self.assertIsNone(valid_evaluation_payload(payload.replace(":3:", ":4:"), SECRET))
+        self.assertIsNone(valid_evaluation_payload(payload, SECRET + "x"))
+        self.assertIsNone(valid_payload(payload, SECRET))
 
 
 class WorkflowTests(unittest.TestCase):
@@ -709,7 +782,20 @@ class WorkflowTests(unittest.TestCase):
         with fitz.open(stream=bundle.data, filetype="pdf") as document:
             self.assertEqual(len(document), 1 + 4)
             sheets = [p.get_text() for p in list(document)[1:]]
+            import cv2
+            import numpy as np
+            scale = 150 / 72
+            decoded = []
+            for number in range(1, len(document)):
+                pix = document[number].get_pixmap(matrix=fitz.Matrix(scale, scale), colorspace=fitz.csGRAY, alpha=False)
+                gray = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width)
+                decoded.append(valid_evaluation_payload(cv2.QRCodeDetector().detectAndDecode(gray)[0], SECRET))
         bundle.close()
+        self.assertEqual([item[2] for item in decoded], [0, 1, 2, 3])
+        self.assertEqual({item[1] for item in decoded}, {manifest["id"]})
+        self.assertEqual(len(manifest["evaluation_pages"]), 4)
+        self.assertEqual({entry["rut"] for entry in manifest["evaluation_pages"]},
+                         {RUTS["a1"], RUTS["a2"], RUTS["foreman_day"]})
         self.assertTrue(all("Capataz: CAPATAZ DIA UNO" in sheet and "12-10-2026" in sheet for sheet in sheets))
         self.assertEqual(sum("CAPATAZ DIA UNO]" in sheet for sheet in sheets), 1)
         self.assertEqual(sum("BEA SEGUNDA SINTETICA]" in sheet for sheet in sheets), 2)
@@ -748,6 +834,59 @@ class WorkflowTests(unittest.TestCase):
         result = scanning.analyze(self.root, "synthetic", scan_path, {manifest["id"]: manifest}, SECRET)
         self.assertEqual(result[0]["record_id"], manifest["id"])
         self.assertEqual([r["suggested"] for r in result[0]["rows"]], ["FIRMO", "NO_FIRMO", "FIRMO"])
+
+    @unittest.skipUnless(LIBREOFFICE, "LibreOffice requerido")
+    def test_scan_identifies_evaluations_by_qr_alongside_the_register(self):
+        from . import scanning
+        self.upload_all()
+        response = self.post("/records/word", {"crew_id": "1", "date": "2026-10-12", "courses": ["RF-01", "RF-02"]})
+        bundle = self.client.get(response.json["bundle_url"]).data
+        db = connect(self.root)
+        try:
+            manifest = json.loads(db.execute("SELECT manifest FROM records").fetchone()[0])
+        finally:
+            db.close()
+        path = self.root / "scans" / "bundle.pdf"
+        path.write_bytes(bundle)
+        result = scanning.analyze(self.root, "bundle", path, {manifest["id"]: manifest}, SECRET)
+        self.assertEqual([page["kind"] if "kind" in page else "registro" for page in result],
+                         ["registro"] + ["evaluation"] * 4)
+        self.assertTrue(all(page["record_id"] == manifest["id"] for page in result))
+        self.assertEqual({page["evaluation"]["method"] for page in result[1:]}, {"qr"})
+        self.assertEqual(sorted((p["evaluation"]["code"], p["evaluation"]["nombre"]) for p in result[1:]),
+                         sorted((e["code"], e["nombre"]) for e in manifest["evaluation_pages"]))
+        self.assertTrue((self.root / "rows" / f'{result[1]["preview_id"]}.png').is_file())
+        repeated = fitz.open()
+        repeated.insert_pdf(fitz.open(stream=bundle, filetype="pdf"), from_page=1, to_page=1)
+        repeated.insert_pdf(fitz.open(stream=bundle, filetype="pdf"), from_page=1, to_page=1)
+        path.write_bytes(repeated.tobytes())
+        again = scanning.analyze(self.root, "again", path, {manifest["id"]: manifest}, SECRET)
+        self.assertEqual([page["record_id"] is None for page in again], [False, True])
+
+    @unittest.skipUnless(tesseract_path(), "Tesseract requerido")
+    def test_scan_identifies_printed_evaluations_without_qr_by_title_and_name(self):
+        import cv2
+        import numpy as np
+        from . import scanning
+        record_id = str(uuid.uuid4())
+        manifest = {"id": record_id, "version": 3, "pages": [{}],
+                    "courses": [{"id": "RF-02", "code": "RF-02"}],
+                    "participants": [{"nombre": "BEA SEGUNDA SINTETICA", "rut": "2", "pending": ["RF-02"]}]}
+        document = fitz.open()
+        page = document.new_page(width=612, height=792)
+        page.insert_text((150, 50), "EVALUACION DE ENTENDIMIENTO", fontsize=16)
+        page.insert_text((190, 75), "RF-02 Trabajo en Altura vs 03", fontsize=16)
+        page.insert_text((40, 760), "[BEA SEGUNDA SINTETICA]      Capataz: CAPATAZ DIA UNO", fontsize=14)
+        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), colorspace=fitz.csGRAY, alpha=False)
+        gray = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width)
+        scan = fitz.open()
+        sheet = scan.new_page(width=612, height=792)
+        sheet.insert_image(sheet.rect, stream=cv2.imencode(".png", gray)[1].tobytes())
+        path = self.root / "scans" / "printed.pdf"
+        scan.save(str(path))
+        result = scanning.analyze(self.root, "printed", path, {record_id: manifest}, SECRET)
+        self.assertEqual(result[0]["record_id"], record_id, result)
+        self.assertEqual((result[0]["evaluation"]["code"], result[0]["evaluation"]["method"]), ("RF-02", "texto"))
 
     @unittest.skipUnless(LIBREOFFICE, "LibreOffice requerido")
     def test_night_crew_flags_people_missing_from_the_matrix_and_rejects_bad_requests(self):
@@ -849,6 +988,102 @@ class WorkflowTests(unittest.TestCase):
         single = next(m for m in manifests if not m["crew"].get("group"))
         self.assertFalse(any("crew_label" in p for p in single["participants"]))
 
+    def test_plan_lists_every_cargo_in_the_tarja_with_pending_counts(self):
+        self.upload_all()
+        plain = self.client.get("/api/nami/plan").json
+        self.assertEqual([(c["label"], c["total"], c["pending"]) for c in plain["cargos"]],
+                         [("CAPATAZ", 3, None), ("CARPINTERO", 1, None), ("MAESTRO PRIMERA", 5, None)])
+        one = self.client.get("/api/nami/plan?courses=RF-01").json
+        self.assertEqual([(c["key"], c["pending"]) for c in one["cargos"]],
+                         [("CAPATAZ", 2), ("CARPINTERO", 1), ("MAESTRO PRIMERA", 2)])
+        two = self.client.get("/api/nami/plan?courses=RF-01,RF-02").json
+        self.assertEqual([c["pending"] for c in two["cargos"]], [2, 1, 3])
+
+    def test_cargo_and_relator_requests_are_validated(self):
+        self.upload_all()
+        base = {"date": "2026-10-12", "courses": ["RF-01"]}
+        invalid = [
+            {**base, "cargos": ["CAPATAZ"], "crew_ids": ["1"]},
+            dict(base),
+            {**base, "cargos": []}, {**base, "cargos": "CAPATAZ"}, {**base, "cargos": [1]},
+            {**base, "cargos": ["NO EXISTE"]},
+            {**base, "cargos": ["CAPATAZ", "capataz"]},
+            {**base, "cargos": ["CAPATAZ"], "group_small": True},
+            {**base, "cargos": ["x" * 101]},
+            {**base, "cargos": ["CAPATAZ"], "relator": "x" * 101},
+            {**base, "cargos": ["CAPATAZ"], "relator": "línea\nnueva"},
+            {**base, "cargos": ["CAPATAZ"], "relator": 5},
+            {**base, "crew_ids": ["1"], "relator": ["a"]},
+        ]
+        for payload in invalid:
+            self.assertEqual(self.post("/batches", payload).status_code, 400, payload)
+        self.assertEqual(self.post("/records/word", {"crew_id": "1", **base, "relator": "x" * 101}).status_code, 400)
+
+    @unittest.skipUnless(LIBREOFFICE, "LibreOffice requerido")
+    def test_relator_is_written_in_the_register_and_kept_in_the_record(self):
+        self.upload_all()
+        request = {"crew_id": "1", "date": "2026-10-12", "courses": ["RF-01"]}
+        with_relator = self.post("/records/word", {**request, "relator": "  MARÍA   PÉREZ "})
+        self.assertEqual(with_relator.status_code, 201, with_relator.json)
+        self.assertEqual(with_relator.json["relator"], "MARÍA PÉREZ")
+        without = self.post("/records/word", request)
+        self.assertEqual((without.status_code, without.json["relator"]), (201, ""))
+        for response, expected in ((with_relator, True), (without, False)):
+            document = self.client.get(response.json["pdf_url"])
+            with fitz.open(stream=document.data, filetype="pdf") as pdf:
+                self.assertEqual("MARÍA PÉREZ" in pdf[0].get_text(), expected)
+            document.close()
+        db = connect(self.root)
+        try:
+            stored = json.loads(db.execute("SELECT manifest FROM records WHERE id=?",
+                                           (with_relator.json["id"],)).fetchone()[0])
+        finally:
+            db.close()
+        self.assertEqual(stored["relator"], "MARÍA PÉREZ")
+
+    @unittest.skipUnless(LIBREOFFICE, "LibreOffice requerido")
+    def test_cargo_batch_makes_one_register_per_cargo_with_the_relator(self):
+        self.upload_all()
+        started = self.post("/batches", {"cargos": ["capataz", "Maestro  Primera", "carpintero"],
+                                         "date": "2026-10-12", "courses": ["RF-01"], "relator": "MARÍA PÉREZ"})
+        self.assertEqual(started.status_code, 202, started.json)
+        self.assertEqual(started.json["units"], [["cargo:CAPATAZ"], ["cargo:MAESTRO PRIMERA"], ["cargo:CARPINTERO"]])
+        status = self.wait_for_batch(started.json["id"])
+        self.assertEqual((status["status"], status["done"], status["errors"]), ("done", 3, []))
+        archive = self.client.get(status["zip_url"])
+        texts = {}
+        with zipfile.ZipFile(io.BytesIO(archive.data)) as zipped:
+            self.assertEqual(sorted(zipped.namelist()), ["Por cargo/CARGO CAPATAZ.pdf", "Por cargo/CARGO CARPINTERO.pdf",
+                                                         "Por cargo/CARGO MAESTRO PRIMERA.pdf"])
+            for name in zipped.namelist():
+                with fitz.open(stream=zipped.read(name), filetype="pdf") as document:
+                    texts[name.split("/")[1]] = (" ".join(document[0].get_text().split()), len(document))
+        archive.close()
+        for register, _ in texts.values():
+            self.assertIn("MARÍA PÉREZ", register)
+            self.assertNotIn("CAPATAZ:", register, "cargo registers have no foreman line")
+        chiefs, chiefs_pages = texts["CARGO CAPATAZ.pdf"]
+        self.assertIn("CAPATAZ DIA UNO", chiefs)
+        self.assertIn("CAPATAZ DIA TRES", chiefs)
+        self.assertNotIn("CAPATAZ NOCHE DOS", chiefs, "already approved")
+        self.assertEqual(chiefs_pages, 1 + 2)
+        masters, _ = texts["CARGO MAESTRO PRIMERA.pdf"]
+        self.assertIn("BEA SEGUNDA SINTETICA", masters)
+        self.assertIn("DANA CUARTA SINTETICA", masters)
+        self.assertNotIn("ANA PRIMERA", masters)
+        self.assertNotIn("FANY SEXTA SINTETICA", masters)
+        self.assertIn("FANY SEXTA SINTETICA", texts["CARGO CARPINTERO.pdf"][0], "blank CATEGORIA falls back to ESPECIALIDAD")
+        listed = {r["crew"]: (r["shift"], r["relator"]) for r in self.client.get("/api/nami/records").json["records"]}
+        self.assertEqual(listed["CARGO CAPATAZ"], ("Por cargo", "MARÍA PÉREZ"))
+        db = connect(self.root)
+        try:
+            manifests = [json.loads(row[0]) for row in db.execute("SELECT manifest FROM records")]
+        finally:
+            db.close()
+        chief = next(m for m in manifests if m["crew"]["name"] == "CARGO CAPATAZ")
+        self.assertEqual((chief["crew"]["cargo"], chief["crew"]["foreman"]), ("CAPATAZ", ""))
+        self.assertEqual({p["rut"] for p in chief["participants"]}, {RUTS["foreman_day"], RUTS["foreman_day3"]})
+        self.assertTrue(all(len(page["rows"]) == len(chief["participants"]) for page in chief["pages"]))
     def test_group_small_must_be_a_boolean(self):
         self.upload_all()
         self.assertEqual(self.post("/batches", {"crew_ids": ["1"], "date": "2026-10-12", "courses": ["RF-01"],
@@ -857,6 +1092,7 @@ class WorkflowTests(unittest.TestCase):
     def test_excel_export_lists_confirmed_diffusion_without_formulas(self):
         self.upload_all()
         manifest = {"id": str(uuid.uuid4()), "version": 3, "date": "2026-10-12", "layout": "word",
+                    "relator": "MARÍA PÉREZ",
                     "crew": {"id": "1", "name": "CUADRILLA 1 - =CAPATAZ", "foreman": "=CAPATAZ", "shift": "NOCHE"},
                     "participants": [{"rut": RUTS["a1"], "nombre": "=1+1 PRUEBA"}],
                     "courses": [{"id": "RF-034", "code": "RF-01", "title": "@Curso"}], "pages": []}
@@ -876,6 +1112,7 @@ class WorkflowTests(unittest.TestCase):
         sheet = book["Difusión confirmada"]
         values = [cell.value for cell in sheet[2]]
         self.assertEqual(values[3:9], ["Turno Noche", RUTS["a1"], "=1+1 PRUEBA", "RF-01", "@Curso", "No firmó"])
+        self.assertEqual(values[12], "MARÍA PÉREZ")
         self.assertEqual(sheet["F2"].data_type, "s")
         self.assertEqual(sheet["C2"].data_type, "s")
         self.assertIn("NO equivale a aprobar", book["Leyenda"]["A1"].value)

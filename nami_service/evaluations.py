@@ -1,18 +1,22 @@
 import datetime
+import io
 import re
 import shutil
 import uuid
 from pathlib import Path
 
 import pymupdf as fitz
+import qrcode
 from docx import Document
 from docx.shared import Pt
 
+from .documents import evaluation_payload
 from .templates import as_templates, course_slug
-from .word_register import RenderError, convert_to_pdf
+from .word_register import RenderError, convert_to_pdf, find_spot, occupied_areas
 
 
 PLACEHOLDER = "NOMBRETRABAJADOR"
+QR_SIDE = 64
 
 
 def evaluation_template(templates, course):
@@ -65,7 +69,21 @@ def stamp_date(document, text):
     return False
 
 
-def make_evaluations(templates, manifest, workdir):
+def stamp_qr(page, payload):
+    """Print a small signed QR in free space so scanned evaluations identify themselves."""
+    spot = find_spot(page, occupied_areas(page), QR_SIDE, QR_SIDE)
+    if spot is None:
+        return False
+    code = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=2)
+    code.add_data(payload)
+    code.make(fit=True)
+    stream = io.BytesIO()
+    code.make_image(fill_color="black", back_color="white").convert("RGB").save(stream, format="PNG")
+    page.insert_image(spot, stream=stream.getvalue())
+    return True
+
+
+def make_evaluations(templates, manifest, workdir, secret=None):
     """One PDF per crew: for each person, one sheet per selected course they still lack."""
     templates = as_templates(templates)
     work = Path(workdir) / uuid.uuid4().hex
@@ -94,15 +112,20 @@ def make_evaluations(templates, manifest, workdir):
             raise RenderError("No hay evaluaciones disponibles para los cursos y personas seleccionados")
         results = convert_to_pdf([job[2] for job in jobs], work, work)
         output = fitz.open()
-        pages = 0
+        pages, index = 0, []
         for (person, course, _), result in zip(jobs, results):
             with fitz.open(result) as sheet:
+                for page in sheet:
+                    if secret:
+                        stamp_qr(page, evaluation_payload(manifest["id"], len(index), secret))
+                    index.append({"rut": person["rut"], "nombre": person["nombre"],
+                                  "course_id": course["id"], "code": course["code"]})
                 output.insert_pdf(sheet)
                 pages += len(sheet)
         output.set_metadata({"title": "Evaluaciones de la cuadrilla"})
         data = output.tobytes(garbage=3, deflate=True)
         output.close()
-        return data, {"sheets": len(jobs), "pages": pages, "missing_templates": missing}
+        return data, {"sheets": len(jobs), "pages": pages, "missing_templates": missing, "index": index}
     finally:
         shutil.rmtree(work, ignore_errors=True)
 

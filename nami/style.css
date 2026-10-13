@@ -72,4 +72,12 @@ details.legacy>summary{cursor:pointer;font-weight:650;color:var(--green-dark);pa
 .evaluation .hint{margin:4px 0}
 .hint.ok{color:var(--green-dark)}
 .hint.warn{color:#852a27}
-.file-picker{font-size:13px;font-weight:600}
+.file-picker{font-size:13px;font-weight:600}.fields .wide{grid-column:1/-1}
+.mode{display:flex;flex-direction:column;gap:10px}.dropdown{position:relative}
+.dropdown>summary{list-style:none;cursor:pointer;border:1px solid #aebfb3;border-radius:6px;background:white;color:var(--ink);padding:10px 36px 10px 12px;min-height:44px;line-height:1.5;position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dropdown>summary::-webkit-details-marker{display:none}
+.dropdown>summary::after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%)}
+.dropdown[open]>summary::after{content:"▴"}
+.dropdown>summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.dropdown-panel{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:340px;overflow:auto;background:white;border:1px solid #aebfb3;border-radius:8px;padding:12px;box-shadow:0 8px 24px #163b242e}
+.dropdown-panel .crew-list{grid-template-columns:1fr}

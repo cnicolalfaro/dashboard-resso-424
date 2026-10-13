@@ -26,7 +26,8 @@ MARKER = 10
 QR_SIDES = (112, 96)
 COMPACT_ROW = 24.5
 BODY_ELEMENTS = 9
-EXPECTED_LABELS = ((1, 0, "FECHA"), (3, 3, "OBJETIVOS"), (4, 2, "MATERIA"), (8, 0, "PARTICIPANTES"))
+EXPECTED_LABELS = ((0, 0, "NOMBRE RELATOR"), (1, 0, "FECHA"), (3, 3, "OBJETIVOS"), (4, 2, "MATERIA"),
+                   (8, 0, "PARTICIPANTES"))
 BLUE = (0, 0.459, 0.741)
 _converter = threading.BoundedSemaphore(1)
 
@@ -95,6 +96,8 @@ def check_template(info):
 
 def fill_info(info, header):
     check_template(info)
+    if header.get("relator"):
+        set_text(info.cell(0, 6), header["relator"])
     set_text(info.cell(1, 0), f"FECHA: {header['date']}")
     objectives = info.cell(3, 3)
     set_text(objectives, f"OBJETIVOS: {header['objectives']}")
@@ -147,7 +150,8 @@ def fill_people(table, people, first_number):
         # The RUT cell stays blank: each worker writes it by hand when signing. The RUT is kept only in the manifest.
         set_text(cells[2], "", size=8)
         for position, key in ((3, "cargo"), (4, "especialidad")):
-            set_text(cells[position], person.get(key, ""), size=8)
+            value = person.get(key, "")
+            set_text(cells[position], "" if str(value).strip() == "." else value, size=8)
         set_text(cells[5], "")
 
 
@@ -279,7 +283,7 @@ def rows_on_first_page(document):
     return max((table.row_count - 1 for table in tables if table.row_count > 1), default=0)
 
 
-def make_word_document(template, crew, people, courses, date, secret, workdir, objectives):
+def make_word_document(template, crew, people, courses, date, secret, workdir, objectives, relator=""):
     if not people:
         raise RenderError("No hay participantes pendientes en la cuadrilla seleccionada")
     template = Path(template)
@@ -290,7 +294,7 @@ def make_word_document(template, crew, people, courses, date, secret, workdir, o
     try:
         capacity = len(Document(str(template)).tables[1].rows) - 1
         header = {"date": datetime.date.fromisoformat(date).strftime("%d-%m-%Y"),
-                  "objectives": objectives, "foreman": crew.get("foreman", ""),
+                  "objectives": objectives, "foreman": crew.get("foreman", ""), "relator": relator,
                   "foreman_label": "CAPATACES" if crew.get("group") else "CAPATAZ",
                   "foreman_size": 9 if crew.get("group") else 10,
                   "subjects": [course["title"] for course in courses]}
@@ -304,7 +308,7 @@ def make_word_document(template, crew, people, courses, date, secret, workdir, o
             with fitz.open(pdf_path) as document:
                 if len(document) == len(pages):
                     try:
-                        return finish(document, crew, pages, courses, date, secret)
+                        return finish(document, crew, pages, courses, date, secret, relator)
                     except NoRoom:
                         if not compact:
                             next_capacity, next_compact = capacity, True
@@ -319,11 +323,11 @@ def make_word_document(template, crew, people, courses, date, secret, workdir, o
         shutil.rmtree(work, ignore_errors=True)
 
 
-def finish(document, crew, pages, courses, date, secret):
+def finish(document, crew, pages, courses, date, secret, relator=""):
     identifier = str(uuid.uuid4())
-    manifest = {"id": identifier, "version": WORD_VERSION, "date": date, "layout": "word",
+    manifest = {"id": identifier, "version": WORD_VERSION, "date": date, "layout": "word", "relator": relator,
                 "crew": {"id": crew["id"], "name": crew["name"], "foreman": crew.get("foreman", ""),
-                         "group": crew.get("group")},
+                         "group": crew.get("group"), "cargo": crew.get("cargo")},
                 "participants": [dict(person) for page in pages for person in page],
                 "courses": courses, "pages": []}
     for number, (page, people) in enumerate(zip(document, pages), 1):
