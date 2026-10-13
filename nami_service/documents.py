@@ -44,15 +44,20 @@ def qr_payload(record_id, version, page, total, secret):
     return f"{message}:{signature}"
 
 
+def signing_keys(secret):
+    """One key, or several accepted keys (shared QR key + trusted keys of other installations)."""
+    return [secret] if isinstance(secret, str) else [key for key in secret if key]
+
+
 def valid_payload(payload, secret):
     try:
         _, record_id, version, page, total, _ = payload.split(":")
         uuid.UUID(record_id)
         values = int(version), int(page), int(total)
-        expected = qr_payload(record_id, *values, secret)
-        if not hmac.compare_digest(payload.encode(), expected.encode()):
-            return None
-        return record_id, *values
+        for key in signing_keys(secret):
+            if hmac.compare_digest(payload.encode(), qr_payload(record_id, *values, key).encode()):
+                return record_id, *values
+        return None
     except (ValueError, TypeError):
         return None
 
@@ -69,10 +74,12 @@ def valid_evaluation_payload(payload, secret):
         tag, compact, index, _ = payload.split(":")
         record_id = str(uuid.UUID(compact))
         index = int(index)
-        expected = evaluation_payload(record_id, index, secret)
-        if tag != "NAMIE" or not hmac.compare_digest(payload.encode(), expected.encode()):
+        if tag != "NAMIE":
             return None
-        return "evaluation", record_id, index
+        for key in signing_keys(secret):
+            if hmac.compare_digest(payload.encode(), evaluation_payload(record_id, index, key).encode()):
+                return "evaluation", record_id, index
+        return None
     except (ValueError, TypeError):
         return None
 

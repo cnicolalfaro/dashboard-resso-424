@@ -232,6 +232,18 @@ empresa, `dev.env` y cualquier PDF generado contienen datos del contrato o de
 personas: se comparten por un canal privado, nunca con un commit. Este
 repositorio es público.
 
+### Varias instalaciones (otros computadores)
+
+Un escaneo se reconoce en cualquier instalación si todas comparten dos cosas (en `dev.env`):
+
+| Variable | Uso |
+| --- | --- |
+| `NAMI_QR_KEY` | Clave con que se firman los QR de registros y evaluaciones. **La misma en todas las instalaciones** (mínimo 32 caracteres); se comparte por un canal privado. Sin ella se usa `NAMI_SECRET_KEY`, como antes. |
+| `NAMI_QR_TRUSTED_KEYS` | Claves antiguas aceptadas solo para validar (separadas por coma): la `NAMI_SECRET_KEY` de una instalación que ya imprimió documentos antes de usar `NAMI_QR_KEY`. |
+| `NAMI_SHARED_DIR` | Carpeta común (p. ej. sincronizada con OneDrive de la empresa). Cada instalación publica ahí los registros que genera (`<id>.json` y sus PDF) e incorpora los de las demás al arrancar, al generar y antes de procesar un escaneo. Nunca reemplaza ni borra un registro existente. Debe estar fuera del repositorio, del sitio publicado y de `NAMI_DATA_DIR`. |
+
+Contiene nombres y RUT de las cuadrillas: usar solo una carpeta con acceso restringido al equipo HSEC.
+
 ### HTTPS local y archivos publicados
 
 Caddy genera una autoridad de certificación **local** e intenta instalar su

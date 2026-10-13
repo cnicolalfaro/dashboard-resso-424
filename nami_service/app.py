@@ -22,6 +22,7 @@ from .certificates import build_certificates, deliver_certificates
 from . import workflow
 from .documents import make_document
 from .scanning import process_scan
+from .shared import shared_dir, sync_records
 from .storage import connect, initialize, load_manifests, private_root, transaction, write_private
 
 
@@ -53,6 +54,14 @@ def create_app(config=None):
     parts = urlsplit(origin)
     if len(secret) < 32 or not username or len(username) > 100:
         raise ValueError("Configure a strong NAMI_SECRET_KEY and NAMI_USERNAME")
+    # QR documents are signed with a key shared by every installation (NAMI_QR_KEY) so a scan is
+    # recognised on any computer; older documents signed with another installation's key are accepted
+    # through NAMI_QR_TRUSTED_KEYS. Without NAMI_QR_KEY the session secret keeps signing, as before.
+    qr_key = options.get("NAMI_QR_KEY") or secret
+    if len(qr_key) < 32:
+        raise ValueError("NAMI_QR_KEY must have at least 32 characters")
+    trusted = [key.strip() for key in options.get("NAMI_QR_TRUSTED_KEYS", "").split(",") if len(key.strip()) >= 32]
+    qr_keys = list(dict.fromkeys([qr_key, *trusted, secret]))
     if not password_hash.startswith(("scrypt:", "pbkdf2:")):
         raise ValueError("NAMI_PASSWORD_HASH must be a Werkzeug password hash")
     if (parts.scheme not in {"http", "https"} or not parts.netloc or parts.path or
@@ -73,6 +82,8 @@ def create_app(config=None):
         raise ValueError("TARJA cannot be in a publication directory")
     catalog = load_catalog(root, str(tarja), options.get("NAMI_TARJA_SHEET", "TARJA"))
     initialize(root)
+    shared = shared_dir(options.get("NAMI_SHARED_DIR"), root, options.get("NAMI_PUBLIC_ROOT"))
+    sync_records(root, shared)
     with closing(connect(root)) as db:
         db.execute("""CREATE TABLE IF NOT EXISTS login_failures (
             address TEXT NOT NULL, occurred REAL NOT NULL
@@ -223,7 +234,7 @@ def create_app(config=None):
         except ValueError:
             abort(400)
         try:
-            manifest, pdf = make_document(crew, courses, date, secret)
+            manifest, pdf = make_document(crew, courses, date, qr_key)
         except ValueError:
             abort(400)
         if len(manifest["pages"]) > 25:
@@ -237,6 +248,7 @@ def create_app(config=None):
         except BaseException:
             path.unlink(missing_ok=True)
             raise
+        sync_records(root, shared)
         return jsonify(id=manifest["id"], pages=len(manifest["pages"]),
                        participants=manifest["participants"], courses=courses,
                        pdf_url=f'{PREFIX}/records/{manifest["id"]}/pdf'), 201
@@ -288,7 +300,8 @@ def create_app(config=None):
             path = root / "scans" / f"{scan_id}.pdf"
             write_private(path, data)
             try:
-                pages = process_scan(root, scan_id, path, load_manifests(root), secret)
+                sync_records(root, shared)
+                pages = process_scan(root, scan_id, path, load_manifests(root), qr_keys)
             except ValueError:
                 abort(422)
             with transaction(root) as db:
@@ -440,5 +453,6 @@ def create_app(config=None):
             db.close()
 
     app.extensions["nami_workspace"] = workflow.register(
-        app, root, secret, protected, username, PREFIX, options.get("NAMI_TARJA_SHEET", "TARJA"))
+        app, root, qr_key, protected, username, PREFIX, options.get("NAMI_TARJA_SHEET", "TARJA"),
+        lambda: sync_records(root, shared))
     return app

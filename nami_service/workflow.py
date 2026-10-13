@@ -144,7 +144,7 @@ def request_parameters(value):
     return codes, valid_date(value.get("date")), objectives.strip(), relator
 
 
-def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA"):
+def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA", publish=lambda: None):
     for name in ("sources", "work", "templates"):
         (root / name).mkdir(mode=0o700, exist_ok=True)
     with closing(connect(root)) as db:
@@ -184,6 +184,7 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
             for item in written:
                 item.unlink(missing_ok=True)
             raise
+        publish()  # carpeta compartida: el registro queda disponible para las otras instalaciones
         return manifest
 
     def record_summary(identifier, manifest, created):
@@ -390,8 +391,10 @@ def register(app, root, secret, protected, username, prefix, roster_sheet="TARJA
         if not row:
             abort(404)
         manifest = json.loads(row["manifest"])
+        if not (root / "records" / row["pdf"]).is_file():
+            abort(404)  # registro importado de otra instalación sin su PDF en la carpeta compartida
         parts = [(root / "records" / row["pdf"]).read_bytes()]
-        if manifest.get("evaluations_pdf"):
+        if manifest.get("evaluations_pdf") and (root / "records" / manifest["evaluations_pdf"]).is_file():
             parts.append((root / "records" / manifest["evaluations_pdf"]).read_bytes())
         return merge_pdfs(*parts), manifest
 
