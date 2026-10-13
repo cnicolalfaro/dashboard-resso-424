@@ -105,6 +105,11 @@ async function main() {
   }
 
   data.avanceResso = loadSnapshot();
+  // Fechas visibles: "Actualizado" del encabezado (dd/mm/aaaa hh:mm) y "Generado" de la matriz (aaaa-mm-dd hh:mm).
+  const now = new Date(), p2 = (n) => String(n).padStart(2, "0");
+  const hhmm = `${p2(now.getHours())}:${p2(now.getMinutes())}`;
+  data.generatedAt = `${p2(now.getDate())}/${p2(now.getMonth() + 1)}/${now.getFullYear()} ${hhmm}`;
+  data.avanceResso.generado = `${now.getFullYear()}-${p2(now.getMonth() + 1)}-${p2(now.getDate())} ${hhmm}`;
   const encoded = await encrypt(password, data);
   writeFileSync(ENC_PATH, (header || "") + `window.ENCRYPTED_DATA = "${encoded}";\n`, "utf8");
   // Verificación: debe poder descifrarse con la misma contraseña.

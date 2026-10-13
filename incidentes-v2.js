@@ -202,10 +202,9 @@
     const text = clean(value);
     if (/^cerrado$/i.test(text)) return "CERRADO";
     if (/^abierto$/i.test(text)) return "ABIERTO";
-    if (/^(n\/?a|no aplica)$/i.test(text)) return "NO APLICA";
-    if (/^falta turno b$/i.test(text)) return "FALTA TURNO B";
-    if (/^no existe en sharepoint ni carpeta fisica$/i.test(text)) return "NO EXISTE EN SHAREPOINT NI CARPETA FÍSICA";
-    return text;
+    if (/^(n\/?a|no aplica)$/i.test(text)) return "CERRADO"; // "No aplica" en estatus = cerrada
+    if (/cerrad/i.test(text)) return "CERRADO";
+    return text ? "ABIERTO" : ""; // vacío se resuelve después (puede heredar CERRADO por "sin informe final")
   }
   function normalizeVerification(value) {
     const text = clean(value);
@@ -219,9 +218,10 @@
     const dateText = text.replace(/[?]+$/g, "");
     return { date: isoToDisplay(dateText), note: dateText !== text ? text : "" };
   }
-  const isClosed = (measure) => norm(measure.estatus).includes("cerrad");
+  // Regla del contrato: CERRADO o NO APLICA = cerrada; cualquier otro estatus (incluso vacío) = abierta.
   const isNA = (measure) => { const status = norm(measure.estatus); return status === "n/a" || status === "na" || status.includes("no aplica"); };
-  const isPending = (measure) => { const status = norm(measure.estatus); return status.includes("abiert") || status.includes("pendient") || status.includes("proceso"); };
+  const isClosed = (measure) => norm(measure.estatus).includes("cerrad") || isNA(measure);
+  const isPending = (measure) => !isClosed(measure);
   const hasFinalReportGap = (incident) => incident.medidas.some((measure) => norm([measure.medida, measure.responsable, measure.fechaCierreNota].join(" ")).includes("sin informe final"));
   function measureDueInfo(measure) {
     const due = parseDate(measure.fechaCierre);
@@ -230,7 +230,7 @@
   }
   function incidentStatus(incident) {
     if (hasFinalReportGap(incident)) return "pending";
-    if (!incident.medidas.length || incident.medidas.some((measure) => isPending(measure) || isNA(measure))) return "pending";
+    if (!incident.medidas.length || incident.medidas.some(isPending)) return "pending";
     if (incident.medidas.length && incident.medidas.every(isClosed)) return "closed";
     return "none";
   }
@@ -267,7 +267,7 @@
       if (!measure.fechaCierre) measure.fechaCierre = closedTemplate.fechaCierre;
       if (!measure.responsable) measure.responsable = closedTemplate.responsable;
     });
-    normalized.medidas.forEach((measure) => { measure.fechaCierre = fixCloseYearIfClearlyMistyped(normalized.fecha, measure.fechaCierre); });
+    normalized.medidas.forEach((measure) => { measure.fechaCierre = fixCloseYearIfClearlyMistyped(normalized.fecha, measure.fechaCierre); if (!measure.estatus) measure.estatus = "ABIERTO"; });
     if (!normalized.fechaCierreGeneral && incidentStatus(normalized) === "closed") normalized.fechaCierreGeneral = latestClose(normalized);
     return normalized;
   }
@@ -774,7 +774,6 @@
   }
   function measureDueText(measure) {
     if (isClosed(measure)) return { status: "Cerrado", date: measure.fechaCierre || "Sin fecha", condition: "Cerrada", risk: "closed" };
-    if (isNA(measure)) return { status: "Abierto", date: measure.fechaCierre || measure.fechaCierreNota || "No aplica", condition: "Vencida", risk: "overdue" };
     const due = measureDueInfo(measure);
     if (due.days == null) return { status: "Abierto", date: measure.fechaCierre || measure.fechaCierreNota || "Sin fecha", condition: "Vencida", risk: "overdue" };
     if (due.days < 0) return { status: "Abierto", date: measure.fechaCierre, condition: "Vencida", risk: "overdue" };

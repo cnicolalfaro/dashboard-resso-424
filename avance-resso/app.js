@@ -3,12 +3,39 @@
 
   let rendered = false;
 
+  // "Por ingresar" (contrato futuro en la tarja): pasan a vigentes el día de su contrato, sin volver a cifrar.
+  // Si alguno se activa, se recalcula igual que avance-resso/recalc.py.
+  function activateDueEntries(DATA) {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    let activated = 0;
+    DATA.personas.forEach(p => {
+      if (p.estado === 'por_ingresar' && p.ingreso && p.ingreso <= today) {
+        delete p.estado;
+        activated++;
+      }
+    });
+    if (!activated) return;
+    const docs = DATA.documentos;
+    const active = DATA.personas.filter(p => !p.estado);
+    const total = active.length;
+    docs.forEach((doc, i) => {
+      if (doc.calculo !== 'dotacion') return;
+      doc.aprobados = active.filter(p => p.aprob[i] === '1').length;
+      doc.avance_pct = total ? Math.round(1000 * doc.aprobados / total) / 10 : 0;
+    });
+    DATA.total_dotacion_activa = total;
+    DATA.total_no_vigentes = DATA.personas.length - total;
+    DATA.avance_promedio_pct = Math.round(10 * docs.reduce((s, d) => s + d.avance_pct, 0) / docs.length) / 10;
+  }
+
   function render(DATA) {
   if (rendered || !DATA || !Array.isArray(DATA.documentos) || !Array.isArray(DATA.personas)) return;
   rendered = true;
   document.body.classList.add("is-ready");
   const docs = DATA.documentos;
-  // Personas vigentes (cuentan en KPI y %); los finiquitados / fuera de tarja solo se ven en la matriz.
+  activateDueEntries(DATA);
+  // Personas vigentes (cuentan en KPI y %); los finiquitados / fuera de tarja / por ingresar solo se ven en la matriz.
   const allPeople = DATA.personas;
   const people = allPeople.filter(p => !p.estado);
   const nDocs = docs.length;
@@ -125,6 +152,22 @@
     const file = links && links.folder && qrBase && qrDocOrderOk && links.docs && links.docs[docIndex];
     return file
       ? { url: safeSharePointUrl(`https://empresassk.sharepoint.com/${encodePath(qrBase + '/' + links.folder + '/' + file)}?web=1`), level: 'qr' }
+      : fisicoLinkFor(person, docIndex);
+  }
+
+  // Certificados físicos (evaluaciones en papel escaneadas; import_qr_links.py --key fisicoLinks).
+  // Se enlazan cuando no hay certificado NAMI ni QR. Misma estructura que qrLinks.
+  const fisicoBase = DATA.fisicoLinks && DATA.fisicoLinks.base ? String(DATA.fisicoLinks.base) : '';
+  const fisicoPeople = DATA.fisicoLinks && DATA.fisicoLinks.people ? DATA.fisicoLinks.people : {};
+  const fisicoDocOrderOk = Boolean(DATA.fisicoLinks) && Array.isArray(DATA.fisicoLinks.docOrder) &&
+    DATA.fisicoLinks.docOrder.length === docs.length &&
+    DATA.fisicoLinks.docOrder.every((title, i) => title === docs[i].titulo);
+
+  function fisicoLinkFor(person, docIndex) {
+    const links = fisicoPeople[normalizeRut(person.rut)];
+    const file = links && links.folder && fisicoBase && fisicoDocOrderOk && links.docs && links.docs[docIndex];
+    return file
+      ? { url: safeSharePointUrl(`https://empresassk.sharepoint.com/${encodePath(fisicoBase + '/' + links.folder + '/' + file)}?web=1`), level: 'fisico' }
       : { url: '', level: '' };
   }
 
@@ -481,6 +524,7 @@
   const LINK_LABELS = {
     doc: 'Abrir certificado NAMI de este curso',
     qr: 'Abrir certificado QR (Microsoft Forms) de este curso',
+    fisico: 'Abrir certificado físico (evaluación en papel escaneada) de este curso',
   };
 
   function matrixCell(person, docIndex) {
@@ -488,7 +532,7 @@
     if (person.aprob[docIndex] !== '1') {
       if (link.url) {
         // Certificado (NAMI o QR) más nuevo que la fuente de avance de este snapshot.
-        const label = `Certificado ${link.level === 'qr' ? 'QR' : 'NAMI'} encontrado · aún no figura aprobado en la fuente de avance`;
+        const label = `Certificado ${link.level === 'qr' ? 'QR' : link.level === 'fisico' ? 'físico' : 'NAMI'} encontrado · aún no figura aprobado en la fuente de avance`;
         return `<td class="matrix-status nami-only linked level-${link.level}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
       }
       return '<td class="matrix-status pending" title="Pendiente"><span>·</span></td>';
@@ -496,11 +540,14 @@
     const rut = normalizeRut(person.rut);
     const namiAdded = DATA.namiLinks && DATA.namiLinks.added && DATA.namiLinks.added[rut];
     const viaNami = Boolean(namiAdded) && namiAdded.split(',').includes(String(docIndex));
+    const fisicoAdded = DATA.fisicoLinks && DATA.fisicoLinks.added && DATA.fisicoLinks.added[rut];
+    const viaFisico = Boolean(fisicoAdded) && fisicoAdded.split(',').includes(String(docIndex));
     const maestraCells = DATA.maestraAdded && DATA.maestraAdded[rut];
     const maestraDate = maestraCells && Object.prototype.hasOwnProperty.call(maestraCells, docIndex) ? maestraCells[docIndex] : null;
     const maestraSeen = DATA.maestraSeen && DATA.maestraSeen[rut] && DATA.maestraSeen[rut][docIndex] === '1';
     const evidence = [];
     if (viaNami) evidence.push('aprobado por certificado NAMI');
+    if (viaFisico) evidence.push('aprobado por certificado físico');
     if (maestraDate !== null) evidence.push(`aprobado por registro en Maestra de Capacitación${maestraDate ? ' (' + maestraDate.split('-').reverse().join('-') + ')' : ''}`);
     else if (maestraSeen) evidence.push('existe registro en Maestra de Capacitación');
     const origin = evidence.length ? ' · ' + evidence.join(' · ') : '';
@@ -523,6 +570,10 @@
 
   function inactiveBadge(person) {
     if (!person.estado) return '';
+    if (person.estado === 'por_ingresar') {
+      const fecha = person.ingreso ? person.ingreso.split('-').reverse().slice(0, 2).join('-') : '';
+      return `<em class="status-badge is-upcoming" title="Contrato desde ${esc(person.ingreso || '')} · cuenta en el avance desde esa fecha">Ingresa ${fecha}</em>`;
+    }
     if (person.estado === 'finiquitado') {
       const fecha = person.baja ? person.baja.split('-').reverse().join('-') : '';
       return `<em class="status-badge" title="Finiquitado${fecha ? ' el ' + fecha : ''}${person.motivo_baja ? ' · ' + esc(person.motivo_baja) : ''} · no cuenta en el avance">Finiquitado${fecha ? ' ' + fecha : ''}</em>`;
@@ -530,7 +581,7 @@
     return '<em class="status-badge" title="No figura en la tarja vigente · no cuenta en el avance">Fuera de tarja</em>';
   }
 
-  function renderMatrix() {
+  function matrixSelection() {
     const category = document.getElementById('matrixCategoryFilter').value;
     const docIndexes = docs.map((_, index) => index).filter(index => !category ||
       (category === 'NAMI' ? namiCourseSet.has(index) : category === 'NONAMI' ? !namiCourseSet.has(index) : categorize(docs[index].titulo) === category));
@@ -538,6 +589,12 @@
     const rows = filteredPeople(allPeople)
       .filter(person => status === 'all' || (status === 'inactive' ? person.estado : !person.estado))
       .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    return { docIndexes, rows };
+  }
+
+  function renderMatrix() {
+    const { docIndexes, rows } = matrixSelection();
+    document.getElementById('matrixExportBtn').textContent = `Exportar a Excel (${rows.length})`;
     const inactiveCount = rows.filter(person => person.estado).length;
     const totalPages = Math.max(1, Math.ceil(rows.length / MATRIX_PAGE_SIZE));
     matrixPage = Math.min(matrixPage, totalPages);
@@ -562,7 +619,8 @@
     document.getElementById('matrixNamiNote').textContent = (DATA.namiLinks
       ? `${withFolder} de ${rows.length} trabajadores con carpeta NAMI · enlaces al ${DATA.namiLinks.updatedAt || 'sin fecha'}`
       : 'Sin enlaces NAMI cargados en este snapshot.') +
-      (DATA.qrLinks ? ` · ${withQr} con certificados QR al ${DATA.qrLinks.updatedAt || 'sin fecha'}` : '');
+      (DATA.qrLinks ? ` · ${withQr} con certificados QR al ${DATA.qrLinks.updatedAt || 'sin fecha'}` : '') +
+      (DATA.fisicoLinks ? ` · ${rows.filter(person => fisicoPeople[normalizeRut(person.rut)]).length} con certificados físicos al ${DATA.fisicoLinks.updatedAt || 'sin fecha'}` : '');
     document.getElementById('matrixPageInfo').textContent = `Página ${matrixPage} de ${totalPages}`;
     document.getElementById('matrixPrev').disabled = matrixPage <= 1;
     document.getElementById('matrixNext').disabled = matrixPage >= totalPages;
@@ -587,6 +645,75 @@
     renderPeople();
   }
 
+  // ---------- Exportar matriz a Excel (export-matriz.js) ----------
+  function exportCell(person, docIndex) {
+    const link = namiLinkFor(person, docIndex);
+    if (person.aprob[docIndex] !== '1') return link.url ? { state: 'cert', url: link.url, aprobado: false } : { state: 'pend', aprobado: false };
+    if (!link.url) return { state: 'otra', aprobado: true };
+    return { state: link.level === 'qr' || link.level === 'fisico' ? link.level : 'nami', url: link.url, aprobado: true };
+  }
+
+  function exportStatus(person) {
+    const dmy = iso => (iso ? iso.split('-').reverse().join('-') : '');
+    if (!person.estado) return 'Vigente';
+    if (person.estado === 'por_ingresar') return `Ingresa ${dmy(person.ingreso)}`.trim();
+    if (person.estado === 'finiquitado') return `Finiquitado ${dmy(person.baja)}`.trim();
+    return 'Fuera de tarja';
+  }
+
+  async function exportMatrixExcel() {
+    const button = document.getElementById('matrixExportBtn');
+    const { docIndexes, rows } = matrixSelection();
+    const familyOrder = ['RF', 'RIM', 'MA', 'IRL'];
+    const ordered = docIndexes.slice().sort((a, b) =>
+      familyOrder.indexOf(categorize(docs[a].titulo)) - familyOrder.indexOf(categorize(docs[b].titulo)) ||
+      courseCode(docs[a], a).localeCompare(courseCode(docs[b], b), 'es', { numeric: true }));
+    const courses = ordered.map(index => {
+      const family = categorize(docs[index].titulo);
+      return {
+        code: courseCode(docs[index], index), title: docs[index].titulo, family, familyLabel: CATEGORIES[family].label,
+        fuentes: (docs[index].fuentes || []).join(' + '),
+        namiCode: namiDocOrderOk && DATA.namiLinks && DATA.namiLinks.codes ? DATA.namiLinks.codes[index] || '' : '',
+      };
+    });
+    const people = rows.map(person => {
+      const cells = ordered.map(index => exportCell(person, index));
+      const aprobados = cells.filter(cell => cell.aprobado).length;
+      return {
+        rut: person.rut, nombre: titleCase(person.nombre), cargo: titleCase(person.especialidad),
+        vigente: !person.estado, estadoTexto: exportStatus(person), cells, aprobados,
+        avance: courses.length ? aprobados / courses.length : 0,
+      };
+    });
+    const optionText = id => { const el = document.getElementById(id); return el.options[el.selectedIndex].text; };
+    const filters = [optionText('matrixCategoryFilter'), optionText('matrixStatusFilter')];
+    if (cargoSelect.value) filters.push(`Cargo: ${titleCase(cargoSelect.value)}`);
+    const query = document.getElementById('searchBox').value.trim();
+    if (query) filters.push(`Búsqueda: "${query}"`);
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const vigentes = people.filter(p => p.vigente).length;
+    const model = {
+      title: 'Matriz trabajador × curso · Avance RESSO SKIC 424',
+      subtitle: `Datos al ${DATA.generado} · exportado el ${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())} · ` +
+        `${people.length} trabajadores (${vigentes} vigentes) · ${courses.length} cursos · Filtros: ${filters.join(' · ')}`,
+      fileName: `Matriz_RESSO_424_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.xlsx`,
+      courses, people,
+    };
+    const label = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Generando Excel…';
+    try {
+      await window.AvanceExport.exportMatrix(model);
+    } catch (error) {
+      alert(`No se pudo generar el Excel: ${error.message}`);
+    } finally {
+      button.disabled = false;
+      button.textContent = label;
+    }
+  }
+
+  document.getElementById('matrixExportBtn').addEventListener('click', exportMatrixExcel);
   document.getElementById('summaryViewBtn').addEventListener('click', () => setPeopleView('summary'));
   document.getElementById('matrixViewBtn').addEventListener('click', () => setPeopleView('matrix'));
   document.getElementById('matrixCategoryFilter').addEventListener('change', resetMatrixAndRender);
