@@ -10,6 +10,7 @@ import unittest
 import uuid
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pymupdf as fitz
 from docx import Document
@@ -398,6 +399,18 @@ class PlanillasTests(unittest.TestCase):
             read_matrix(empty)
         with self.assertRaises(ValueError):
             read_crews(empty, self.people, self.known)
+
+
+class ColorScanTests(unittest.TestCase):
+    def test_color_cast_is_a_color_scan_and_pure_gray_is_not(self):
+        import numpy as np
+        from .scanning import scan_has_color
+        paper = np.full((200, 200, 3), (238, 240, 244), np.uint8)
+        self.assertTrue(scan_has_color(paper))
+        self.assertFalse(scan_has_color(np.full((200, 200, 3), 240, np.uint8)))
+        noisy = np.full((200, 200, 3), 240, np.uint8)
+        noisy[:1, :3] = (200, 220, 240)
+        self.assertFalse(scan_has_color(noisy))
 
 
 class EvaluationMatchTests(unittest.TestCase):
@@ -887,6 +900,78 @@ class WorkflowTests(unittest.TestCase):
         result = scanning.analyze(self.root, "printed", path, {record_id: manifest}, SECRET)
         self.assertEqual(result[0]["record_id"], record_id, result)
         self.assertEqual((result[0]["evaluation"]["code"], result[0]["evaluation"]["method"]), ("RF-02", "texto"))
+
+    @unittest.skipUnless(LIBREOFFICE, "LibreOffice requerido")
+    def test_certificates_zip_is_by_date_then_person_with_evaluation_and_register_copy(self):
+        self.upload_all()
+        response = self.post("/records/word", {"crew_id": "1", "date": "2026-10-12", "courses": ["RF-01", "RF-02"]})
+        bundle = self.client.get(response.json["bundle_url"]).data
+        db = connect(self.root)
+        try:
+            manifest = json.loads(db.execute("SELECT manifest FROM records").fetchone()[0])
+        finally:
+            db.close()
+        scan = self.client.post("/api/nami/scans", data={"file": (io.BytesIO(bundle), "scan.pdf")},
+                                headers=self.headers(), content_type="multipart/form-data")
+        self.assertEqual(scan.status_code, 201, scan.json)
+        self.assertEqual(self.client.get("/api/nami/certificates").status_code, 404)
+        decisions = [{"row_id": row["id"], "status": "FIRMO"} for page in scan.json["pages"] for row in page["rows"]]
+        self.assertEqual(self.post(f'/scans/{scan.json["id"]}/confirm', {"decisions": decisions}).status_code, 200)
+        archive = self.client.get(f'/api/nami/certificates?scan={scan.json["id"]}')
+        self.assertEqual(archive.status_code, 200)
+        expected = {f'12-10-2026/{re.sub("[^A-Z0-9]+", "_", entry["nombre"])}_{re.sub("[^0-9K]", "", entry["rut"])}/'
+                    f'Riesgos_de_Fatalidad/{re.sub("[^0-9K]", "", entry["rut"])}_{entry["code"]}.pdf'
+                    for entry in manifest["evaluation_pages"]}
+        with zipfile.ZipFile(io.BytesIO(archive.data)) as zipped:
+            self.assertEqual(set(zipped.namelist()), expected)
+            for name in zipped.namelist():
+                with fitz.open(stream=zipped.read(name), filetype="pdf") as certificate:
+                    self.assertEqual(len(certificate), 2, name)
+                    self.assertIn("EVALUACI", certificate[0].get_text().upper())
+                    self.assertIn("PARTICIPANTES", certificate[1].get_text().upper())
+        self.assertEqual(self.client.get("/api/nami/certificates?date=2026-10-12").status_code, 200)
+        self.assertEqual(self.client.get("/api/nami/certificates?date=2026-10-13").status_code, 404)
+        self.assertEqual(self.client.get("/api/nami/certificates?date=nope").status_code, 400)
+        self.assertEqual(self.app.test_client().get("/api/nami/certificates").status_code, 401)
+
+    @unittest.skipUnless(LIBREOFFICE, "LibreOffice requerido")
+    def test_delivery_adds_only_missing_certificates_and_reuses_existing_worker_folders(self):
+        destination = Path(tempfile.mkdtemp(prefix="nami-certificados-"))
+        self.addCleanup(shutil.rmtree, destination, True)
+        self.assertEqual(self.post("/certificates/deliver", {}).status_code, 409)
+        with patch.dict(os.environ, {"NAMI_CERTIFICATES_DIR": str(destination)}):
+            app, root = self.make_app()
+        self.app, self.root, self.client = app, root, self.login(app)
+        self.upload_all()
+        response = self.post("/records/word", {"crew_id": "1", "date": "2026-10-12", "courses": ["RF-01", "RF-02"]})
+        bundle = self.client.get(response.json["bundle_url"]).data
+        db = connect(self.root)
+        try:
+            manifest = json.loads(db.execute("SELECT manifest FROM records").fetchone()[0])
+        finally:
+            db.close()
+        scan = self.client.post("/api/nami/scans", data={"file": (io.BytesIO(bundle), "scan.pdf")},
+                                headers=self.headers(), content_type="multipart/form-data")
+        decisions = [{"row_id": row["id"], "status": "FIRMO"} for page in scan.json["pages"] for row in page["rows"]]
+        self.assertEqual(self.post(f'/scans/{scan.json["id"]}/confirm', {"decisions": decisions}).status_code, 200)
+        entries = manifest["evaluation_pages"]
+        first = entries[0]
+        rut = re.sub("[^0-9K]", "", first["rut"])
+        kept = destination / f"NOMBRE_ANTIGUO_{rut}" / "Riesgos_de_Fatalidad" / f'{rut}_{first["code"]}.pdf'
+        kept.parent.mkdir(parents=True)
+        kept.write_bytes(b"ORIGINAL")
+        delivered = self.post("/certificates/deliver", {"scan": scan.json["id"]})
+        self.assertEqual(delivered.status_code, 200, delivered.json)
+        self.assertEqual((delivered.json["added"], delivered.json["existing"], delivered.json["failed"]),
+                         (len(entries) - 1, 1, 0))
+        self.assertEqual(kept.read_bytes(), b"ORIGINAL")
+        self.assertFalse(any(path.name.startswith(re.sub("[^A-Z0-9]+", "_", first["nombre"])) for path in destination.iterdir()))
+        for entry in entries[1:]:
+            number = re.sub("[^0-9K]", "", entry["rut"])
+            produced = [path for path in destination.glob(f"*_{number}/Riesgos_de_Fatalidad/{number}_{entry['code']}.pdf")]
+            self.assertEqual(len(produced), 1)
+        again = self.post("/certificates/deliver", {"scan": scan.json["id"]})
+        self.assertEqual((again.json["added"], again.json["existing"]), (0, len(entries)))
 
     @unittest.skipUnless(LIBREOFFICE, "LibreOffice requerido")
     def test_night_crew_flags_people_missing_from_the_matrix_and_rejects_bad_requests(self):

@@ -97,7 +97,7 @@
       <section id="upload" class="card" aria-labelledby="uploadTitle">
         <h2 id="uploadTitle"><span class="step">2</span> Subir PDF escaneado</h2>
         <p>Imprime el registro, recoge las firmas y escanea todas las páginas en un único PDF.</p>
-        <div class="notice red-mark"><strong>Marca roja RUT → FIRMA:</strong> conserva esta referencia visible y escanea en color, sin cortar los bordes. Revisa cada recorte: una sugerencia automática no es una decisión.</div>
+        <div class="notice red-mark"><strong>Marca roja RUT → FIRMA:</strong> conserva esta referencia visible y escanea en color, sin cortar los bordes. Sin raya roja se entiende que la persona firmó. Si todo el escaneo es claro se confirma solo; si hay filas dudosas, decides solo esas y confirmas.</div>
         <form id="scanForm">
           <label>Archivo PDF (registro generado por NAMI)<input id="scanFile" type="file" accept=".pdf,application/pdf" required></label>
           <p class="hint">También puedes subir un registro NAMI generado anteriormente. Las páginas sin identificación impiden confirmar.</p>
@@ -117,7 +117,7 @@
         <div id="confirmation" class="notice" role="status" hidden></div>
       </section>
       <section class="card" aria-labelledby="historyTitle">
-        <div class="heading"><h2 id="historyTitle">Historial por persona y curso</h2><span class="actions"><a id="exportExcel" class="download" href="/api/nami/results/export.xlsx" hidden>Exportar Excel de difusión</a><button id="refreshHistory" type="button">Actualizar historial</button></span></div>
+        <div class="heading"><h2 id="historyTitle">Historial por persona y curso</h2><span class="actions"><label class="hint" for="certDate">Certificados de la fecha</label><input id="certDate" type="date" hidden><a id="exportCerts" class="download" href="/api/nami/certificates" hidden>Descargar certificados (ZIP)</a><button id="deliverCerts" type="button" hidden>Guardar certificados en CERTIFICADOS NAMI</button><a id="exportExcel" class="download" href="/api/nami/results/export.xlsx" hidden>Exportar Excel de difusión</a><button id="refreshHistory" type="button">Actualizar historial</button></span></div>
         <p class="hint">Estados de firma de difusión, no resultados de evaluación. El Excel no modifica la matriz ni Avance RESSO.</p>
         <div id="history" class="table-scroll"></div>
       </section>

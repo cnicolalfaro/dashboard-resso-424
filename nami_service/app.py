@@ -18,6 +18,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash
 
 from .catalog import load_catalog
+from .certificates import build_certificates, deliver_certificates
 from . import workflow
 from .documents import make_document
 from .scanning import process_scan
@@ -26,6 +27,7 @@ from .storage import connect, initialize, load_manifests, private_root, transact
 
 PREFIX = "/api/nami"
 MAX_UPLOAD = 20 * 1024 * 1024
+MAX_SCAN_UPLOAD = 150 * 1024 * 1024
 PERMISSIONS = {
     "operator": {"read", "create", "confirm"},
     "registrar": {"read", "create"},
@@ -267,11 +269,12 @@ def create_app(config=None):
             abort(429)
         scan_id, path = None, None
         try:
+            request.max_content_length = MAX_SCAN_UPLOAD
             if request.mimetype != "multipart/form-data" or len(request.files) != 1 or "file" not in request.files:
                 abort(400)
             upload = request.files["file"]
-            data = upload.stream.read(MAX_UPLOAD + 1)
-            if not data or len(data) > MAX_UPLOAD or not data.startswith(b"%PDF-"):
+            data = upload.stream.read(MAX_SCAN_UPLOAD + 1)
+            if not data or len(data) > MAX_SCAN_UPLOAD or not data.startswith(b"%PDF-"):
                 abort(400)
             digest = hashlib.sha256(data).hexdigest()
             db = connect(root)
@@ -378,6 +381,54 @@ def create_app(config=None):
                                (identifier, row_id, record_id, row["rut"], course["id"], status, username))
             db.execute("UPDATE scans SET confirmed=1,decisions=? WHERE id=?", (canonical, identifier))
             return jsonify(confirmed=True, duplicate=False, results=result_rows(db, identifier))
+
+    @app.get(PREFIX + "/certificates")
+    @protected("read")
+    def certificates():
+        date, scan_id = request.args.get("date"), request.args.get("scan")
+        try:
+            if date:
+                datetime.date.fromisoformat(date)
+            if scan_id:
+                uuid.UUID(scan_id)
+        except ValueError:
+            abort(400)
+        db = connect(root)
+        try:
+            archive, count, omitted = build_certificates(root, db, date, scan_id)
+        finally:
+            db.close()
+        if archive is None:
+            return jsonify(error="No hay evaluaciones identificadas con registro firmado y confirmado",
+                           omitted=len(omitted)), 404
+        name = f"certificados-{date}.zip" if date else "certificados.zip"
+        return send_file(archive, mimetype="application/zip", as_attachment=True, download_name=name,
+                         conditional=False)
+
+    @app.post(PREFIX + "/certificates/deliver")
+    @protected("confirm")
+    def deliver():
+        value = body()
+        date, scan_id = value.get("date"), value.get("scan")
+        try:
+            if date:
+                datetime.date.fromisoformat(date)
+            if scan_id:
+                uuid.UUID(scan_id)
+        except (TypeError, ValueError):
+            abort(400)
+        raw = options.get("NAMI_CERTIFICATES_DIR", "")
+        destination = Path(raw) if raw else None
+        if destination is None or not destination.is_absolute() or not destination.is_dir():
+            return jsonify(error="Falta configurar NAMI_CERTIFICATES_DIR con la carpeta CERTIFICADOS NAMI"), 409
+        if repository == destination.resolve() or repository in destination.resolve().parents:
+            return jsonify(error="La carpeta de certificados no puede estar dentro del repositorio"), 409
+        db = connect(root)
+        try:
+            result = deliver_certificates(root, db, destination, date, scan_id)
+        finally:
+            db.close()
+        return jsonify(result)
 
     @app.get(PREFIX + "/results")
     @protected("read")

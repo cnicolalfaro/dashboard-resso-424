@@ -13,10 +13,11 @@ from .evaluation_scan import find_person, read_evaluation, crops, tesseract_path
 from .storage import write_private
 
 
-MAX_PAGES = 25
+MAX_PAGES = 150
 MAX_PIXELS = 12_000_000
+MAX_TOTAL_PIXELS = 400_000_000
 RASTER_DPI = 150
-SCAN_SECONDS = 120
+SCAN_SECONDS = 900
 WORKER_MEMORY_BYTES = 2 * 1024 * 1024 * 1024
 SCALE = RASTER_DPI / 72
 
@@ -116,6 +117,12 @@ def color_present(image, box):
     return np.mean((hsv[:, :, 1] > 80) & (hsv[:, :, 0] > 85) & (hsv[:, :, 0] < 125)) > 0.65
 
 
+def scan_has_color(image):
+    """A color scan of even a black-and-white print has some color cast; a gray-mode scan has none."""
+    spread = image.max(axis=2).astype(np.int16) - image.min(axis=2)
+    return np.mean(spread >= 6) > 0.005
+
+
 def suggestion(crop, row, has_color):
     if not has_color:
         return "REVISAR", "Escaneo gris o control de color no confiable"
@@ -123,7 +130,7 @@ def suggestion(crop, row, has_color):
     mask = (((hsv[:, :, 0] < 12) | (hsv[:, :, 0] > 168)) &
             (hsv[:, :, 1] > 85) & (hsv[:, :, 2] > 70)).astype(np.uint8) * 255
     if np.count_nonzero(mask) < 6:
-        return "FIRMO", "Sin trazo rojo de ausencia; la firma debe verificarse visualmente"
+        return "FIRMO", "Sin trazo rojo de ausencia: se entiende que firmó"
     # A horizontal red absence stroke must span from RUT into the signature cell.
     joined = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((3, 5), np.uint8))
     count, _, stats, _ = cv2.connectedComponentsWithStats(joined)
@@ -138,7 +145,7 @@ def suggestion(crop, row, has_color):
     if len(strokes) == 1:
         stroke = strokes[0]
         if np.count_nonzero(mask) <= stroke[4] * 1.3:
-            return "NO_FIRMO", "Trazo rojo horizontal RUT→FIRMA; requiere confirmación humana"
+            return "NO_FIRMO", "Trazo rojo horizontal RUT→FIRMA: no firmó"
     return "REVISAR", "Marcas rojas ambiguas, múltiples o parciales"
 
 
@@ -176,7 +183,7 @@ def analyze(root, scan_id, pdf_path, manifests, secret):
             if width < 100 or height < 100 or width * height > MAX_PIXELS:
                 raise ValueError("Raster size exceeds limit")
             total_pixels += width * height
-            if total_pixels > 90_000_000:
+            if total_pixels > MAX_TOTAL_PIXELS:
                 raise ValueError("Total raster size exceeds limit")
             pix = pdf_page.get_pixmap(matrix=fitz.Matrix(SCALE, SCALE), colorspace=fitz.csRGB, alpha=False)
             image = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width, 3)
@@ -226,7 +233,7 @@ def analyze(root, scan_id, pdf_path, manifests, secret):
             if aligned is None:
                 pages.append(unidentified(number, "Página recortada o alineación no confiable"))
                 continue
-            has_color = color_present(aligned, template["color_box"])
+            has_color = color_present(aligned, template["color_box"]) or scan_has_color(aligned)
             rows = []
             for index, row in enumerate(template["rows"]):
                 x, y, w, h = [round(v * SCALE) for v in row["box"]]

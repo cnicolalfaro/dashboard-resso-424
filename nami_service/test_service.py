@@ -275,7 +275,8 @@ class ServiceTests(unittest.TestCase):
                                                "date": "2026-10-12", "format_accepted": True}).status_code, 400)
         self.assertEqual(self.upload(b"not-pdf").status_code, 400)
         self.assertEqual(self.upload(b"%PDF-invalid").status_code, 422)
-        self.assertEqual(self.upload(b"%PDF-" + b"0" * (20 * 1024 * 1024)).status_code, 413)
+        with patch("nami_service.app.MAX_SCAN_UPLOAD", 1024 * 1024):
+            self.assertEqual(self.upload(b"%PDF-" + b"0" * (1024 * 1024)).status_code, 413)
         with fitz.open() as document:
             for _ in range(MAX_PAGES + 1):
                 document.new_page()

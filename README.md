@@ -204,6 +204,16 @@ Con el servicio en marcha, el paso **1 · Preparar** de la página trabaja así:
   se agrupa como «SIN ESPECIALIDAD»); se genera un registro por cargo, sin capataz, en la carpeta
   *Por cargo* del ZIP. «Relator» es un texto libre que se escribe en el registro;
   vacío, se conserva el de la plantilla.
+- **Certificados.** Con los escaneos confirmados, «Descargar certificados (ZIP)»
+  (todo, por fecha, o solo el escaneo recién confirmado) entrega
+  `<dd-mm-aaaa>/<NOMBRE_RUT>/Riesgos_de_Fatalidad/<RUT>_RF-NN.pdf`. Cada PDF lleva la
+  evaluación escaneada y la hoja escaneada del registro donde figura la persona.
+  Solo se incluyen personas con firma en un registro confirmado; las demás quedan
+  listadas en `NO_INCLUIDOS.txt`.
+  «Guardar certificados en CERTIFICADOS NAMI» los deja directamente en esa carpeta
+  (ruta en `NAMI_CERTIFICATES_DIR`, en la configuración privada): solo agrega lo que
+  falta, reutiliza la carpeta del trabajador si ya existe (la busca por el RUT) y
+  nunca reemplaza ni borra archivos. Después se corre el paso 4 de `avance-resso/README.md`.
 - **Escaneo de evaluaciones.** Cada hoja de evaluación nueva lleva un QR firmado
   pequeño. Las ya impresas (sin QR) se identifican leyendo con OCR el título «RF-NN»
   y el nombre del pie, y se cruzan con los registros generados (el nombre debe

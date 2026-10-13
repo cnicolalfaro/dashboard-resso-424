@@ -10,7 +10,8 @@
   let catalog = { crews: [], courses: [] };
   let scan = null;
   let confirmed = false;
-  const decisions = new Map();
+    const decisions = new Map();
+  const automatic = new Set();
 
   function node(tag, text, className) {
     const element = document.createElement(tag);
@@ -54,6 +55,7 @@
     scan = null;
     confirmed = false;
     decisions.clear();
+    automatic.clear();
     resetPlanning();
     ['crewPreview', 'courses', 'recordOutput', 'reviewRows', 'history', 'confirmation'].forEach((id) => $(id).replaceChildren());
     $('recordOutput').hidden = true;
@@ -152,7 +154,7 @@
     updatePlanningControls();
     $('reviewRows').querySelectorAll('input').forEach((input) => { input.disabled = busy || confirmed; });
     $('decisionCount').textContent = scan ?
-      `${decisions.size} de ${rows().length} filas con decisión explícita.${canConfirm() ? ' Listo para confirmar.' : ''}` :
+      `${decisions.size} de ${rows().length} filas decididas (${[...decisions.keys()].filter((id) => automatic.has(id)).length} marcadas automáticamente por ser claras).${canConfirm() ? ' Listo para confirmar.' : ' Faltan las filas dudosas: decídelas tú.'}` :
       'No hay filas para confirmar.';
   }
 
@@ -209,29 +211,51 @@
     $('crewPreview').append(list);
   }
 
+  function isClear(row) {
+    return row.suggested === 'FIRMO' || row.suggested === 'NO_FIRMO';
+  }
+
   function renderReview() {
     $('reviewRows').replaceChildren();
-    $('scanSummary').textContent = `Escaneo ${scan.id} · ${scan.pages.length} páginas.${scan.duplicate ? ' Escaneo duplicado detectado; revisa sus decisiones y el historial.' : ''}`;
-    scan.pages.forEach((page, pageIndex) => {
-      const section = node('section', undefined, 'page');
-      section.append(node('h3', `Página ${page.page}`));
-      if (page.record_id === null || page.record_id === undefined || page.record_id === '') {
-        section.append(node('p', `Página no identificada: ${page.reason || 'registro no reconocido'}. La confirmación está bloqueada; corrige y vuelve a subir el PDF completo.`, 'notice danger'));
-      } else if (page.kind === 'evaluation' && page.evaluation) {
-        const how = page.evaluation.method === 'qr' ? 'por su código QR' : 'por el título RF y el nombre del pie (lectura de texto)';
-        section.append(node('p', `Evaluación ${page.evaluation.code} de ${page.evaluation.nombre}, identificada ${how}. Es evidencia de la evaluación: no cambia aprobaciones.`, 'hint'));
-        const preview = safeURL(page.preview_url);
-        if (preview) {
-          const image = document.createElement('img');
-          image.src = preview;
-          image.alt = `Encabezado y pie de la evaluación, página ${page.page}`;
-          image.loading = 'lazy';
-          section.append(image, link(page.preview_url, 'Abrir recorte'));
-        }
-      } else {
-        section.append(node('p', `Registro identificado: ${page.record_id}`, 'hint'));
+    const identified = (page) => page.record_id !== null && page.record_id !== undefined && page.record_id !== '';
+    const evaluations = scan.pages.filter((page) => identified(page) && page.kind === 'evaluation' && page.evaluation);
+    const registers = scan.pages.filter((page) => identified(page) && page.kind !== 'evaluation');
+    const unidentified = scan.pages.filter((page) => !identified(page));
+    // Clear suggestions come pre-selected; only doubtful rows are shown with their image.
+    scan.pages.forEach((page) => page.rows.forEach((row) => {
+      if (!confirmed && !decisions.has(String(row.id)) && isClear(row)) {
+        decisions.set(String(row.id), row.suggested);
+        automatic.add(String(row.id));
       }
+    }));
+    const all = rows();
+    const count = (status) => all.filter((row) => row.suggested === status).length;
+    $('scanSummary').textContent = `${scan.pages.length} páginas: ${registers.length} registros con ${all.length} filas ` +
+      `(${count('FIRMO')} firmaron, ${count('NO_FIRMO')} no firmaron, ${all.filter((row) => !isClear(row)).length} dudosas) · ` +
+      `${evaluations.length} evaluaciones identificadas · ${unidentified.length} páginas sin identificar.` +
+      `${scan.duplicate ? ' Escaneo duplicado detectado; revisa el historial.' : ''}`;
+    const clearLines = [];
+    scan.pages.forEach((page, pageIndex) => {
+      if (!identified(page)) {
+        const section = node('section', undefined, 'page');
+        section.append(node('h3', `Página ${page.page}`),
+          node('p', `Página no identificada: ${page.reason || 'registro no reconocido'}. La confirmación está bloqueada; corrige y vuelve a subir el PDF completo.`, 'notice danger'));
+        $('reviewRows').append(section);
+        return;
+      }
+      if (page.kind === 'evaluation') return;
+      let section = null;
       page.rows.forEach((row, rowIndex) => {
+        if (isClear(row)) {
+          const line = node('li', `Pág. ${page.page} · ${row.nombre || 'Nombre no identificado'} · ${row.suggested === 'FIRMO' ? 'Firmó' : 'No firmó'}`);
+          if (safeURL(row.image_url)) line.append(' · ', link(row.image_url, 'ver recorte'));
+          clearLines.push(line);
+          return;
+        }
+        if (!section) {
+          section = node('section', undefined, 'page');
+          section.append(node('h3', `Página ${page.page} · filas dudosas`));
+        }
         const article = node('article', undefined, 'row');
         const info = node('div');
         info.append(node('strong', row.nombre || 'Nombre no identificado'), node('p', `RUT: ${row.rut || 'no identificado'}`));
@@ -250,15 +274,17 @@
           crop.append(node('p', 'Recorte no disponible: verifica la evidencia antes de decidir.', 'notice danger'));
         }
         const fieldset = document.createElement('fieldset');
-        fieldset.append(node('legend', `Decisión humana · fila ${rowIndex + 1}`));
+        fieldset.append(node('legend', `Decisión · fila ${rowIndex + 1} · DUDOSA: decide tú`));
         [['FIRMO', 'Firmó'], ['NO_FIRMO', 'No firmó']].forEach(([value, title]) => {
           const label = node('label', undefined, 'check');
           const input = document.createElement('input');
           input.type = 'radio';
           input.name = `decision-${pageIndex}-${rowIndex}`;
           input.value = value;
+          input.checked = decisions.get(String(row.id)) === value;
           input.addEventListener('change', () => {
             decisions.set(String(row.id), value);
+            automatic.delete(String(row.id));
             updateControls();
           });
           label.append(input, node('span', title));
@@ -268,8 +294,24 @@
         article.append(info, crop);
         section.append(article);
       });
-      $('reviewRows').append(section);
+      if (section) $('reviewRows').append(section);
     });
+    const collapsible = (title, lines) => {
+      if (!lines.length) return;
+      const box = document.createElement('details');
+      box.append(node('summary', title));
+      const list = node('ul', undefined, 'people');
+      lines.forEach((line) => list.append(line));
+      box.append(list);
+      $('reviewRows').append(box);
+    };
+    collapsible(`Filas claras ya decididas (${clearLines.length})`, clearLines);
+    collapsible(`Evaluaciones identificadas (${evaluations.length}): evidencia, no cambia aprobaciones`, evaluations.map((page) => {
+      const how = page.evaluation.method === 'qr' ? 'QR' : 'lectura de texto';
+      const line = node('li', `Pág. ${page.page} · ${page.evaluation.code} · ${page.evaluation.nombre} · ${how}`);
+      if (safeURL(page.preview_url)) line.append(' · ', link(page.preview_url, 'ver recorte'));
+      return line;
+    }));
   }
 
   function renderHistory(results) {
@@ -356,6 +398,9 @@
     $('plCargosMode').hidden = true;
     $('plCargoDropdown').open = false;
     $('exportExcel').hidden = true;
+    $('exportCerts').hidden = true;
+    $('deliverCerts').hidden = true;
+    $('certDate').hidden = true;
   }
 
   function renderSources(data) {
@@ -734,6 +779,9 @@
     $('logout').hidden = false;
     message('Sesión privada activa. Sube las planillas y prepara los registros, o sube un escaneo.');
     $('exportExcel').hidden = false;
+    $('exportCerts').hidden = false;
+    $('deliverCerts').hidden = false;
+    $('certDate').hidden = false;
     await refreshPlanning();
     await loadHistory();
   }
@@ -843,6 +891,29 @@
       message('PDF listo. Valida el formato, imprime y recoge las firmas.');
     });
   });
+  async function saveConfirmation(auto) {
+    message('Guardando decisiones de difusión…');
+    const data = await post(`/scans/${encodeURIComponent(String(scan.id))}/confirm`, {
+      decisions: rows().map((row) => ({ row_id: row.id, status: decisions.get(String(row.id)) }))
+    });
+    if (data.confirmed !== true || !Array.isArray(data.results)) throw new Error('El servicio no confirmó el guardado. Actualiza el historial antes de reintentar.');
+    confirmed = true;
+    $('scanFile').value = '';
+    const origin = data.duplicate ? 'Confirmación duplicada reconocida por el servicio.' :
+      auto ? 'Difusión confirmada automáticamente: todas las filas eran claras.' : 'Difusión confirmada.';
+    $('confirmation').textContent = `${origin} ${data.results.length} resultados por persona y curso. No acredita aprobación de evaluaciones. `;
+    $('confirmation').append(link(`${base}/certificates?scan=${encodeURIComponent(String(scan.id))}`, 'Descargar certificados de este escaneo (ZIP)', 'download'));
+    const scanId = String(scan.id);
+    const deliver = node('button', 'Guardar en CERTIFICADOS NAMI');
+    deliver.type = 'button';
+    deliver.addEventListener('click', () => run(() => deliverCertificates({ scan: scanId })));
+    $('confirmation').append(' ', deliver);
+    $('confirmation').hidden = false;
+    renderHistory(data.results);
+    message('Decisiones guardadas. Actualizando historial…');
+    await loadHistory();
+    message(auto ? 'Difusión confirmada automáticamente e historial actualizado.' : 'Difusión confirmada e historial actualizado.');
+  }
   $('scanForm').addEventListener('submit', (event) => {
     event.preventDefault();
     const file = $('scanFile').files[0];
@@ -855,6 +926,7 @@
       scan = null;
       confirmed = false;
       decisions.clear();
+      automatic.clear();
       $('reviewRows').replaceChildren();
       $('confirmation').hidden = true;
       $('scanSummary').textContent = 'Procesando escaneo…';
@@ -869,33 +941,45 @@
           new Set(allRows.map((row) => String(row.id))).size !== allRows.length) throw new Error('Las filas del escaneo no tienen identificadores únicos. No se puede confirmar.');
       scan = data;
       renderReview();
-      message('Escaneo recibido. Revisa los recortes y decide cada fila.');
+      // Without doubts (every page identified, every row clear) the scan is confirmed on its own.
+      if (!data.duplicate && canConfirm() && automatic.size === rows().length) {
+        await saveConfirmation(true);
+        return;
+      }
+      message('Escaneo recibido. Las filas claras ya vienen marcadas; decide solo las dudosas y confirma.');
       $('reviewTitle').tabIndex = -1;
       $('reviewTitle').focus();
     });
   });
   $('confirmSubmit').addEventListener('click', () => {
     if (!canConfirm()) return;
-    run(async () => {
-      message('Guardando decisiones de difusión…');
-      const data = await post(`/scans/${encodeURIComponent(String(scan.id))}/confirm`, {
-        decisions: rows().map((row) => ({ row_id: row.id, status: decisions.get(String(row.id)) }))
-      });
-      if (data.confirmed !== true || !Array.isArray(data.results)) throw new Error('El servicio no confirmó el guardado. Actualiza el historial antes de reintentar.');
-      confirmed = true;
-      $('scanFile').value = '';
-      $('confirmation').textContent = `${data.duplicate ? 'Confirmación duplicada reconocida por el servicio.' : 'Difusión confirmada.'} ${data.results.length} resultados por persona y curso. No acredita aprobación de evaluaciones.`;
-      $('confirmation').hidden = false;
-      renderHistory(data.results);
-      message('Decisiones guardadas. Actualizando historial…');
-      await loadHistory();
-      message('Difusión confirmada e historial actualizado.');
-    });
+    run(() => saveConfirmation(false));
+  });
+  async function deliverCertificates(params) {
+    message('Guardando certificados en CERTIFICADOS NAMI…');
+    const result = await post('/certificates/deliver', params);
+    const text = `Certificados: ${result.added} nuevos guardados (${result.new_folders} carpetas nuevas), ${result.existing} ya existían y no se tocaron` +
+      `${result.failed ? `, ${result.failed} con error` : ''}${result.omitted ? `, ${result.omitted} sin registro firmado confirmado` : ''}.`;
+    $('confirmation').textContent = text;
+    $('confirmation').hidden = false;
+    message(text);
+  }
+  $('deliverCerts').addEventListener('click', () => run(() => {
+    const date = $('certDate').value;
+    return deliverCertificates(date ? { date } : {});
+  }));
+  $('certDate').addEventListener('change', () => {
+    const date = $('certDate').value;
+    $('exportCerts').href = date ? `${base}/certificates?date=${encodeURIComponent(date)}` : `${base}/certificates`;
   });
   $('refreshHistory').addEventListener('click', () => run(async () => {
     message('Consultando historial…');
     await loadHistory();
     message('Historial actualizado.');
   }));
+  // The history is read from the service, so a refresh also shows what other operators confirmed.
+  setInterval(() => {
+    if (authenticated && !busy && !document.hidden) loadHistory().catch(() => {});
+  }, 30000);
   run(async () => { await openWorkspace(await api('/session')); });
 })();
