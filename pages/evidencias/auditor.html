@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modo Auditor · RESSO V10</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#24407a;
+  --blue-dark:#17376f;
+  --blue-soft:#edf4ff;
+  --bg:#f4f6fb;
+  --text:#18345f;
+  --muted:#72809a;
+  --line:#e1e8f2;
+  --green:#178b57;
+  --green-soft:#e9f7ef;
+  --amber:#b77600;
+  --amber-soft:#fff4da;
+  --red:#c0443a;
+  --red-soft:#ffe9e7;
+  --purple:#6b3fd1;
+  --purple-soft:#f0eaff;
+  --gray:#7d8899;
+  --gray-soft:#eef1f5;
+}
+body{
+  font-family:"Open Sans",Arial,sans-serif;
+  background:
+    radial-gradient(circle at top left,#edf4ff 0,transparent 28%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+}
+
+.topbar{
+  min-height:76px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  padding:12px 34px;
+  background:rgba(255,255,255,.95);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:30;
+  backdrop-filter:blur(12px);
+}
+
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:44px;height:44px;border:3px solid var(--blue-dark);
+  border-radius:13px;display:grid;place-items:center;font-weight:900;
+  transform:rotate(45deg);background:#fff
+}
+.logo span{transform:rotate(-45deg)}
+.brand strong{display:block;font-size:14px}
+.brand small{color:var(--muted)}
+
+.mode{
+  display:flex;gap:4px;background:#edf2fa;border:1px solid #dce5f2;
+  padding:5px;border-radius:14px
+}
+.mode a{
+  text-decoration:none;color:#64728b;padding:10px 19px;border-radius:10px;
+  font-size:13px;font-weight:800
+}
+.mode a.active{
+  background:#1759bf;color:#fff;box-shadow:0 4px 14px rgba(30,60,120,.16)
+}
+
+.contract{
+  justify-self:end;background:#edf3ff;color:var(--blue);
+  padding:9px 15px;border-radius:30px;font-size:12px;font-weight:800
+}
+
+.page{width:min(1620px,calc(100% - 36px));margin:20px auto 44px}
+
+.hero{
+  display:flex;justify-content:space-between;gap:24px;align-items:flex-start;
+  margin-bottom:14px
+}
+.hero h1{font-size:38px;color:#153878;letter-spacing:-.8px}
+.hero p{margin-top:7px;color:#6b7a94;font-size:14px;line-height:1.5}
+.hero-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.top-btn{
+  text-decoration:none;border:1px solid #c7d6ea;background:#fff;color:#244f94;
+  border-radius:11px;padding:10px 13px;font-size:11px;font-weight:900
+}
+.top-btn.primary{background:#174ca5;color:#fff;border-color:#174ca5}
+
+.filters{
+  background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;
+  display:grid;grid-template-columns:1.4fr repeat(3,1fr) 1.2fr auto;
+  gap:9px;align-items:end;box-shadow:0 5px 18px rgba(32,55,104,.04)
+}
+.field label{
+  display:block;font-size:9px;text-transform:uppercase;color:#8490a5;
+  font-weight:900;margin:0 0 5px 3px
+}
+.field input,.field select{
+  width:100%;height:41px;border:1px solid #d9e2ef;border-radius:10px;
+  background:#fff;color:#536582;padding:0 11px;outline:none
+}
+.view-switch{
+  height:41px;display:flex;align-items:center;background:#edf2f8;border-radius:10px;padding:4px
+}
+.view-switch button{
+  border:0;background:transparent;border-radius:8px;padding:8px 10px;
+  color:#667590;font-size:10px;font-weight:900;cursor:pointer
+}
+.view-switch button.active{background:#fff;color:#24407a;box-shadow:0 2px 8px rgba(35,59,105,.1)}
+
+.kpis{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-top:13px
+}
+.kpi{
+  background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px;
+  display:flex;gap:12px;align-items:center;box-shadow:0 5px 16px rgba(34,58,104,.04)
+}
+.kpi-icon{
+  width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:var(--blue-soft);color:#1d63c9;font-size:18px;font-weight:900
+}
+.kpi.green .kpi-icon{background:var(--green-soft);color:var(--green)}
+.kpi.amber .kpi-icon{background:var(--amber-soft);color:var(--amber)}
+.kpi.red .kpi-icon{background:var(--red-soft);color:var(--red)}
+.kpi.purple .kpi-icon{background:var(--purple-soft);color:var(--purple)}
+.kpi small{display:block;text-transform:uppercase;font-size:9px;font-weight:900;color:#7c899e}
+.kpi strong{display:block;font-size:25px;color:#173b7e}
+.kpi span{font-size:10px;color:#8792a5}
+
+.layout{
+  display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:13px;margin-top:13px
+}
+
+.panel{
+  background:#fff;border:1px solid var(--line);border-radius:19px;padding:17px;
+  box-shadow:0 6px 22px rgba(32,55,104,.05)
+}
+.panel-head{
+  display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px
+}
+.panel h2{font-size:20px;color:#173b80}
+.legend{display:flex;gap:7px;flex-wrap:wrap}
+.legend span{font-size:9px;font-weight:800;color:#738098}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.dot.green{background:var(--green)} .dot.amber{background:#e8a019}
+.dot.red{background:var(--red)} .dot.gray{background:#9aa4b2}
+
+.table-wrap{overflow:auto;border:1px solid #e4eaf3;border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:1180px}
+thead th{
+  background:#f7f9fc;color:#7a879b;text-transform:uppercase;
+  font-size:9px;letter-spacing:.25px;text-align:left;padding:11px 9px;
+  border-bottom:1px solid #e4eaf3;position:sticky;top:0;z-index:2
+}
+tbody td{padding:10px 9px;border-bottom:1px solid #edf1f6;vertical-align:middle;font-size:11px;color:#52647f}
+tbody tr:hover{background:#fbfcfe}
+tbody tr:last-child td{border-bottom:0}
+.code{font-weight:900;color:#173b80}
+.phase-chip,.status-chip,.priority-chip{
+  display:inline-flex;align-items:center;border-radius:999px;padding:6px 8px;
+  font-size:9px;font-weight:900;white-space:nowrap
+}
+.phase-chip.plan{background:#eaf3ff;color:#2e71d5}
+.phase-chip.do{background:#e9f8f0;color:#18865b}
+.phase-chip.check{background:#fff1dc;color:#b96e00}
+.phase-chip.act{background:#f0eaff;color:#6b3fd1}
+.status-chip.green{background:var(--green-soft);color:var(--green)}
+.status-chip.amber{background:var(--amber-soft);color:var(--amber)}
+.status-chip.red{background:var(--red-soft);color:var(--red)}
+.status-chip.gray{background:var(--gray-soft);color:var(--gray)}
+.priority-chip.high{background:var(--red-soft);color:var(--red)}
+.priority-chip.medium{background:var(--amber-soft);color:var(--amber)}
+.priority-chip.low{background:#eef5ff;color:#4c75aa}
+.priority-chip.na{background:#f0f1f3;color:#858d98}
+.req-title{font-weight:800;color:#27477f;line-height:1.3}
+.req-sub{font-size:9px;color:#8a96a8;margin-top:2px}
+.level{font-weight:900;color:#173b80}
+.action-cell{display:flex;gap:5px;flex-wrap:wrap}
+.action-btn{
+  border:1px solid #c6d5ea;background:#edf4ff;color:#2453a0;
+  border-radius:8px;padding:7px 8px;font-size:9px;font-weight:900;
+  cursor:pointer;text-decoration:none;white-space:nowrap;font-family:inherit
+}
+.action-btn.secondary{background:#fff}
+.action-btn.disabled{opacity:.45;pointer-events:none}
+
+.table-footer{
+  display:flex;justify-content:space-between;align-items:center;margin-top:10px;
+  color:#8190a6;font-size:10px
+}
+
+.side-stack{display:grid;gap:12px}
+.side-card{
+  background:#fff;border:1px solid var(--line);border-radius:17px;padding:15px;
+  box-shadow:0 5px 18px rgba(32,55,104,.04)
+}
+.side-card h3{font-size:15px;color:#173b80;margin-bottom:11px}
+.finding{
+  border:1px solid #eee5e3;border-radius:12px;padding:11px;margin-bottom:8px;
+  background:#fffaf9
+}
+.finding:last-child{margin-bottom:0}
+.finding.high{background:#fff1ef;border-color:#f1cbc6}
+.finding.medium{background:#fff9eb;border-color:#f1dfb3}
+.finding strong{display:block;font-size:11px;color:#334d76;line-height:1.35}
+.finding span{display:block;font-size:9px;color:#8a96a8;margin-top:4px}
+.progress-row{margin-bottom:12px}
+.progress-row:last-child{margin-bottom:0}
+.progress-head{display:flex;justify-content:space-between;font-size:10px;color:#60718e;margin-bottom:5px}
+.progress{height:7px;background:#edf1f6;border-radius:20px;overflow:hidden}
+.progress span{display:block;height:100%;border-radius:20px;background:#2c79df}
+.progress.green span{background:#24a36a}
+.progress.amber span{background:#e7a32a}
+
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quick{
+  display:block;text-decoration:none;border:1px solid #e1e8f2;background:#f8faff;
+  border-radius:12px;padding:11px;color:#31537f;font-size:10px;font-weight:900
+}
+.quick small{display:block;color:#8a96a8;font-size:8px;font-weight:600;margin-top:4px;line-height:1.35}
+
+.modal-bg{
+  position:fixed;inset:0;background:rgba(11,28,61,.58);backdrop-filter:blur(5px);
+  display:none;place-items:center;z-index:100;padding:18px
+}
+.modal-bg.show{display:grid}
+.modal{
+  width:min(940px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:22px;
+  box-shadow:0 30px 90px rgba(8,28,65,.28)
+}
+.modal-head{
+  display:flex;justify-content:space-between;gap:16px;padding:22px 24px;border-bottom:1px solid var(--line)
+}
+.modal-head h2{font-size:20px;color:#173b80;margin-top:7px;line-height:1.3}
+.close{
+  border:0;width:38px;height:38px;border-radius:50%;background:#eff3f8;
+  color:#5c6a82;font-size:22px;cursor:pointer;flex:0 0 38px
+}
+.modal-body{padding:20px 24px}
+.modal-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:15px}
+.mini{background:#f7f9fc;border:1px solid #e6ecf4;border-radius:12px;padding:11px}
+.mini span{display:block;font-size:8px;text-transform:uppercase;color:#8a96a9;font-weight:900;margin-bottom:5px}
+.mini strong{font-size:11px;color:#38527c}
+.detail{display:grid;gap:10px}
+.detail-card{border:1px solid #e4eaf3;border-radius:13px;padding:13px}
+.detail-card h4{font-size:10px;text-transform:uppercase;color:#173b80;margin-bottom:6px}
+.detail-card p{font-size:12px;color:#5f6f89;line-height:1.55}
+.modal-foot{
+  display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--line)
+}
+.modal-note{margin-right:auto;align-self:center;color:#8894a7;font-size:10px}
+
+
+.evidence-modal{width:min(760px,100%)}
+.evidence-route{
+  display:grid;gap:7px;border:1px solid #dce6f4;background:#f7faff;
+  border-radius:14px;padding:14px;margin-bottom:12px
+}
+.evidence-route>span,.saved-label{
+  font-size:9px;font-weight:900;letter-spacing:.3px;color:#7f8da3
+}
+.evidence-route strong{
+  color:#23477f;font-size:12px;line-height:1.45
+}
+.evidence-route .action-btn{justify-self:start;margin-top:4px}
+.saved-evidence{
+  border:1px solid #cce7d9;background:#f0faf5;border-radius:14px;
+  padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;
+  align-items:center;gap:14px
+}
+.saved-evidence[hidden]{display:none}
+.saved-evidence strong{display:block;color:#23704c;font-size:13px;margin:4px 0}
+.saved-evidence small{
+  display:block;color:#789087;max-width:480px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis
+}
+.evidence-help{
+  border:1px solid #e4eaf3;border-radius:14px;padding:13px;margin-bottom:12px
+}
+.evidence-help strong{font-size:12px;color:#24477d}
+.evidence-help p{font-size:11px;color:#6d7c93;line-height:1.55;margin-top:5px}
+.evidence-form{display:grid;gap:10px}
+.evidence-form label span{
+  display:block;font-size:9px;font-weight:900;text-transform:uppercase;
+  color:#7f8da3;margin:0 0 5px 3px
+}
+.evidence-form input{
+  width:100%;height:43px;border:1px solid #d8e2ef;border-radius:10px;
+  padding:0 12px;color:#50627e;outline:none;background:#fff
+}
+.evidence-form input:focus{
+  border-color:#7da7df;box-shadow:0 0 0 3px rgba(50,110,190,.08)
+}
+.evidence-msg{font-size:10px;min-height:16px;margin-top:8px;color:#6f7f96}
+.evidence-msg.ok{color:#178b57;font-weight:800}
+.evidence-msg.error{color:#c0443a;font-weight:800}
+.danger-soft{color:#b24a42;border-color:#e8c9c6;background:#fff7f6}
+.evidence-local-note{font-size:9px}
+@media(max-width:1250px){
+  .layout{grid-template-columns:1fr}
+  .side-stack{grid-template-columns:repeat(3,1fr)}
+  .filters{grid-template-columns:repeat(3,1fr)}
+  .kpis{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:760px){
+  .topbar{grid-template-columns:1fr;gap:10px}
+  .contract{justify-self:start}
+  .hero{flex-direction:column}
+  .filters{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr}
+  .side-stack{grid-template-columns:1fr}
+  .modal-summary{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo"><span>SK</span></div>
+    <div><strong>SKIC S.A.</strong><small>División Chuquicamata</small></div>
+  </div>
+
+  <nav class="mode">
+    <a href="index.html">◉ Modo usuario</a>
+    <a class="active" href="auditor.html">◈ Modo auditor</a>
+  </nav>
+
+  <div class="contract">RESSO V10 · Contrato 424</div>
+</header>
+
+<main class="page">
+
+  <section class="hero">
+    <div>
+      <h1>Modo Auditor</h1>
+      <p>Vista consolidada para revisar rápidamente requisitos, brechas, responsables, trazabilidad y evidencia documental del sistema RESSO.</p>
+    </div>
+
+    <div class="hero-actions">
+      <a class="top-btn" href="index.html">← Volver a fases</a>
+      <a class="top-btn primary" href="https://empresassk.sharepoint.com/sites/ICSK-HSEC/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2FICSK-HSEC%2FDocumentos%20compartidos%2F05%20-%20Respaldo%20HSEC%20faenas%2F424%20-%20CC%20101%2F0.-%20RESSO%20Ver.%2010%2F02%20RESSO%20V10&viewid=e72333c8%2D45a8%2D4050%2Dbdda%2D7b838f222428" target="_blank">Abrir SharePoint RESSO ↗</a>
+    </div>
+  </section>
+
+  <section class="filters">
+    <div class="field">
+      <label>Buscar</label>
+      <input id="search" placeholder="Requisito, responsable, observación...">
+    </div>
+
+    <div class="field">
+      <label>Fase</label>
+      <select id="phaseFilter">
+        <option value="all">Todas</option>
+        <option value="A. PLAN">A. PLAN</option>
+        <option value="B. DO">B. DO</option>
+        <option value="C. CHECK">C. CHECK</option>
+        <option value="D. ACT">D. ACT</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Estado</label>
+      <select id="statusFilter">
+        <option value="all">Todos</option>
+        <option value="Cumple">Cumple</option>
+        <option value="Brecha menor">Brecha menor</option>
+        <option value="Brecha relevante">Brecha relevante</option>
+        <option value="No aplica">No aplica</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Prioridad</label>
+      <select id="priorityFilter">
+        <option value="all">Todas</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
+        <option value="—">No aplica</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Responsable</label>
+      <select id="responsibleFilter">
+        <option value="all">Todos</option>
+      </select>
+    </div>
+
+    <div class="view-switch">
+      <button id="summaryBtn" class="active" onclick="setCompact(true)">Vista resumida</button>
+      <button id="detailBtn" onclick="setCompact(false)">Vista detallada</button>
+    </div>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi">
+      <div class="kpi-icon">40</div>
+      <div><small>Requisitos totales</small><strong>40</strong><span>Universo RESSO</span></div>
+    </div>
+
+    <div class="kpi green">
+      <div class="kpi-icon">✓</div>
+      <div><small>Cumplen</small><strong>24</strong><span>100% de nivel</span></div>
+    </div>
+
+    <div class="kpi amber">
+      <div class="kpi-icon">!</div>
+      <div><small>Con brecha</small><strong>14</strong><span>Menor + relevante</span></div>
+    </div>
+
+    <div class="kpi red">
+      <div class="kpi-icon">▲</div>
+      <div><small>Prioridad alta</small><strong>4</strong><span>Atención inmediata</span></div>
+    </div>
+
+    <div class="kpi purple">
+      <div class="kpi-icon">%</div>
+      <div><small>Cumplimiento total</small><strong>92.04%</strong><span>Resultado ponderado</span></div>
+    </div>
+  </section>
+
+  <div class="layout">
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Matriz de revisión RESSO</h2>
+        </div>
+
+        <div class="legend">
+          <span><i class="dot green"></i>Cumple</span>
+          <span><i class="dot amber"></i>Brecha menor</span>
+          <span><i class="dot red"></i>Brecha relevante</span>
+          <span><i class="dot gray"></i>No aplica</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Fase</th>
+              <th>Sección / requisito</th>
+              <th>Estado</th>
+              <th>Prioridad</th>
+              <th>Responsable</th>
+              <th>Nivel</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="auditRows"></tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <span id="rowCount"></span>
+        <span>Revisión documental · 14-10-2026</span>
+      </div>
+    </section>
+
+    <aside class="side-stack">
+
+      <section class="side-card">
+        <h3>Hallazgos prioritarios</h3>
+
+        <div class="finding high">
+          <strong>#11 · Competencias y Formación</strong>
+          <span>Brecha relevante · Prioridad alta · Jimy Pincheira</span>
+        </div>
+
+        <div class="finding high">
+          <strong>#15 · Métodos de trabajo seguro</strong>
+          <span>Brecha relevante · Prioridad alta · Rodrigo / Jaime</span>
+        </div>
+
+        <div class="finding high">
+          <strong>#31 · Verificación periódica RF</strong>
+          <span>Brecha menor · Prioridad alta · Rodrigo / Jaime</span>
+        </div>
+
+        <div class="finding high">
+          <strong>#37 · Medidas correctivas de incidentes</strong>
+          <span>Brecha menor · Prioridad alta · Rodrigo / Jaime</span>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <h3>Trazabilidad de revisión</h3>
+
+        <div class="progress-row">
+          <div class="progress-head"><span>Requisitos aplicables</span><strong>38/40</strong></div>
+          <div class="progress"><span style="width:95.0%"></span></div>
+        </div>
+
+        <div class="progress-row">
+          <div class="progress-head"><span>Cumplimiento ponderado</span><strong>92.04%</strong></div>
+          <div class="progress green"><span style="width:92.04%"></span></div>
+        </div>
+
+        <div class="progress-row">
+          <div class="progress-head"><span>Requisitos con brecha</span><strong>14/38</strong></div>
+          <div class="progress amber"><span style="width:36.8%"></span></div>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <h3>Accesos rápidos</h3>
+
+        <div class="quick-grid">
+          <a class="quick" href="plan.html">A. PLAN<small>10 requisitos</small></a>
+          <a class="quick" href="do.html">B. DO<small>19 requisitos</small></a>
+          <a class="quick" href="check.html">C. CHECK<small>6 requisitos</small></a>
+          <a class="quick" href="act.html">D. ACT<small>5 requisitos</small></a>
+          <a class="quick" href="https://empresassk.sharepoint.com/sites/ICSK-HSEC/Documentos%20compartidos/Forms/AllItems.aspx?id=%2Fsites%2FICSK-HSEC%2FDocumentos%20compartidos%2F05%20-%20Respaldo%20HSEC%20faenas%2F424%20-%20CC%20101%2F0.-%20RESSO%20Ver.%2010%2F02%20RESSO%20V10&viewid=e72333c8%2D45a8%2D4050%2Dbdda%2D7b838f222428" target="_blank">SharePoint<small>Carpeta raíz RESSO</small></a>
+          <a class="quick" href="index.html">Modo usuario<small>Volver a vista por fases</small></a>
+        </div>
+      </section>
+
+    </aside>
+  </div>
+</main>
+
+<div id="modalBg" class="modal-bg" onclick="outsideClose(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <span id="mCode" class="phase-chip plan"></span>
+        <h2 id="mTitle"></h2>
+      </div>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-summary">
+        <div class="mini"><span>Estado</span><strong id="mStatus"></strong></div>
+        <div class="mini"><span>Prioridad</span><strong id="mPriority"></strong></div>
+        <div class="mini"><span>Nivel</span><strong id="mLevel"></strong></div>
+        <div class="mini"><span>Responsable</span><strong id="mResponsible"></strong></div>
+        <div class="mini"><span>Ponderación</span><strong id="mWeight"></strong></div>
+      </div>
+
+      <div class="detail">
+        <div class="detail-card">
+          <h4>Requisito evaluado</h4>
+          <p id="mQuestion"></p>
+        </div>
+
+        <div class="detail-card">
+          <h4>Criterio del nivel alcanzado</h4>
+          <p id="mCriterion"></p>
+        </div>
+
+        <div class="detail-card">
+          <h4>Observación de auditoría</h4>
+          <p id="mObservation"></p>
+        </div>
+
+        <div class="detail-card">
+          <h4>Acción / próximo paso</h4>
+          <p id="mAction"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <span class="modal-note" id="mEvidenceNote"></span>
+      <button class="action-btn secondary" onclick="closeModal()">Cerrar</button>
+      <button class="action-btn" onclick="openEvidenceFromDetail()">Evidencia del punto →</button>
+    </div>
+  </div>
+</div>
+
+<div id="evidenceBg" class="modal-bg evidence-bg" onclick="outsideEvidenceClose(event)">
+  <div class="modal evidence-modal">
+    <div class="modal-head">
+      <div>
+        <span id="eCode" class="phase-chip plan"></span>
+        <h2 id="eTitle">Evidencia del requisito</h2>
+      </div>
+      <button class="close" onclick="closeEvidencePopup()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="evidence-route">
+        <span>CARPETA DEL REQUISITO</span>
+        <strong id="ePath"></strong>
+        <a id="eFolderLink" class="action-btn" href="#" target="_blank" rel="noopener">
+          Abrir carpeta del requisito ↗
+        </a>
+      </div>
+
+      <div id="savedEvidenceBox" class="saved-evidence" hidden>
+        <div>
+          <span class="saved-label">ARCHIVO SELECCIONADO</span>
+          <strong id="savedEvidenceName"></strong>
+          <small id="savedEvidenceUrl"></small>
+        </div>
+        <a id="savedEvidenceOpen" class="action-btn" href="#" target="_blank" rel="noopener">
+          Abrir archivo ↗
+        </a>
+      </div>
+
+      <div class="evidence-help">
+        <strong>Seleccionar el archivo exacto</strong>
+        <p>Abre la carpeta del requisito, selecciona el archivo en SharePoint, usa <b>Copiar vínculo</b> y pega ese vínculo aquí. El Auditor recordará la elección para este requisito.</p>
+      </div>
+
+      <div class="evidence-form">
+        <label>
+          <span>Nombre o descripción del archivo</span>
+          <input id="eFileName" type="text" placeholder="Ej.: Carta Dueños del Riesgo Rev.07">
+        </label>
+
+        <label>
+          <span>Vínculo directo del archivo SharePoint</span>
+          <input id="eFileUrl" type="url" placeholder="https://empresassk.sharepoint.com/...">
+        </label>
+      </div>
+
+      <p id="evidenceMsg" class="evidence-msg"></p>
+    </div>
+
+    <div class="modal-foot">
+      <button id="removeEvidenceBtn" class="action-btn secondary danger-soft" onclick="removeEvidenceSelection()" hidden>
+        Quitar selección
+      </button>
+      <span class="modal-note evidence-local-note">Se guarda en este navegador.</span>
+      <button class="action-btn secondary" onclick="closeEvidencePopup()">Cancelar</button>
+      <button class="action-btn" onclick="saveEvidenceSelection()">Guardar archivo seleccionado</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"id": 1, "phase": "A. PLAN", "section": "A1. Programa de Trabajo y Planificación", "question": "¿La empresa contratista ha designado formalmente a sus Dueños del Riesgo para los Riesgos de Fatalidad aplicables al contrato?", "weight": 0.05, "level": 1, "result": 0.05, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Listado formal con declaración de RF, responsables identificados y firmas.", "observation": "Documento vigente en su revisión N° 7 al 30-09-2026. Se actualiza de forma continua por la rotación de personal, lo que asegura que los Dueños del Riesgo designados correspondan a la dotación actual.", "action": "Confirmar que las cartas de compromiso firmadas de cada Dueño del Riesgo estén cargadas en la carpeta de evidencias.", "responsible": "Auditorías", "evidence_ref": null}, {"id": 2, "phase": "A. PLAN", "section": "A1. Programa de Trabajo y Planificación", "question": "¿El Plan/Programa de Trabajo está aprobado por la empresa y suscrito por el Organismo Administrador? ¿Además, es difundido y está alineado a los lineamientos establecidos en SIGO-M-001 SIGO?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Programa SST validado (OAL, AdC CODELCO y Administrador), firmado por el representante legal, formalizado en LOD y con ID SERNAGEOMIN.", "observation": "El programa cuenta con respaldo de su envío a las entidades correspondientes. Queda pendiente reforzar la difusión interna y la ubicación del documento vigente.", "action": "Emitir comunicado masivo informando el documento enviado y su ubicación actualizada en la Biblioteca Digital.", "responsible": "Auditorías", "evidence_ref": null}, {"id": 3, "phase": "A. PLAN", "section": "A1. Programa de Trabajo y Planificación", "question": "¿La planeación incluye objetivos, metas, indicadores leading (proactivos) y lagging (reactivos), recursos y plazos, definiendo responsabilidades, consistentes con la criticidad de las actividades?", "weight": 0.03, "level": 0.9, "result": 0.027, "gap": 0.002999999999999999, "status": "Brecha menor", "priority": "Media", "criterion": "Programa con indicadores, responsables, recursos y plazos; brecha menor en el respaldo de los recursos declarados.", "observation": "El programa integra los indicadores corporativos e incorpora los recursos económicos y plazos asociados al plan original de CODELCO. Los montos declarados son estimaciones y aún no cuentan con respaldo documental.", "action": "Recopilar evidencia de los recursos ejecutados (facturas, órdenes de compra u otros) que respalde los montos informados.", "responsible": "Auditorías", "evidence_ref": null}, {"id": 4, "phase": "A. PLAN", "section": "A1. Programa de Trabajo y Planificación", "question": "¿La empresa realiza el levantamiento, caracterización y análisis de peligros y evaluación de riesgos, en función de la metodología corporativa, considerando riesgos específicos del área/lugar del contrato, riesgos naturales e histórico de accidentes de la empresa?", "weight": 0.05, "level": 1, "result": 0.05, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Procedimiento IPER alineado a la metodología corporativa vigente y matrices actualizadas.", "observation": "Existe procedimiento de identificación de peligros y evaluación de riesgos alineado a la última versión entregada por el Corporativo. Las matrices se elaboran y actualizan según los requerimientos del proyecto; Se envia ultima versión por carta contractual debido a que la plataforma oficial ACONEX no está funcionando. Se difunde a todo el personal.", "action": "Mantener en la carpeta vinculada (link) las versiones actualizadas de las matrices. Versión actual .02\nSe debe agregar los aprendizajes", "responsible": "Auditorías", "evidence_ref": null}, {"id": 5, "phase": "A. PLAN", "section": "A1. Programa de Trabajo y Planificación", "question": "¿Existen criterios de trazabilidad en la aplicación de Riesgos de Fatalidad y se evidencia su funcionamiento en terreno?", "weight": 0.03, "level": 0.8, "result": 0.024, "gap": 0.005999999999999998, "status": "Brecha menor", "priority": "Media", "criterion": "Evaluación mensual documentada con aplicación parcial en terreno; plan de brechas y envío por LOD incompletos.", "observation": "No existe claridad respecto de los criterios de trazabilidad que CODELCO considera aceptables para acreditar el funcionamiento de los RF en terreno, lo que impide cerrar el plan de brechas.", "action": "Consultar formalmente a CODELCO los criterios aceptables y ajustar la evaluación mensual y el plan de brechas en consecuencia. Comenzar con generar LOD por lo ocurrido el fin de semana.", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 6, "phase": "A. PLAN", "section": "A1. Programa de Trabajo y Planificación", "question": "¿La empresa informa a través del LOD o Cartas Contractuales al Administrador de Contrato CODELCO respecto de los trabajos que implican riesgos inherentes altos, indicando los métodos seguros para realizar sus tareas críticas?", "weight": 0.005, "level": 0.8, "result": 0.004, "gap": 0.001, "status": "Brecha menor", "priority": "Media", "criterion": "Se informa vía LOD, pero la información de riesgos y métodos seguros está incompleta o desactualizada.", "observation": "La carpeta contiene la versión de julio. Desde entonces se han modificado las matrices MIPER y los mapas de proceso, por lo que la información reportada al AdC no refleja la condición vigente.", "action": "Cargar versión actualizada (octubre) alineada a las nuevas MIPER y mapas de proceso. Se requiere apoyo para actualizar la información.", "responsible": "ANGIE / TAMARA", "evidence_ref": null}, {"id": 7, "phase": "A. PLAN", "section": "A2. Evaluación de Riesgos", "question": "¿La Matriz de Riesgos de la empresa está alineada a su mapa de procesos y se encuentra validada y actualizada periódicamente por la empresa?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Mapa de procesos actualizado, IPER alineado, evaluación de higiene, formato DS44, firmada y difundida.", "observation": "Se encuentran cargadas las versiones hasta julio de 2026. Las versiones posteriores aún no están disponibles en la carpeta de evidencias.", "action": "CERRADO EN VERSIÓN 2", "responsible": "ANGIE / TAMARA", "evidence_ref": null}, {"id": 8, "phase": "A. PLAN", "section": "A2. Evaluación de Riesgos", "question": "¿La Matriz considera el levantamiento de Riesgos de Fatalidad y establece el tratamiento de riesgos en función de la jerarquía de controles?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Tratamiento de RF aplicado según jerarquía de controles.", "observation": "La matriz considera el levantamiento de RF y su tratamiento según la jerarquía de controles. La evidencia cargada no corresponde a la última versión.", "action": "CERRADO EN VERSIÓN 2", "responsible": "ANGIE / TAMARA", "evidence_ref": null}, {"id": 9, "phase": "A. PLAN", "section": "A3. Marco Regulatorio y Cumplimiento", "question": "¿La empresa considera la identificación y cumplimiento del marco legal en el desempeño de sus actividades, considerando al menos, una metodología formal para su aplicación, la actualización periódica y la gestión de brechas, según corresponda?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Metodología formal, evaluación del nivel de cumplimiento, programa de brechas y monitoreo.", "observation": "Existe procedimiento para la elaboración de la MIRLO. Queda pendiente contrastarla con la última actualización enviada por LOD.", "action": "Revisar si existen brechas respecto de la última actualización enviada por LOD y formalizar vía SGDOC. FALTA EL PLAN DE BRECHAS", "responsible": "ANGIE / TAMARA", "evidence_ref": null}, {"id": 10, "phase": "A. PLAN", "section": "A3. Marco Regulatorio y Cumplimiento", "question": "¿Se dio cumplimiento en plazo a las instrucciones/observaciones de los organismos y autoridades fiscalizadoras competentes y la de sus subcontratos? Si aplica. ¿Informando los resultados al administrador CODELCO y a la GSSO vía LOD o carta contractual?", "weight": 0.005, "level": 1, "result": 0.005, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Resultados comunicados vía LOD con programa de cumplimiento en plazo.", "observation": "Se adjuntan las cartas contractuales de la visita de la Inspección del Trabajo, las actas respectivas y su entrega al AdC. A la fecha, los organismos fiscalizadores no han emitido respuesta sobre la información presentada.", "action": "Hacer seguimiento a la respuesta de los organismos fiscalizadores y cargarla una vez recibida. El miercoles 7 , fue la ultima fiscalización, se notifico por carta contractual al ADC CODELCO. El restos de las revisiones no han tenido respuesta oficial.", "responsible": "Auditorías", "evidence_ref": null}, {"id": 11, "phase": "B. DO", "section": "B1. Competencias y Formación", "question": "¿Se cumple y se dispone de evidencias de Inducciones, Información de Riesgos Laborales (IRL), capacitaciones y acreditaciones necesarias para el cumplimiento de los cargos?", "weight": 0.02, "level": 0.5, "result": 0.01, "gap": 0.01, "status": "Brecha relevante", "priority": "Alta", "criterion": "Capacitaciones e IRL por cargo acreditadas, sin cobertura de la totalidad de los trabajadores.", "observation": "Solo están vinculadas las evidencias descargadas de la plataforma NAMI. Las capacitaciones registradas en la maestra de capacitación aún no se migran a la carpeta, por lo que no es posible acreditar la cobertura total de la dotación.", "action": "Migrar las evidencias de la maestra de capacitación y enlazar a cada trabajador con su carpeta y cursos predeterminados.", "responsible": "JIMY PINCHEIRA", "evidence_ref": null}, {"id": 12, "phase": "B. DO", "section": "B1. Competencias y Formación", "question": "¿Los supervisores están formados en ejecución y verificación de controles críticos?", "weight": 0.02, "level": 0.8, "result": 0.016, "gap": 0.004, "status": "Brecha menor", "priority": "Media", "criterion": "Supervisores formados con evidencia documentada, aplicación en terreno y envío por LOD.", "observation": "Se realizó curso de formación para la línea de supervisión. La evidencia se organiza en tres carpetas: material utilizado; registros de asistencia (con Excel de participantes); y respaldo contractual de su ejecución.", "action": "Sin acciones pendientes. Mantener el registro actualizado ante el ingreso de nuevos supervisores. Se debe actualizar con los nuevos ingresos y realizar al personal faltante", "responsible": "MAX / NATALY", "evidence_ref": null}, {"id": 13, "phase": "B. DO", "section": "B1. Competencias y Formación", "question": "¿La Política Corporativa y la Carta de Valores se dio a conocer a todos los trabajadores(as) de la empresa contratista y subcontratista? ¿Se cuenta con evidencia de ello?", "weight": 0.01, "level": 0.8, "result": 0.008, "gap": 0.002, "status": "Brecha menor", "priority": "Media", "criterion": "Difusión a la mayoría de los trabajadores, con brechas menores de cobertura.", "observation": "Se está difundiendo la nueva versión a todo el personal, con firma de toma de conocimiento asociada a la tarja diaria.", "action": "Completar la difusión al 100% de la dotación y cargar los registros firmados.", "responsible": "JIMY PINCHEIRA / NICOLAS VILLA", "evidence_ref": null}, {"id": 14, "phase": "B. DO", "section": "B2. Documentos Operativos y Procedimientos", "question": "¿Los procedimientos están vigentes, difundidos y disponibles, estos son accesibles en las áreas de interacción del contrato?", "weight": 0.02, "level": 0.8, "result": 0.016, "gap": 0.004, "status": "Brecha menor", "priority": "Media", "criterion": "Procedimientos revisados y difundidos, con brechas menores de disponibilidad en terreno.", "observation": "Existe una biblioteca virtual con la documentación del contrato. Se propone habilitar códigos QR en terreno para acceder a los procedimientos, lo que exige asegurar que los documentos enlazados estén siempre en su última versión.", "action": "Solicitar a Rodrigo Catalán un canal directo para recibir las últimas versiones de los procedimientos y mantener los QR al día. Se deben conseguir los procedimientos de trabajo en su versión mas reciente para cargarlos en la nube digital, generar afiche para esta actividad", "responsible": "JIMY PINCHEIRA /CONSTANZA", "evidence_ref": null}, {"id": 15, "phase": "B. DO", "section": "B2. Documentos Operativos y Procedimientos", "question": "¿Se evalúa el nivel de conocimiento sobre los métodos de trabajo seguro y sus controles claves, aplicables a sus procesos?", "weight": 0.02, "level": 0.5, "result": 0.01, "gap": 0.01, "status": "Brecha relevante", "priority": "Alta", "criterion": "Evaluación de métodos de trabajo seguro aplicada a la mayoría, con brechas de cobertura o registro.", "observation": "Requisito asociado principalmente a actividades de terreno. Falta un mecanismo que centralice la evidencia de las evaluaciones de procedimientos aplicadas al personal.", "action": "Subir información que este relacionada a la revisión de procedimientos de trabajo e inspecciones en terreno", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 16, "phase": "B. DO", "section": "B2. Documentos Operativos y Procedimientos", "question": "¿Los cambios en condiciones operacionales, se evalúan mediante SIGO-P-030 (Gestión del Cambio)? ¿Cuentan con respaldos de su aplicabilidad?", "weight": 0.01, "level": 0.8, "result": 0.008, "gap": 0.002, "status": "Brecha menor", "priority": "Media", "criterion": "Formularios de GdC con análisis de riesgos; brechas menores de formalidad o respaldo.", "observation": "Las gestiones del cambio realizadas durante el contrato no están consolidadas en la carpeta de evidencias, incluida la originada por la no conformidad de auditoría.", "action": "Adjuntar todas las gestiones del cambio del contrato, incluida la asociada a la no conformidad de auditoría.", "responsible": "RODRIGO CATALAN", "evidence_ref": null}, {"id": 17, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿Los controles críticos declarados para los RF aplicables a las actividades en terreno, son consistentes con lo declarado en el ART de la tarea y la matriz IPER, se encuentran instalados, operativos y verificables en el área de ejecución, siendo consistente su condición real con lo descrito en el estándar de RF definido por la empresa?", "weight": 0.05, "level": 1, "result": 0.05, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Controles críticos consistentes con ART e IPER, instalados, operativos y verificables.", "observation": "Los controles críticos son consistentes con el ART y la matriz IPER. Falta incorporar los ART del proyecto a la carpeta de evidencias.", "action": "Adjuntar los ART del proyecto y desarrollar una herramienta que facilite el cruce y análisis ART – IPER – RF.", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 18, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿Los trabajadores en terreno muestran conocimiento en relación con controles operativos implementados?", "weight": 0.03, "level": 0.8, "result": 0.024, "gap": 0.005999999999999998, "status": "Brecha menor", "priority": "Media", "criterion": "La mayoría de los trabajadores demuestra conocimiento adecuado; brechas menores.", "observation": "Requisito que se acredita mediante encuestas de conocimiento aplicadas en terreno.", "action": "Aplicar encuestas en terreno y cargar los resultados como evidencia.", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 19, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿Se cumple y se dispone de evidencias de las actividades definidas en el Programa Mensual de Actividades (PAM), de acuerdo a lo programado?", "weight": 0.03, "level": 1, "result": 0.03, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Respaldos completos de cumplimiento semanal y mensual del PAM, enviados por LOD.", "observation": "Paulina y Adriana acreditan el cumplimiento de las actividades del PAM según lo programado. La evidencia aún se mantiene en sus carpetas de trabajo.", "action": "Traspasar las evidencias a la carpeta vinculada a esta pregunta. ", "responsible": "PAULINA / ADRIANA", "evidence_ref": null}, {"id": 20, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿Se cumple y se dispone de evidencias de las actividades Diálogos de Desempeño (DdD), Confirmaciones de Proceso (CdP), Confirmaciones de Rol (CdR), de acuerdo a lo programado?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Programa de liderazgo trazable con SIGO-ET-03 y reportado en plataforma.", "observation": "El programa de liderazgo se encuentra en cumplimiento; falta completar la evidencia en la carpeta.", "action": "Cargar las actividades de liderazgo realizadas en el contrato e incorporar los DdD asociados a RF.", "responsible": "PAULINA / ADRIANA / CONSTANZA", "evidence_ref": null}, {"id": 21, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿Se aplican herramientas de control: ART, permisos, checklists y coordinación de trabajos simultáneos? ¿Se utiliza Tarjeta Verde ante desviaciones o ausencia de condiciones seguras?", "weight": 0.03, "level": 1, "result": 0.03, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Herramientas de control aplicadas sistemáticamente y uso de Tarjeta Verde.", "observation": "Se aplican las herramientas de control y la Tarjeta Verde. Para robustecer la evidencia, se requiere consolidar el registro y análisis de las TV levantadas.", "action": "Agregar las Tarjetas Verdes del proyecto, el análisis de tendencias y la forma de cierre de cada una. FORMAR CONSOLIDADOS MENSUALES", "responsible": "PAULINA / ADRIANA", "evidence_ref": null}, {"id": 22, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿La empresa cuenta con la identificación de los GES y Programa Vigilancia Médica y es consistente con la evaluación higiénica levantada con el Organismo Administrador respectivo?", "weight": 0.03, "level": 1, "result": 0.03, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "GES identificados y programa de vigilancia médica coordinado con el OAL, dentro de plazo.", "observation": "Se cuenta con GES actualizado, programa de vigilancia médica y evaluaciones higiénicas del OAL.", "action": "Sin acciones pendientes. Mantener actualizado ante cambios de dotación o de procesos. PEDIR A JOSE ARAYA QUE DEGLOSE EL PUNTO PARA REVISAR CUMPLIMIENTO", "responsible": "JOSE ARAYA", "evidence_ref": null}, {"id": 23, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿Se da cumplimiento al ciclo de higiene, dejando respaldos de programa de Higiene Industrial, Implementación de Controles y Planes de Acción, Operación, capacitación y trazabilidad en terreno? ¿Cuenta la empresa contratista con Mapas de Riesgo de Higiene Industrial en el lugar donde realiza sus actividades?", "weight": 0.03, "level": 1, "result": 0.03, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Ciclo de higiene cumplido integralmente, con trazabilidad.", "observation": "El ciclo de higiene se cumple; la evidencia está pendiente de consolidar en la carpeta.", "action": "Adjuntar programa de Higiene Industrial, evidencia de controles y planes de acción, difusión de temas de salud y disposición de mapas de riesgo en terreno.", "responsible": "Salud Ocupacional", "evidence_ref": null}, {"id": 24, "phase": "B. DO", "section": "B3. Control Operacional", "question": "¿La empresa cuenta con procedimiento de capacitación, en el cual incluye un programa de operadores de baja experiencia laboral (BEL)?", "weight": 0.01, "level": 0.5, "result": 0.005, "gap": 0.005, "status": "Brecha relevante", "priority": "Media", "criterion": "Existe procedimiento BEL, con cumplimiento parcial de los puntos auditados.", "observation": "Existe procedimiento y programa específico para trabajadores BEL; sin embargo, no se cuenta con evidencia del cierre de los procesos.", "action": "Recopilar y cargar la evidencia de cierre de proceso de cada trabajador BEL. RETROACTIVO", "responsible": "PAULINA / ADRIANA", "evidence_ref": null}, {"id": 25, "phase": "B. DO", "section": "B4. Preparación y Respuesta a Emergencias", "question": "¿La empresa cuenta con un plan de emergencia que considere la comunicación, coordinación y acciones y se difundió a sus trabajadores(as)? ¿El Plan de Emergencias está alineado a CODELCO?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Plan de emergencia existente, aún no validado ni difundido.", "observation": "Plan de Emergencia en segunda revisión, entregado a Ambipar el 30-09-2026. Se encuentra a la espera de su recepción y validación.", "action": "Obtener el acta de recepción de Ambipar y, luego, formalizar y difundir el plan a los trabajadores. SE ENVIA POR CARTA CONTRACTUAL LA SEGUNDA ENTREGA A REVISIÓN DEL PROCEDIMIENTO. SE DEBE ESPERAR A SU REGRESO", "responsible": "Claudio Rojas", "evidence_ref": null}, {"id": 26, "phase": "B. DO", "section": "B4. Preparación y Respuesta a Emergencias", "question": "¿La empresa cuenta con un programa de simulacros de emergencias que afecten a su servicio?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Programa de simulacros actualizado, firmado y con verificación de cumplimiento.", "observation": "Se cuenta con programa de simulacros y se han ejecutado los dos primeros. Existen cambios de fecha en el cronograma que aún no están formalizados.", "action": "Formalizar por LOD el cambio de fechas del cronograma; revisar la evidencia de los simulacros ejecutados y levantar brechas si corresponde.PORFAVOR TRASPASAR EVIDENCIA A CARPETA CORRESPONDIENTE", "responsible": "ANGIE / TAMARA", "evidence_ref": null}, {"id": 27, "phase": "B. DO", "section": "B4. Preparación y Respuesta a Emergencias", "question": "¿Se cumple y se dispone de evidencias de evaluación periódica de verificación de las condiciones del sitio de trabajo?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Evaluaciones periódicas con evidencia; brechas menores de frecuencia o documentación.", "observation": "Se acredita con la información recopilada por la encargada de Medio Ambiente, que detalla las inspecciones del estándar de sitio realizadas por HSEC en terreno.", "action": "Consolidar los registros de inspección en la carpeta y verificar que cumplan la periodicidad definida.", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 28, "phase": "B. DO", "section": "B5. Gestión de Subcontratos", "question": "¿Los subcontratos están formalizados, son informados al Administrador de Contrato CODELCO, vía LOD o carta contractual? ¿Se encuentran categorizados y con documentación al día?", "weight": 0.02, "level": "N/A", "result": null, "gap": null, "status": "No aplica", "priority": "—", "criterion": "No aplica al contrato.", "observation": "No aplica al contrato.", "action": "—", "responsible": "—", "evidence_ref": null}, {"id": 29, "phase": "B. DO", "section": "B5. Gestión de Subcontratos", "question": "¿La empresa verifica el cumplimiento del RESSO en sus subcontratos? ¿Cuenta con respaldos de su ejecución?", "weight": 0.01, "level": "N/A", "result": null, "gap": null, "status": "No aplica", "priority": "—", "criterion": "No aplica al contrato.", "observation": "No aplica al contrato.", "action": "—", "responsible": "—", "evidence_ref": null}, {"id": 30, "phase": "C. CHECK", "section": "C1. Aseguramiento y Auditoría", "question": "¿Se difunden los reportes de incidentes Divisionales y Corporativos, en especial los que apliquen a su servicio? Si aplica, ¿la empresa realiza una evaluación de aplicabilidad?", "weight": 0.03, "level": 1, "result": 0.03, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Difusión de incidentes con evaluación de aplicabilidad y aprendizajes documentados.", "observation": "Nicolás Villa recopila activamente esta información. La evidencia se carga en este punto; ruta original: 09. Charlas y difusiones.", "action": "Coordinar con Nicolás Villa la carga completa de la información que administra.SE AGREGA ADEMÁS DAILY REPORT DE JIMY", "responsible": "Nicolás Villa", "evidence_ref": null}, {"id": 31, "phase": "C. CHECK", "section": "C1. Aseguramiento y Auditoría", "question": "¿Existe respaldo de verificaciones periódicas del cumplimiento del Programa de Trabajo, especialmente verificaciones enfocadas en sus Riesgos de Fatalidad? ¿Los hallazgos levantados son informados al Administrador de Contrato CODELCO?", "weight": 0.05, "level": 0.8, "result": 0.04000000000000001, "gap": 0.009999999999999995, "status": "Brecha menor", "priority": "Alta", "criterion": "Verificaciones periódicas con evidencia; brechas menores en cobertura o en la comunicación al AdC.", "observation": "Se requiere sistematizar una verificación mensual de la totalidad de los RF y su reporte formal al Administrador de Contrato CODELCO.", "action": "Realizar revisión mensual de todos los RF con registros y evidencias; preparar presentación e informar contractualmente.", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 32, "phase": "C. CHECK", "section": "C1. Aseguramiento y Auditoría", "question": "¿Existe respaldo de las acciones de auditorías internas/externas, tienen trazabilidad de cierre? Además, ¿Existe seguimiento a desviaciones recurrentes para evitar repetitividad?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Respaldos de auditorías con trazabilidad de cierre incompleta.", "observation": "La carpeta aún no contiene las evidencias de las auditorías internas y externas (CODELCO u otras entidades) realizadas en el proyecto. Rodrigo Catalán ejecutará auditorías internas de RF.", "action": "Anexar las evidencias de auditorías internas y externas con su trazabilidad de cierre; ejecutar auditorías internas de RF.", "responsible": "Tamara/ Angie", "evidence_ref": null}, {"id": 33, "phase": "C. CHECK", "section": "C1. Aseguramiento y Auditoría", "question": "¿Se evalúa la eficacia de los controles principales y críticos en terreno? ¿Es consistente con la evaluación de indicadores definida en el punto N° 3 de esta lista de verificación?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Eficacia de controles evaluada en terreno, consistente con los indicadores del punto 3.", "observation": "Cumplimiento acreditado. Se reforzará con la verificación mensual de todos los RF (ver punto 31).", "action": "Incorporar la verificación mensual de RF como evidencia.", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 34, "phase": "C. CHECK", "section": "C2. Indicadores y Gestión de Información", "question": "¿La empresa cumple con la exigencia de entregar el informe requerido una vez por mes en fecha y los datos referente al cumplimiento de las actividades son concordantes con la información existente?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Informe mensual entregado en plazo y con datos concordantes.", "observation": "Las encargadas de Gestión entregan mensualmente la información al jefe de departamento y al grupo de Estadísticas. El respaldo se mantiene en SharePoint (00 Reportabilidad & Estadísticas).", "action": "Conseguir las firmas por parte de CODELCO de los meses faltantes ", "responsible": "Claudio Rojas", "evidence_ref": "Abrir SharePoint"}, {"id": 35, "phase": "C. CHECK", "section": "C2. Indicadores y Gestión de Información", "question": "¿La empresa entrega las estadísticas de información de riesgos profesionales en el formato requerido por CODELCO?", "weight": 0.03, "level": 1, "result": 0.03, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Estadísticas entregadas en formato CODELCO, en plazo y con datos concordantes.", "observation": "Las encargadas de Gestión entregan mensualmente las estadísticas al jefe de departamento y al grupo de Estadísticas. El respaldo se mantiene en SharePoint (00 Reportabilidad & Estadísticas).", "action": "Sin acciones pendientes.", "responsible": "ANGIE / TAMARA", "evidence_ref": "Abrir SharePoint"}, {"id": 36, "phase": "D. ACT", "section": "D1. Gestión de Incidentes", "question": "¿Cuenta la empresa con personal capacitado con el método ICAM?", "weight": 0.02, "level": 1, "result": 0.02, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Personal capacitado en ICAM, incluidos AdC, supervisión y CPHS.", "observation": "A la fecha hay 12 personas capacitadas en ICAM; la formación continuará.", "action": "Continuar el programa de capacitación ICAM y mantener el registro actualizado.", "responsible": "MAX / NATALY", "evidence_ref": null}, {"id": 37, "phase": "D. ACT", "section": "D1. Gestión de Incidentes", "question": "¿Los incidentes se investigan según metodología corporativa? ¿Las acciones correctivas son verificadas en terreno, se encuentran cerradas en plazo y se privilegian controles de alta jerarquía?", "weight": 0.05, "level": 0.8, "result": 0.04000000000000001, "gap": 0.009999999999999995, "status": "Brecha menor", "priority": "Alta", "criterion": "Investigaciones aplican ICAM (SIGO-P-030) con evidencia y trazabilidad.", "observation": "Las investigaciones se realizan conforme a la metodología corporativa.", "action": "Revisar el estado de las medidas correctivas señaladas por el Corporativo. SE DEBEN CERRAR CON LAS MEDIDAS CORRECTIVAS ABIERTAS", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 38, "phase": "D. ACT", "section": "D1. Gestión de Incidentes", "question": "¿La EECC evaluó los riesgos de un potencial accidente grave o fatal? ¿De lo anterior se realizó un simulacro documental, implementando las medidas dentro de los plazos?", "weight": 0.05, "level": 1, "result": 0.05, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "RF y ECF evaluados, simulacro documental realizado y medidas implementadas en plazo.", "observation": "Evaluación de riesgos y simulacros documentales realizados; falta cargar su versión final.", "action": "Cargar los simulacros documentales en su versión final. LEVANTAR LAS OBSERVACIONES", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 39, "phase": "D. ACT", "section": "D2. Actualización del Sistema Preventivo", "question": "¿Se actualizan los planes, programas, procedimientos, métodos de trabajo y controles a partir de aprendizajes, auditorías o incidentes?", "weight": 0.04, "level": 1, "result": 0.04, "gap": 0, "status": "Cumple", "priority": "Baja", "criterion": "Control documental que asegura revisión, actualización y trazabilidad.", "observation": "Existe carta contractual que entrega el programa de actualización progresiva de los procedimientos.", "action": "Hacer seguimiento al avance del programa de actualización.", "responsible": "RODRIGO / JAIME", "evidence_ref": null}, {"id": 40, "phase": "D. ACT", "section": "D2. Actualización del Sistema Preventivo", "question": "¿Se cumple y se dispone de evidencias de actividades definidas en el “Estándar de Seguridad Conductual” de acuerdo a lo programado (N° Observadores, cierre de ciclo, conductas preocupantes y plan de acción)?", "weight": 0.01, "level": 0.5, "result": 0.005, "gap": 0.005, "status": "Brecha relevante", "priority": "Media", "criterion": "No se evidencia el cumplimiento de algún punto requerido del programa.", "observation": "Falta acreditar la toma de conocimiento de los trabajadores; el requisito exige un mínimo de 90% de difusión.", "action": "Completar la difusión del Estándar de Seguridad Conductual hasta alcanzar al menos el 90% de la dotación y cargar los registros. EL INFORME SE ENCUENTRA BIEN, SUS EVIDENCIAS TAMBIEN , SE DEBE POTENCIAR LA DIFUSIÓN. ADEMAS SE DEBE MOVER LA EVIDENCIA A LA CARPETA DESIGNADA", "responsible": "PAULINA / ADRIANA", "evidence_ref": null}];
+
+const SP_LIBRARY_URL =
+  "https://empresassk.sharepoint.com/sites/ICSK-HSEC/Documentos%20compartidos/Forms/AllItems.aspx";
+
+const SP_VIEW_ID =
+  "e72333c8-45a8-4050-bdda-7b838f222428";
+
+const SP_ROOT_FOLDER =
+  "/sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/0.- RESSO Ver. 10/02 RESSO V10";
+
+const PHASE_FOLDER = {
+  "A. PLAN": "A - PLAN",
+  "B. DO": "B - DO",
+  "C. CHECK": "C - CHECK",
+  "D. ACT": "D - ACT"
+};
+
+const SECTION_FOLDER_BY_CODE = {
+  "A1": "A1 - Programa de Trabajo y Planificacion",
+  "A2": "A2 - Evaluacion de Riesgos",
+  "A3": "A3 - Marco Regulatorio y Cumplimiento",
+
+  "B1": "B1 - Competencias y Formacion",
+  "B2": "B2 - Documentos Operativos y Procedimientos",
+  "B3": "B3 - Control Operacional",
+  "B4": "B4 - Preparacion y Respuesta a Emergencias",
+  "B5": "B5 - Gestion de Subcontratos",
+
+  "C1": "C1 - Aseguramiento y Auditoria",
+  "C2": "C2 - Indicadores y Gestion de Informacion",
+
+  "D1": "D1 - Gestion de Incidentes",
+  "D2": "D2 - Actualizacion del Sistema Preventivo"
+};
+
+function sectionCode(r) {
+  const raw = (r.section || "").trim();
+  const match = raw.match(/^([A-D]\d+)/i);
+  return match ? match[1].toUpperCase() : "";
+}
+
+function specificSharePointLink(r) {
+  const phaseFolder = PHASE_FOLDER[r.phase];
+  const code = sectionCode(r);
+  const sectionFolder = SECTION_FOLDER_BY_CODE[code];
+
+  if (!phaseFolder || !sectionFolder) return "#";
+
+  const folderPath =
+    `${SP_ROOT_FOLDER}/${phaseFolder}/${sectionFolder}/Pregunta ${r.id}`;
+
+  return `${SP_LIBRARY_URL}?id=${encodeURIComponent(folderPath)}&viewid=${SP_VIEW_ID}`;
+}
+
+function sharePointReadablePath(r) {
+  const phaseFolder = PHASE_FOLDER[r.phase] || r.phase;
+  const code = sectionCode(r);
+  const sectionFolder = SECTION_FOLDER_BY_CODE[code] || r.section;
+  return `${phaseFolder} → ${sectionFolder} → Pregunta ${r.id}`;
+}
+
+const EVIDENCE_STORAGE_KEY = "resso424_auditor_evidence_links_v1";
+let currentEvidenceId = null;
+let currentDetailId = null;
+
+function loadEvidenceMap() {
+  try {
+    return JSON.parse(localStorage.getItem(EVIDENCE_STORAGE_KEY) || "{}");
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveEvidenceMap(map) {
+  localStorage.setItem(EVIDENCE_STORAGE_KEY, JSON.stringify(map));
+}
+
+function getEvidenceSelection(id) {
+  return loadEvidenceMap()[String(id)] || null;
+}
+
+let compactView = true;
+
+const el = id => document.getElementById(id);
+
+function phaseClass(phase) {
+  if (phase.startsWith("A.")) return "plan";
+  if (phase.startsWith("B.")) return "do";
+  if (phase.startsWith("C.")) return "check";
+  return "act";
+}
+
+function statusClass(status) {
+  if (status === "Cumple") return "green";
+  if (status === "Brecha menor") return "amber";
+  if (status === "Brecha relevante") return "red";
+  return "gray";
+}
+
+function priorityClass(priority) {
+  if (priority === "Alta") return "high";
+  if (priority === "Media") return "medium";
+  if (priority === "Baja") return "low";
+  return "na";
+}
+
+function levelText(level) {
+  if (level === "N/A") return "N/A";
+  if (level === null || level === undefined) return "—";
+  return `${Math.round(Number(level)*100)}%`;
+}
+
+function weightText(weight) {
+  if (weight === null || weight === undefined) return "—";
+  return `${(Number(weight)*100).toFixed(1).replace(".0","")}%`;
+}
+
+function populateResponsibleFilter() {
+  const values = [...new Set(DATA.map(r => r.responsible).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  values.forEach(v => {
+    const option = document.createElement("option");
+    option.value = v;
+    option.textContent = v;
+    el("responsibleFilter").appendChild(option);
+  });
+}
+
+function render() {
+  const q = el("search").value.toLowerCase().trim();
+  const phase = el("phaseFilter").value;
+  const status = el("statusFilter").value;
+  const priority = el("priorityFilter").value;
+  const responsible = el("responsibleFilter").value;
+
+  const filtered = DATA.filter(r => {
+    const hay = [
+      r.section, r.question, r.status, r.priority, r.criterion,
+      r.observation, r.action, r.responsible
+    ].join(" ").toLowerCase();
+
+    return (!q || hay.includes(q))
+      && (phase === "all" || r.phase === phase)
+      && (status === "all" || r.status === status)
+      && (priority === "all" || r.priority === priority)
+      && (responsible === "all" || r.responsible === responsible);
+  });
+
+  el("auditRows").innerHTML = filtered.map(r => {
+    const detailLine = compactView
+      ? `<div class="req-title">${r.section}</div>`
+      : `<div class="req-title">${r.section}</div><div class="req-sub">${r.question}</div>`;
+
+    const savedEvidence = getEvidenceSelection(r.id);
+
+    const evidenceButton =
+      `<button class="action-btn secondary"
+          onclick="openEvidencePopup(${r.id})">
+          ${savedEvidence ? "Evidencia ✓" : "Evidencia"}
+       </button>`;
+
+    return `
+      <tr>
+        <td class="code">${String(r.id).padStart(2,"0")}</td>
+        <td><span class="phase-chip ${phaseClass(r.phase)}">${r.phase}</span></td>
+        <td>${detailLine}</td>
+        <td><span class="status-chip ${statusClass(r.status)}">● ${r.status}</span></td>
+        <td><span class="priority-chip ${priorityClass(r.priority)}">${r.priority}</span></td>
+        <td>${r.responsible || "—"}</td>
+        <td class="level">${levelText(r.level)}</td>
+        <td>
+          <div class="action-cell">
+            <button class="action-btn" onclick="openDetail(${r.id})">Revisar</button>
+            ${evidenceButton}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  el("rowCount").textContent = `Mostrando ${filtered.length} de ${DATA.length} requisitos`;
+}
+
+function setCompact(value) {
+  compactView = value;
+  el("summaryBtn").classList.toggle("active", value);
+  el("detailBtn").classList.toggle("active", !value);
+  render();
+}
+
+function openDetail(id) {
+  const r = DATA.find(x => x.id === id);
+  if (!r) return;
+
+  const code = el("mCode");
+  code.className = `phase-chip ${phaseClass(r.phase)}`;
+  code.textContent = `${r.phase} · #${String(r.id).padStart(2,"0")}`;
+
+  el("mTitle").textContent = r.section;
+  el("mStatus").textContent = r.status;
+  el("mPriority").textContent = r.priority;
+  el("mLevel").textContent = levelText(r.level);
+  el("mResponsible").textContent = r.responsible || "—";
+  el("mWeight").textContent = weightText(r.weight);
+  el("mQuestion").textContent = r.question || "—";
+  el("mCriterion").textContent = r.criterion || "—";
+  el("mObservation").textContent = r.observation || "—";
+  el("mAction").textContent = r.action || "—";
+
+  currentDetailId = r.id;
+  const savedEvidence = getEvidenceSelection(r.id);
+
+  el("mEvidenceNote").textContent = savedEvidence
+    ? `Evidencia seleccionada: ${savedEvidence.name || "Archivo SharePoint"}`
+    : `${sharePointReadablePath(r)} · Sin archivo específico seleccionado.`;
+
+  el("modalBg").classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  el("modalBg").classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+function outsideClose(event) {
+  if (event.target === el("modalBg")) closeModal();
+}
+
+
+function openEvidenceFromDetail() {
+  if (!currentDetailId) return;
+  closeModal();
+  openEvidencePopup(currentDetailId);
+}
+
+function openEvidencePopup(id) {
+  const r = DATA.find(x => x.id === id);
+  if (!r) return;
+
+  currentEvidenceId = id;
+
+  const code = el("eCode");
+  code.className = `phase-chip ${phaseClass(r.phase)}`;
+  code.textContent = `${r.phase} · #${String(r.id).padStart(2,"0")}`;
+
+  el("eTitle").textContent = r.section;
+  el("ePath").textContent = sharePointReadablePath(r);
+  el("eFolderLink").href = specificSharePointLink(r);
+
+  const saved = getEvidenceSelection(id);
+
+  el("eFileName").value = saved?.name || "";
+  el("eFileUrl").value = saved?.url || "";
+  el("evidenceMsg").textContent = "";
+  el("evidenceMsg").className = "evidence-msg";
+
+  renderSavedEvidence(saved);
+
+  el("evidenceBg").classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function renderSavedEvidence(saved) {
+  const box = el("savedEvidenceBox");
+  const removeBtn = el("removeEvidenceBtn");
+
+  if (!saved?.url) {
+    box.hidden = true;
+    removeBtn.hidden = true;
+    return;
+  }
+
+  box.hidden = false;
+  removeBtn.hidden = false;
+  el("savedEvidenceName").textContent =
+    saved.name || "Archivo SharePoint seleccionado";
+  el("savedEvidenceUrl").textContent = saved.url;
+  el("savedEvidenceOpen").href = saved.url;
+}
+
+function saveEvidenceSelection() {
+  if (!currentEvidenceId) return;
+
+  const name = el("eFileName").value.trim();
+  const url = el("eFileUrl").value.trim();
+  const msg = el("evidenceMsg");
+
+  if (!url) {
+    msg.textContent =
+      "Pega el vínculo del archivo de SharePoint antes de guardar.";
+    msg.className = "evidence-msg error";
+    return;
+  }
+
+  if (!/^https:\/\/empresassk\.sharepoint\.com\//i.test(url)) {
+    msg.textContent =
+      "El vínculo debe corresponder al SharePoint de empresassk.";
+    msg.className = "evidence-msg error";
+    return;
+  }
+
+  const map = loadEvidenceMap();
+
+  map[String(currentEvidenceId)] = {
+    name: name || `Evidencia requisito ${currentEvidenceId}`,
+    url
+  };
+
+  saveEvidenceMap(map);
+
+  const saved = map[String(currentEvidenceId)];
+  renderSavedEvidence(saved);
+
+  msg.textContent =
+    "Archivo seleccionado guardado para este requisito.";
+  msg.className = "evidence-msg ok";
+
+  render();
+}
+
+function removeEvidenceSelection() {
+  if (!currentEvidenceId) return;
+
+  const map = loadEvidenceMap();
+  delete map[String(currentEvidenceId)];
+  saveEvidenceMap(map);
+
+  el("eFileName").value = "";
+  el("eFileUrl").value = "";
+  renderSavedEvidence(null);
+
+  el("evidenceMsg").textContent = "Selección eliminada.";
+  el("evidenceMsg").className = "evidence-msg";
+
+  render();
+}
+
+function closeEvidencePopup() {
+  el("evidenceBg").classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+function outsideEvidenceClose(event) {
+  if (event.target === el("evidenceBg")) closeEvidencePopup();
+}
+
+["search","phaseFilter","statusFilter","priorityFilter","responsibleFilter"].forEach(id => {
+  el(id).addEventListener(id === "search" ? "input" : "change", render);
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    closeModal();
+    closeEvidencePopup();
+  }
+});
+
+populateResponsibleFilter();
+render();
+</script>
+
+</body>
+</html>

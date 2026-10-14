@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D. ACT · Evidencias RESSO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#24407a;--blue-dark:#17376f;
+  --act:#6f3bd8;--act2:#5323b9;--act-soft:#f2ecff;
+  --bg:#f4f6fb;--text:#17345f;--muted:#71809a;
+  --green:#168b57;--green-soft:#e9f7ef;
+  --amber:#b77600;--amber-soft:#fff4da;
+  --red:#bf4238;--red-soft:#ffe9e7;
+  --line:#e2e9f3;
+}
+body{font-family:"Open Sans",Arial,sans-serif;background:radial-gradient(circle at top left,#f3efff 0,transparent 28%),var(--bg);color:var(--text);min-height:100vh}
+.topbar{min-height:74px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 34px;background:rgba(255,255,255,.95);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border:3px solid var(--blue-dark);border-radius:13px;display:grid;place-items:center;font-weight:900;transform:rotate(45deg);background:#fff}
+.logo span{transform:rotate(-45deg)}
+.brand strong{display:block;font-size:14px} .brand small{color:var(--muted)}
+.mode{display:flex;gap:4px;background:#edf2fa;border:1px solid #dce5f2;padding:5px;border-radius:14px}
+.mode a{text-decoration:none;color:#64728b;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:800}
+.mode a.active{background:#fff;color:var(--blue);box-shadow:0 4px 14px rgba(30,60,120,.1)}
+.contract{justify-self:end;background:#edf3ff;color:var(--blue);padding:9px 15px;border-radius:30px;font-size:12px;font-weight:800}
+.page{width:min(1540px,calc(100% - 40px));margin:20px auto 42px}
+.breadcrumb{font-size:13px;color:#7b889d;margin-bottom:12px} .breadcrumb a{color:var(--blue);text-decoration:none;font-weight:800}
+.hero{display:grid;grid-template-columns:150px 1fr 350px;gap:22px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 26px rgba(30,57,108,.06)}
+.hero-icon{height:140px;border-radius:20px;display:grid;place-items:center;font-size:58px;color:#fff;background:linear-gradient(145deg,#8c58ef,#5824c0);box-shadow:inset 0 0 40px rgba(255,255,255,.18)}
+.hero small{color:var(--act);font-weight:900;letter-spacing:.6px} .hero h1{font-size:48px;color:#4f299e;margin:5px 0 9px} .hero p{color:#657595;font-size:16px;line-height:1.5}
+.hero-note{background:#f5f0ff;padding:17px;border-radius:15px;color:#655a87;font-size:13px;line-height:1.55}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px 18px;display:flex;gap:13px;align-items:center;box-shadow:0 5px 16px rgba(34,58,104,.04)}
+.kpi-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--act-soft);color:var(--act);font-size:20px;font-weight:900}
+.kpi.green .kpi-icon{background:var(--green-soft);color:var(--green)} .kpi.amber .kpi-icon{background:var(--amber-soft);color:var(--amber)}
+.kpi small{display:block;text-transform:uppercase;font-size:10px;font-weight:900;color:#74819a} .kpi strong{display:block;font-size:27px;color:#4f299e} .kpi span{font-size:11px;color:#8792a5}
+.groups{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.group-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px;cursor:pointer;transition:.2s;box-shadow:0 5px 16px rgba(34,58,104,.04)}
+.group-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(34,58,104,.09)}
+.group-top{display:flex;justify-content:space-between;gap:12px;align-items:start} .group-code{background:var(--act-soft);color:var(--act);font-weight:900;border-radius:10px;padding:7px 10px} .group-card h3{font-size:15px;color:#4f299e;margin-top:8px}
+.group-meta{display:flex;justify-content:space-between;color:#7a879d;font-size:11px;margin:13px 0 7px} .bar{height:7px;background:#edf1f6;border-radius:20px;overflow:hidden} .bar span{display:block;height:100%;background:linear-gradient(90deg,#8a54ee,#5e2bc8);border-radius:20px}
+.panel{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 6px 22px rgba(32,55,104,.05)}
+.panel-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:15px} .panel h2{font-size:23px;color:#4f299e} .panel-head p{font-size:12px;color:#7a879d;margin-top:5px}
+.filters{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:9px;margin-bottom:14px} .filters input,.filters select{height:42px;border:1px solid #d9e2f0;border-radius:10px;padding:0 12px;background:#fff;color:#546681;outline:none}
+.req-list{display:grid;gap:10px}
+.req{border:1px solid var(--line);border-radius:16px;padding:15px;display:grid;grid-template-columns:54px 1fr 130px 120px 160px 170px;gap:13px;align-items:center;transition:.15s}
+.req:hover{box-shadow:0 7px 20px rgba(32,55,104,.06);transform:translateY(-1px)}
+.num{width:48px;height:48px;border-radius:13px;background:var(--act-soft);color:var(--act);display:grid;place-items:center;font-weight:900}
+.req h3{font-size:14px;color:#4f299e;margin-bottom:4px} .req .question{font-size:12px;color:#687791;line-height:1.4}
+.label{display:block;color:#8a96a9;font-size:9px;text-transform:uppercase;font-weight:900;margin-bottom:6px} .value{font-size:11px;color:#52647f;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 9px;font-size:10px;font-weight:900;white-space:nowrap}
+.chip.green{background:var(--green-soft);color:var(--green)} .chip.amber{background:var(--amber-soft);color:var(--amber)} .chip.red{background:var(--red-soft);color:var(--red)}
+.score{font-size:18px;font-weight:900;color:#4f299e}
+.actions{display:grid;grid-template-columns:1fr;gap:6px} .btn{border:1px solid #c9b9ef;background:#f4efff;color:#5d31bc;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:900;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit}
+.btn.secondary{background:#fff} .btn.disabled{opacity:.48;cursor:not-allowed;pointer-events:none}
+.modal-bg{position:fixed;inset:0;background:rgba(20,12,50,.58);backdrop-filter:blur(4px);z-index:100;display:none;place-items:center;padding:18px}
+.modal-bg.show{display:grid} .modal{width:min(900px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:22px;box-shadow:0 30px 90px rgba(8,28,65,.28)}
+.modal-head{display:flex;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid var(--line)} .modal-head h2{font-size:22px;color:#4f299e;margin-top:7px} .close{border:0;width:38px;height:38px;border-radius:50%;background:#f2eff8;font-size:22px;color:#695d80;cursor:pointer}
+.modal-body{padding:20px 24px} .modal-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px} .mini{background:#faf8ff;border:1px solid #ebe4f8;border-radius:13px;padding:12px} .mini span{display:block;font-size:9px;text-transform:uppercase;color:#8995a8;font-weight:900;margin-bottom:5px} .mini strong{font-size:12px;color:#4f3e72}
+.detail{display:grid;gap:11px} .detail-card{border:1px solid #e8e1f3;border-radius:14px;padding:14px} .detail-card h4{font-size:11px;color:#4f299e;text-transform:uppercase;margin-bottom:7px} .detail-card p{font-size:12px;color:#5f6f89;line-height:1.55}
+.modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:16px 24px;border-top:1px solid var(--line)} .sharepoint-note{font-size:11px;color:#8a96a8;margin-right:auto;align-self:center}
+@media(max-width:1150px){.hero{grid-template-columns:120px 1fr}.hero-note{grid-column:1/-1}.kpis{grid-template-columns:repeat(2,1fr)}.groups{grid-template-columns:1fr}.req{grid-template-columns:50px 1fr 120px 130px}.actions{grid-column:2/-1;grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.topbar{grid-template-columns:1fr;gap:10px}.contract{justify-self:start}.hero{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.req{grid-template-columns:1fr}.num{width:42px;height:42px}.actions{grid-column:auto;grid-template-columns:1fr}.modal-summary{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><span>SK</span></div><div><strong>SKIC S.A.</strong><small>División Chuquicamata</small></div></div>
+  <nav class="mode"><a class="active" href="index.html">◉ Modo usuario</a><a href="auditor.html">◈ Modo auditor</a></nav>
+  <div class="contract">RESSO V10 · Contrato 424</div>
+</header>
+
+<main class="page">
+  <div class="breadcrumb"><a href="../../index.html">Inicio</a> &nbsp;/&nbsp; <a href="index.html">Centro de Evidencias</a> &nbsp;/&nbsp; D. ACT</div>
+
+  <section class="hero">
+    <div class="hero-icon">↻</div>
+    <div>
+      <small>FASE RESSO</small>
+      <h1>D. ACT</h1>
+      <p>Revisión, Mejora Continua y Aprendizaje · Gestión de incidentes, acciones correctivas y actualización del sistema preventivo.</p>
+    </div>
+    <div class="hero-note">
+      <strong>Estado real de la revisión documental</strong><br>
+      La fase ACT presenta un cumplimiento ponderado de <strong>91,18%</strong>, con 5 requisitos aplicables y 2 requisitos con brecha.
+    </div>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi"><div class="kpi-icon">5</div><div><small>Requisitos ACT</small><strong>5</strong><span>Total evaluado</span></div></div>
+    <div class="kpi green"><div class="kpi-icon">✓</div><div><small>Cumplen</small><strong>3</strong><span>100% de nivel</span></div></div>
+    <div class="kpi amber"><div class="kpi-icon">!</div><div><small>Con brecha</small><strong>2</strong><span>Menor / relevante</span></div></div>
+    <div class="kpi"><div class="kpi-icon">%</div><div><small>Cumplimiento</small><strong>91,18%</strong><span>Resultado ponderado</span></div></div>
+  </section>
+
+  <section class="groups">
+    <div class="group-card" onclick="setGroup('D1')">
+      <div class="group-top"><div><span class="group-code">D1</span><h3>Gestión de Incidentes</h3></div><strong>91,67%</strong></div>
+      <div class="group-meta"><span>3 requisitos</span><span>1 con brecha</span></div>
+      <div class="bar"><span style="width:91.67%"></span></div>
+    </div>
+
+    <div class="group-card" onclick="setGroup('D2')">
+      <div class="group-top"><div><span class="group-code">D2</span><h3>Actualización del Sistema Preventivo</h3></div><strong>90%</strong></div>
+      <div class="group-meta"><span>2 requisitos</span><span>1 con brecha</span></div>
+      <div class="bar"><span style="width:90%"></span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Requisitos D. ACT</h2>
+        <p>Revisión documental RESSO · Gestión de incidentes, aprendizaje y actualización del sistema preventivo.</p>
+      </div>
+    </div>
+
+    <div class="filters">
+      <input id="search" placeholder="Buscar requisito, responsable, palabra clave...">
+      <select id="groupFilter">
+        <option value="all">Todas las sub-secciones</option>
+        <option value="D1">D1 · Gestión de Incidentes</option>
+        <option value="D2">D2 · Actualización del Sistema Preventivo</option>
+      </select>
+      <select id="statusFilter">
+        <option value="all">Todos los estados</option>
+        <option value="Cumple">Cumple</option>
+        <option value="Brecha menor">Brecha menor</option>
+        <option value="Brecha relevante">Brecha relevante</option>
+      </select>
+      <select id="priorityFilter">
+        <option value="all">Todas las prioridades</option>
+        <option value="Baja">Baja</option>
+        <option value="Media">Media</option>
+        <option value="Alta">Alta</option>
+      </select>
+    </div>
+
+    <div id="reqList" class="req-list"></div>
+  </section>
+</main>
+
+<div id="modalBg" class="modal-bg" onclick="outsideClose(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div><span id="mCode" class="group-code"></span><h2 id="mTitle"></h2></div>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-summary">
+        <div class="mini"><span>Estado</span><strong id="mStatus"></strong></div>
+        <div class="mini"><span>Prioridad</span><strong id="mPriority"></strong></div>
+        <div class="mini"><span>Nivel</span><strong id="mLevel"></strong></div>
+        <div class="mini"><span>Responsable</span><strong id="mResponsible"></strong></div>
+      </div>
+
+      <div class="detail">
+        <div class="detail-card"><h4>Requisito evaluado</h4><p id="mQuestion"></p></div>
+        <div class="detail-card"><h4>Criterio del nivel alcanzado</h4><p id="mCriterion"></p></div>
+        <div class="detail-card"><h4>Observación de auditoría</h4><p id="mObservation"></p></div>
+        <div class="detail-card"><h4>Acción / próximo paso</h4><p id="mAction"></p></div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <span id="linkNote" class="sharepoint-note">Enlace de evidencia aún no informado en la matriz.</span>
+      <button class="btn secondary" onclick="closeModal()">Cerrar</button>
+      <a id="mLink" class="btn disabled" href="#">Abrir SharePoint →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"id": 36, "group": "D1", "groupName": "Gestión de Incidentes", "question": "¿Cuenta la empresa con personal capacitado con el método ICAM?", "weight": 2, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Personal capacitado en ICAM, incluidos AdC, supervisión y CPHS.", "observation": "A la fecha hay 12 personas capacitadas en ICAM; la formación continuará.", "action": "Continuar el programa de capacitación ICAM y mantener el registro actualizado.", "responsible": "MAX / NATALY", "link": ""}, {"id": 37, "group": "D1", "groupName": "Gestión de Incidentes", "question": "¿Los incidentes se investigan según metodología corporativa? ¿Las acciones correctivas son verificadas en terreno, se encuentran cerradas en plazo y se privilegian controles de alta jerarquía?", "weight": 5, "level": 80, "status": "Brecha menor", "priority": "Alta", "criterion": "Investigaciones aplican ICAM (SIGO-P-030) con evidencia y trazabilidad.", "observation": "Las investigaciones se realizan conforme a la metodología corporativa.", "action": "Revisar el estado de las medidas correctivas señaladas por el Corporativo. Se deben cerrar las medidas correctivas abiertas.", "responsible": "RODRIGO / JAIME", "link": ""}, {"id": 38, "group": "D1", "groupName": "Gestión de Incidentes", "question": "¿La EECC evaluó los riesgos de un potencial accidente grave o fatal? ¿De lo anterior se realizó un simulacro documental, implementando las medidas dentro de los plazos?", "weight": 5, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "RF y ECF evaluados, simulacro documental realizado y medidas implementadas en plazo.", "observation": "Evaluación de riesgos y simulacros documentales realizados; falta cargar su versión final.", "action": "Cargar los simulacros documentales en su versión final y levantar las observaciones.", "responsible": "RODRIGO / JAIME", "link": ""}, {"id": 39, "group": "D2", "groupName": "Actualización del Sistema Preventivo", "question": "¿Se actualizan los planes, programas, procedimientos, métodos de trabajo y controles a partir de aprendizajes, auditorías o incidentes?", "weight": 4, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Control documental que asegura revisión, actualización y trazabilidad.", "observation": "Existe carta contractual que entrega el programa de actualización progresiva de los procedimientos.", "action": "Hacer seguimiento al avance del programa de actualización.", "responsible": "RODRIGO / JAIME", "link": ""}, {"id": 40, "group": "D2", "groupName": "Actualización del Sistema Preventivo", "question": "¿Se cumple y se dispone de evidencias de actividades definidas en el “Estándar de Seguridad Conductual” de acuerdo a lo programado (N° Observadores, cierre de ciclo, conductas preocupantes y plan de acción)?", "weight": 1, "level": 50, "status": "Brecha relevante", "priority": "Media", "criterion": "No se evidencia el cumplimiento de algún punto requerido del programa.", "observation": "Falta acreditar la toma de conocimiento de los trabajadores; el requisito exige un mínimo de 90% de difusión.", "action": "Completar la difusión del Estándar de Seguridad Conductual hasta alcanzar al menos el 90% de la dotación y cargar los registros. El informe y sus evidencias se encuentran bien; se debe potenciar la difusión y mover la evidencia a la carpeta designada.", "responsible": "PAULINA / ADRIANA", "link": ""}];
+
+const SP_LIBRARY_URL = "https://empresassk.sharepoint.com/sites/ICSK-HSEC/Documentos%20compartidos/Forms/AllItems.aspx";
+const SP_VIEW_ID = "e72333c8-45a8-4050-bdda-7b838f222428";
+const SP_ROOT_FOLDER = "/sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/0.- RESSO Ver. 10/02 RESSO V10";
+const SP_PHASE_FOLDER = "D - ACT";
+const SP_SECTION_FOLDER = {
+  "D1": "D1 - Gestion de Incidentes",
+  "D2": "D2 - Actualizacion del Sistema Preventivo"
+};
+
+function specificSharePointLink(r) {
+  const code = r.group;
+  const sectionFolder = SP_SECTION_FOLDER[code];
+  if (!sectionFolder) return "#";
+
+  const folderPath =
+    `${SP_ROOT_FOLDER}/${SP_PHASE_FOLDER}/${sectionFolder}/Pregunta ${r.id}`;
+
+  return `${SP_LIBRARY_URL}?id=${encodeURIComponent(folderPath)}&viewid=${SP_VIEW_ID}`;
+}
+const el = id => document.getElementById(id);
+
+function statusClass(status) {
+  if (status === "Cumple") return "green";
+  if (status === "Brecha menor") return "amber";
+  return "red";
+}
+
+function render() {
+  const q = el("search").value.toLowerCase().trim();
+  const g = el("groupFilter").value;
+  const s = el("statusFilter").value;
+  const p = el("priorityFilter").value;
+
+  const rows = DATA.filter(r => {
+    const hay = [r.question,r.responsible,r.groupName,r.criterion,r.observation,r.action].join(" ").toLowerCase();
+    return (!q || hay.includes(q))
+      && (g==="all" || r.group===g)
+      && (s==="all" || r.status===s)
+      && (p==="all" || r.priority===p);
+  });
+
+  el("reqList").innerHTML = rows.map(r => `
+    <article class="req">
+      <div class="num">${r.id}</div>
+
+      <div>
+        <h3>${r.group} · ${r.groupName}</h3>
+        <div class="question">${r.question}</div>
+      </div>
+
+      <div>
+        <span class="label">Estado</span>
+        <span class="chip ${statusClass(r.status)}">● ${r.status}</span>
+      </div>
+
+      <div>
+        <span class="label">Prioridad</span>
+        <span class="value">${r.priority}</span>
+        <br>
+        <span class="label" style="margin-top:8px">Nivel</span>
+        <span class="score">${r.level}%</span>
+      </div>
+
+      <div>
+        <span class="label">Responsable</span>
+        <span class="value">${r.responsible}</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn" onclick="openDetail(${r.id})">Revisar requisito</button>
+        <a class="btn secondary" target="_blank" rel="noopener" href="${specificSharePointLink(r)}">Abrir SharePoint</a>
+      </div>
+    </article>
+  `).join("") || `<div style="padding:30px;text-align:center;color:#7b879c">No hay requisitos que coincidan con los filtros.</div>`;
+}
+
+function setGroup(group) {
+  el("groupFilter").value = group;
+  render();
+  document.querySelector(".panel").scrollIntoView({behavior:"smooth"});
+}
+
+function openDetail(id) {
+  const r = DATA.find(x => x.id === id);
+
+  el("mCode").textContent = `${r.group} · Requisito ${r.id}`;
+  el("mTitle").textContent = r.groupName;
+  el("mStatus").textContent = r.status;
+  el("mPriority").textContent = r.priority;
+  el("mLevel").textContent = `${r.level}%`;
+  el("mResponsible").textContent = r.responsible;
+  el("mQuestion").textContent = r.question;
+  el("mCriterion").textContent = r.criterion;
+  el("mObservation").textContent = r.observation;
+  el("mAction").textContent = r.action;
+
+  const link = el("mLink");
+  link.href = specificSharePointLink(r);
+  link.classList.remove("disabled");
+  link.target = "_blank";
+  link.rel = "noopener";
+  el("linkNote").textContent =
+    `${r.group} → Pregunta ${r.id} · Abrir carpeta específica en SharePoint.`;
+
+  el("modalBg").classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  el("modalBg").classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+function outsideClose(e) {
+  if (e.target === el("modalBg")) closeModal();
+}
+
+["search","groupFilter","statusFilter","priorityFilter"].forEach(id =>
+  el(id).addEventListener(id==="search" ? "input" : "change", render)
+);
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+});
+
+render();
+</script>
+</body>
+</html>

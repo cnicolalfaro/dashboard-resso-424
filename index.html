@@ -1,5 +1,7 @@
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,388 +9,765 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=56" />
+  <link rel="stylesheet" href="styles.css?v=53" />
 </head>
+
 <body>
 
-  <!-- PANTALLA DE ACCESO -->
-  <div id="authGate" class="auth-gate">
-    <form id="authForm" class="auth-card" autocomplete="off">
-      <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="auth-logo" />
-      <p class="auth-eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
-      <h1 class="auth-title">RESSO SKIC 424</h1>
-      <p class="auth-sub">Acceso restringido — ingresa la contraseña para ver el panel.</p>
-      <label class="auth-label" for="authPass">Contraseña</label>
-      <input id="authPass" type="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" autofocus />
-      <button id="authBtn" type="submit" class="auth-btn">Ingresar</button>
-      <p id="authError" class="auth-error" role="alert"></p>
-    </form>
-  </div>
 
-  <div class="page-shell" id="appShell" style="display:none">
 
-    <!-- ENCABEZADO -->
-    <header class="hero">
-      <div class="hero-brand">
-        <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="brand-logo" />
-        <div>
-          <p class="eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
-          <h1>RESSO SKIC 424</h1>
-          <p class="lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
-        </div>
-      </div>
-      <div class="hero-meta">
-        <span class="badge" id="updatedAt">Actualizado: —</span>
-        <button id="printBtn" class="hero-btn no-print" type="button">Imprimir / PDF</button>
-      </div>
-    </header>
+  <!-- PANTALLA DE ACCESO -->
 
-    <main>
-      <!-- ===================== MENÚ PRINCIPAL ===================== -->
-      <section class="view view-home" id="homeView">
-        <div class="home-split">
-          <!-- IZQUIERDA: video en movimiento con el título de la empresa -->
-          <aside class="home-media" aria-hidden="true">
-            <img class="home-media-fallback" src="assets/fondo.jpg?v=3" alt=""
-                 onerror="this.style.display='none'" />
-            <video class="home-media-video" autoplay muted loop playsinline
-                   preload="auto" poster="assets/fondo.jpg?v=3"
-                   onloadeddata="this.classList.add('is-ready')">
-              <source src="assets/fondo.mp4?v=3" type="video/mp4" />
-            </video>
-            <div class="home-media-shade"></div>
-            <div class="home-media-content">
-              <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="home-media-logo" />
-              <p class="eyebrow eyebrow-light">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
-              <h1 class="home-media-title">RESSO SKIC 424</h1>
-              <p class="home-media-lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
-              <span class="badge badge-light js-updated">Actualizado: —</span>
-            </div>
-          </aside>
+  <div id="authGate" class="auth-gate">
 
-          <!-- DERECHA: información del contrato y accesos a los módulos -->
-          <div class="home-info">
-            <section class="panel contract-panel" id="contractPanel"></section>
-            <div class="menu-cards">
-              <button type="button" class="menu-card" data-goto="viewResso">
-                <span class="menu-card-ico" aria-hidden="true">📋</span>
-                <span class="menu-card-title">RESSO V10 · Instrumento</span>
-                <span class="menu-card-desc">Instrumento documental oficial: KPIs y Cumplimiento del Sistema de Gestión (PHVA).</span>
+    <form id="authForm" class="auth-card" autocomplete="off">
+
+      <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="auth-logo" />
+
+      <p class="auth-eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+
+      <h1 class="auth-title">RESSO SKIC 424</h1>
+
+      <p class="auth-sub">Acceso restringido — ingresa la contraseña para ver el panel.</p>
+
+      <label class="auth-label" for="authPass">Contraseña</label>
+
+      <input id="authPass" type="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" autofocus />
+
+      <button id="authBtn" type="submit" class="auth-btn">Ingresar</button>
+
+      <p id="authError" class="auth-error" role="alert"></p>
+
+    </form>
+
+  </div>
+
+
+
+  <div class="page-shell" id="appShell" style="display:none">
+
+
+
+    <!-- ENCABEZADO -->
+
+    <header class="hero">
+
+      <div class="hero-brand">
+
+        <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="brand-logo" />
+
+        <div>
+
+          <p class="eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+
+          <h1>RESSO SKIC 424</h1>
+
+          <p class="lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
+
+        </div>
+
+      </div>
+
+      <div class="hero-meta">
+
+        <span class="badge" id="updatedAt">Actualizado: —</span>
+
+        <button id="printBtn" class="hero-btn no-print" type="button">Imprimir / PDF</button>
+
+      </div>
+
+    </header>
+
+
+
+    <main>
+
+      <!-- ===================== MENÚ PRINCIPAL ===================== -->
+
+      <section class="view view-home" id="homeView">
+
+        <div class="home-split">
+
+          <!-- IZQUIERDA: video en movimiento con el título de la empresa -->
+
+          <aside class="home-media" aria-hidden="true">
+
+            <img class="home-media-fallback" src="assets/fondo.jpg?v=3" alt=""
+
+                 onerror="this.style.display='none'" />
+
+            <video class="home-media-video" autoplay muted loop playsinline
+
+                   preload="auto" poster="assets/fondo.jpg?v=3"
+
+                   onloadeddata="this.classList.add('is-ready')">
+
+              <source src="assets/fondo.mp4?v=3" type="video/mp4" />
+
+            </video>
+
+            <div class="home-media-shade"></div>
+
+            <div class="home-media-content">
+
+              <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="home-media-logo" />
+
+              <p class="eyebrow eyebrow-light">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+
+              <h1 class="home-media-title">RESSO SKIC 424</h1>
+
+              <p class="home-media-lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
+
+              <span class="badge badge-light js-updated">Actualizado: —</span>
+
+            </div>
+
+          </aside>
+
+
+
+          <!-- DERECHA: información del contrato y accesos a los módulos -->
+
+          <div class="home-info">
+
+            <section class="panel contract-panel" id="contractPanel"></section>
+
+
+
+            <div class="menu-cards">
+
+              <button type="button" class="menu-card" data-goto="viewResso">
+
+                <span class="menu-card-ico" aria-hidden="true">📋</span>
+
+                <span class="menu-card-title">RESSO V10 · Instrumento</span>
+
+                <span class="menu-card-desc">Instrumento documental oficial: KPIs y Cumplimiento del Sistema de Gestión (PHVA).</span>
+
+                <span class="menu-card-go">Entrar →</span>
+
+              </button>
+
+              <button type="button" class="menu-card" data-goto="viewIncidentes">
+
+                <span class="menu-card-ico" aria-hidden="true">⚠️</span>
+
+                <span class="menu-card-title">Incidentes 2026</span>
+
+                <span class="menu-card-desc">Registro de incidentes del contrato y seguimiento de medidas correctivas.</span>
+
+                <span class="menu-card-go">Entrar →</span>
+
+              </button>
+
+              <a class="menu-card" href="homologacion-rf-rc/">
+
+                <span class="menu-card-ico" aria-hidden="true">🔗</span>
+
+                <span class="menu-card-title">Homologación RF · RC</span>
+
+                <span class="menu-card-desc">Cruce entre los Riesgos de Fatalidad de CODELCO y los Riesgos Críticos de SKIC, pregunta por pregunta.</span>
+
+                <span class="menu-card-go">Entrar →</span>
+
+              </a>
+
+              <button type="button" class="menu-card" data-goto="viewAvanceResso">
+
+                <span class="menu-card-ico" aria-hidden="true">📈</span>
+
+                <span class="menu-card-title">Avance RESSO</span>
+
+                <span class="menu-card-desc">Cumplimiento de capacitaciones por documento, familia y persona de la dotación activa.</span>
+
+                <span class="menu-card-go">Entrar →</span>
+
+              </button>
+
+              <a class="menu-card" href="pages/evidencias/index.html">
+
+                <span class="menu-card-ico" aria-hidden="true">📂</span>
+
+                <span class="menu-card-title">Centro de Auditorías</span>
+
+                <span class="menu-card-desc">Acceso a la revisión documental por fases PLAN, DO, CHECK y ACT, con vista especial para auditoría.</span>
+
                 <span class="menu-card-go">Entrar →</span>
               </button>
-              <button type="button" class="menu-card" data-goto="viewIncidentes">
-                <span class="menu-card-ico" aria-hidden="true">⚠️</span>
-                <span class="menu-card-title">Incidentes 2026</span>
-                <span class="menu-card-desc">Registro de incidentes del contrato y seguimiento de medidas correctivas.</span>
-                <span class="menu-card-go">Entrar →</span>
-              </button>
-              <a class="menu-card" href="homologacion-rf-rc/">
-                <span class="menu-card-ico" aria-hidden="true">🔗</span>
-                <span class="menu-card-title">Homologación RF · RC</span>
-                <span class="menu-card-desc">Cruce entre los Riesgos de Fatalidad de CODELCO y los Riesgos Críticos de SKIC, pregunta por pregunta.</span>
-                <span class="menu-card-go">Entrar →</span>
-              </a>
-              <button type="button" class="menu-card" data-goto="viewAvanceResso">
-                <span class="menu-card-ico" aria-hidden="true">📈</span>
-                <span class="menu-card-title">Avance RESSO</span>
-                <span class="menu-card-desc">Cumplimiento de capacitaciones por documento, familia y persona de la dotación activa.</span>
-                <span class="menu-card-go">Entrar →</span>
-              </button>
-              <button type="button" class="menu-card" data-goto="viewNami">
-                <span class="menu-card-ico" aria-hidden="true">🖊️</span>
-                <span class="menu-card-title">NAMI · Procesar documentos</span>
-                <span class="menu-card-desc">Registro de cuadrillas con hasta cuatro RF, escaneos y revisión de firmas por persona.</span>
-                <span class="menu-card-go">Entrar →</span>
-              </button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ===================== VISTA: RESSO V10 LV 2026 ===================== -->
-      <section class="view" id="viewResso" hidden>
-        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+      <!-- ===================== VISTA: RESSO V10 LV 2026 ===================== -->
 
-      <!-- KPI CARDS -->
-      <section class="cards" id="kpiCards"></section>
+      <section class="view" id="viewResso" hidden>
 
-      <!-- EVOLUCIÓN DOCUMENTAL (histórico mensual + hoy) -->
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h2>Evolución documental RESSO</h2>
-            <p>Avance del cumplimiento documental por corte mensual</p>
-          </div>
-        </div>
-        <div id="historialBars" class="bars"></div>
-      </section>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
 
-      <!-- CUMPLIMIENTO RESSO -->
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h2>Cumplimiento RESSO — Ciclo PHVA</h2>
-            <p>Evaluación por elemento del Sistema de Gestión (PLAN · DO · CHECK · ACT)</p>
-          </div>
-        </div>
-        <div class="resso-grid" id="resssoGrid"></div>
-      </section>
 
-      <!-- REVISIÓN TERRENO (oculto por ahora: solo interesa lo documental) -->
-      <section class="panel" hidden>
-        <div class="panel-header">
-          <div>
-            <h2>Revisión Terreno — RESSO V10</h2>
-            <p>Checklist en terreno por categoría (aún sin auditar en campo)</p>
-          </div>
-        </div>
-        <div class="resso-card" id="ressoTerrenoCard">
-          <div class="resso-card-head" style="background:#2e8b57">
-            <div>
-              <div class="rc-ciclo">TERRENO</div>
-              <h3>Revisión Terreno</h3>
-            </div>
-            <div class="rc-pct" id="ressoTerrenoPct">0%</div>
-          </div>
-          <div class="resso-elementos" id="ressoTerrenoGrid"></div>
-        </div>
-      </section>
 
-      <!-- GRÁFICOS (oculto por ahora: pendiente instrumento actualizado) -->
-      <section class="grid two-col" hidden>
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Cumplimiento por elemento</h2>
-              <p>Porcentaje obtenido en cada elemento evaluado</p>
-            </div>
-          </div>
-          <div id="elementBars" class="bars"></div>
-        </article>
+      <!-- KPI CARDS -->
 
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Hallazgos</h2>
-              <p>Distribución de hallazgos documentales y en terreno</p>
-            </div>
-          </div>
-          <div class="donut-layout">
-            <div class="donut" id="hallazgosDonut"></div>
-            <div class="legend" id="donutLegend"></div>
-          </div>
-        </article>
-      </section>
+      <section class="cards" id="kpiCards"></section>
 
-      <!-- ACCESOS DOCUMENTALES (oculto por ahora: pendiente instrumento actualizado) -->
-      <section class="panel" hidden>
-        <div class="panel-header">
-          <div>
-            <h2>Accesos documentales</h2>
-            <p>Documentación de respaldo del sistema de gestión</p>
-          </div>
-        </div>
-        <div id="accessLinks" class="access-links"></div>
-      </section>
 
-      <!-- REGLAMENTOS INTERNOS (oculto por ahora: pendiente instrumento actualizado) -->
-      <section class="panel" hidden>
-        <div class="panel-header">
-          <div>
-            <h2>Reglamentos Internos de Minería aplicables</h2>
-            <p>Buscador de reglamentos y estado de difusión a los trabajadores</p>
-          </div>
-        </div>
 
-        <div class="filters">
-          <label class="field">
-            <span>Buscar reglamento</span>
-            <input id="regSearch" type="text" placeholder="Ej: R-001, soldadura, bloqueo…" />
-          </label>
-          <label class="field">
-            <span>Difusión</span>
-            <select id="regFilter">
-              <option value="">Todos</option>
-              <option value="si">Difundido</option>
-              <option value="no">Pendiente</option>
-            </select>
-          </label>
-        </div>
+      <!-- EVOLUCIÓN DOCUMENTAL (histórico mensual + hoy) -->
 
-        <div class="results-summary">
-          <span class="mini-chip" id="regCount">0 reglamentos</span>
-          <span class="mini-chip" id="regFormsCumplen">0 con formulario</span>
-          <span class="mini-chip alt" id="regFormsFaltan">0 faltan</span>
-          <span class="mini-chip" id="regTarjaTotal">Tarja: 0</span>
-          <span class="mini-chip" id="regFormsPct">0% avance</span>
-        </div>
+      <section class="panel">
 
-        <div class="table-wrap">
-          <table class="records-table">
-            <thead>
-              <tr>
-                <th>N°</th>
-                <th>Código</th>
-                <th>Nombre del Reglamento</th>
-                <th>Difusión</th>
-              </tr>
-            </thead>
-            <tbody id="regTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-      </section><!-- /viewResso -->
+        <div class="panel-header">
 
-      <!-- ===================== VISTA: ABC 2026 ===================== -->
-      <section class="view" id="viewAbc" hidden>
-        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+          <div>
 
-      <!-- AUDITORÍA ABC-S -->
-      <section class="panel" id="abcPanel">
-        <div class="panel-header">
-          <div>
-            <h2 id="abcTitulo">Auditoría ABC-S</h2>
-            <p>Auditoría de Aspectos de Gestión de Riesgo Seguridad — 9 criterios evaluados</p>
-          </div>
-        </div>
+            <h2>Evolución documental RESSO</h2>
 
-        <div class="abc-summary" id="abcSummary"></div>
+            <p>Avance del cumplimiento documental por corte mensual</p>
 
-        <div class="abc-layout">
-          <div class="abc-bars" id="abcBars"></div>
-          <div class="abc-scale">
-            <h4>Escala de evaluación</h4>
-            <ul id="abcScale"></ul>
-          </div>
-        </div>
+          </div>
 
-        <div class="table-wrap" style="margin-top:18px">
-          <table class="records-table">
-            <thead>
-              <tr>
-                <th>N°</th>
-                <th>Criterio evaluado</th>
-                <th>Cumplimiento</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="abcTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-      </section><!-- /viewAbc -->
+        </div>
 
-      <!-- ===================== VISTA: CURSOS Y FORMS RIM ===================== -->
-      <section class="view" id="viewCursos" hidden>
-        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+        <div id="historialBars" class="bars"></div>
 
-      <!-- CUMPLIMIENTO DE FORMS RIM -->
-      <section class="panel" id="cursosPanel">
-        <div class="panel-header">
-          <div>
-            <h2>Cumplimiento de Forms RIM del personal</h2>
-            <p>Porcentaje de personal activo con Forms RIM al día (cruce con evidencias escaneadas)</p>
-          </div>
-        </div>
-        <div class="filters" style="grid-template-columns: 1fr;">
-          <label class="field">
-            <span>Filtrar por turno</span>
-            <select id="rimTurnoFilter">
-              <option value="">Todos los turnos</option>
-            </select>
-          </label>
-        </div>
-        <div class="cursos-grid" id="cursosGrid"></div>
-      </section>
+      </section>
 
-      <!-- PLAN DE CIERRE DE BRECHAS: REGLAMENTOS INTERNOS -->
-      <section class="panel" id="planReglamentosPanel">
-        <div class="panel-header">
-          <div>
-            <h2>Plan de Cierre de Brechas — Reglamentos Internos de Minería</h2>
-            <p>Avance de difusión y evaluación de los 15 reglamentos aplicables (REGIN_SKIC_424_CA_007). El cumplimiento de los reglamentos con Forms RIM se guía por la columna ENTREGA.</p>
-          </div>
-        </div>
 
-        <section class="cards" id="planReglamentosKpis"></section>
 
-        <div class="panel-header" style="margin-top:22px;">
-          <div>
-            <h3 style="margin:0;">Calendario Julio–Diciembre 2026</h3>
-            <p>Programación mensual y proyección de cierre a fin de año</p>
-          </div>
-        </div>
-        <div id="planMesesGrid" class="plan-meses-grid"></div>
+      <!-- CUMPLIMIENTO RESSO -->
 
-        <div class="table-wrap" style="margin-top:18px;">
-          <table class="records-table">
-            <thead>
-              <tr>
-                <th>N°</th>
-                <th>Código</th>
-                <th>Nombre del Reglamento</th>
-                <th>Mes programado</th>
-                <th>Origen</th>
-                <th>Avance</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="planReglamentosBody"></tbody>
-          </table>
-        </div>
-      </section>
+      <section class="panel">
 
-      <!-- PERSONAL Y FORMS RIM -->
-      <section class="panel" id="personalPanel">
-        <div class="panel-header">
-          <div>
-            <h2>Personal y Forms RIM realizados</h2>
-            <p>Listado de personal activo y estado de cumplimiento por Forms RIM</p>
-          </div>
-        </div>
+        <div class="panel-header">
 
-        <div class="filters">
-          <label class="field">
-            <span>Buscar persona</span>
-            <input id="perSearch" type="text" placeholder="Nombre, RUT o cargo…" />
-          </label>
-          <label class="field">
-            <span>Filtrar</span>
-            <select id="perFilter">
-              <option value="">Todo el personal</option>
-              <option value="IRL">Pendientes de IRL</option>
-              <option value="RIM">Pendientes Forms RIM</option>
-              <option value="RIM_REPROBADO">Reprobados Forms RIM</option>
-            </select>
-          </label>
-        </div>
+          <div>
 
-        <div class="results-summary">
-          <span class="mini-chip" id="perCount">0 personas</span>
-          <span class="mini-chip" id="perRimDone">RIM 01: 0</span>
-          <span class="mini-chip alt" id="perRimMiss">RIM 035: 0</span>
-          <span class="mini-chip alt" id="perRimRepro">RIM Ingreso: 0</span>
-        </div>
+            <h2>Cumplimiento RESSO — Ciclo PHVA</h2>
 
-        <div class="table-wrap">
-          <table class="records-table">
-            <thead>
-              <tr>
-                <th>N°</th>
-                <th>Nombre</th>
-                <th>Cargo</th>
-                <th class="cell-center">IRL</th>
-                <th class="cell-center">RIM 01</th>
-                <th class="cell-center">RIM 035</th>
-                <th class="cell-center">RIM Ingreso</th>
-              </tr>
-            </thead>
-            <tbody id="perTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+            <p>Evaluación por elemento del Sistema de Gestión (PLAN · DO · CHECK · ACT)</p>
 
-      </section><!-- /viewCursos -->
+          </div>
+
+        </div>
+
+        <div class="resso-grid" id="resssoGrid"></div>
+
+      </section>
+
+
+
+      <!-- REVISIÓN TERRENO (oculto por ahora: solo interesa lo documental) -->
+
+      <section class="panel" hidden>
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>Revisión Terreno — RESSO V10</h2>
+
+            <p>Checklist en terreno por categoría (aún sin auditar en campo)</p>
+
+          </div>
+
+        </div>
+
+        <div class="resso-card" id="ressoTerrenoCard">
+
+          <div class="resso-card-head" style="background:#2e8b57">
+
+            <div>
+
+              <div class="rc-ciclo">TERRENO</div>
+
+              <h3>Revisión Terreno</h3>
+
+            </div>
+
+            <div class="rc-pct" id="ressoTerrenoPct">0%</div>
+
+          </div>
+
+          <div class="resso-elementos" id="ressoTerrenoGrid"></div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- GRÁFICOS (oculto por ahora: pendiente instrumento actualizado) -->
+
+      <section class="grid two-col" hidden>
+
+        <article class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <h2>Cumplimiento por elemento</h2>
+
+              <p>Porcentaje obtenido en cada elemento evaluado</p>
+
+            </div>
+
+          </div>
+
+          <div id="elementBars" class="bars"></div>
+
+        </article>
+
+
+
+        <article class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <h2>Hallazgos</h2>
+
+              <p>Distribución de hallazgos documentales y en terreno</p>
+
+            </div>
+
+          </div>
+
+          <div class="donut-layout">
+
+            <div class="donut" id="hallazgosDonut"></div>
+
+            <div class="legend" id="donutLegend"></div>
+
+          </div>
+
+        </article>
+
+      </section>
+
+
+
+      <!-- ACCESOS DOCUMENTALES (oculto por ahora: pendiente instrumento actualizado) -->
+
+      <section class="panel" hidden>
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>Accesos documentales</h2>
+
+            <p>Documentación de respaldo del sistema de gestión</p>
+
+          </div>
+
+        </div>
+
+        <div id="accessLinks" class="access-links"></div>
+
+      </section>
+
+
+
+      <!-- REGLAMENTOS INTERNOS (oculto por ahora: pendiente instrumento actualizado) -->
+
+      <section class="panel" hidden>
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>Reglamentos Internos de Minería aplicables</h2>
+
+            <p>Buscador de reglamentos y estado de difusión a los trabajadores</p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="filters">
+
+          <label class="field">
+
+            <span>Buscar reglamento</span>
+
+            <input id="regSearch" type="text" placeholder="Ej: R-001, soldadura, bloqueo…" />
+
+          </label>
+
+          <label class="field">
+
+            <span>Difusión</span>
+
+            <select id="regFilter">
+
+              <option value="">Todos</option>
+
+              <option value="si">Difundido</option>
+
+              <option value="no">Pendiente</option>
+
+            </select>
+
+          </label>
+
+        </div>
+
+
+
+        <div class="results-summary">
+
+          <span class="mini-chip" id="regCount">0 reglamentos</span>
+
+          <span class="mini-chip" id="regFormsCumplen">0 con formulario</span>
+
+          <span class="mini-chip alt" id="regFormsFaltan">0 faltan</span>
+
+          <span class="mini-chip" id="regTarjaTotal">Tarja: 0</span>
+
+          <span class="mini-chip" id="regFormsPct">0% avance</span>
+
+        </div>
+
+
+
+        <div class="table-wrap">
+
+          <table class="records-table">
+
+            <thead>
+
+              <tr>
+
+                <th>N°</th>
+
+                <th>Código</th>
+
+                <th>Nombre del Reglamento</th>
+
+                <th>Difusión</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="regTableBody"></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      </section><!-- /viewResso -->
+
+
+
+      <!-- ===================== VISTA: ABC 2026 ===================== -->
+
+      <section class="view" id="viewAbc" hidden>
+
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
+
+
+      <!-- AUDITORÍA ABC-S -->
+
+      <section class="panel" id="abcPanel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2 id="abcTitulo">Auditoría ABC-S</h2>
+
+            <p>Auditoría de Aspectos de Gestión de Riesgo Seguridad — 9 criterios evaluados</p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="abc-summary" id="abcSummary"></div>
+
+
+
+        <div class="abc-layout">
+
+          <div class="abc-bars" id="abcBars"></div>
+
+          <div class="abc-scale">
+
+            <h4>Escala de evaluación</h4>
+
+            <ul id="abcScale"></ul>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="table-wrap" style="margin-top:18px">
+
+          <table class="records-table">
+
+            <thead>
+
+              <tr>
+
+                <th>N°</th>
+
+                <th>Criterio evaluado</th>
+
+                <th>Cumplimiento</th>
+
+                <th>Estado</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="abcTableBody"></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      </section><!-- /viewAbc -->
+
+
+
+      <!-- ===================== VISTA: CURSOS Y FORMS RIM ===================== -->
+
+      <section class="view" id="viewCursos" hidden>
+
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
+
+
+      <!-- CUMPLIMIENTO DE FORMS RIM -->
+
+      <section class="panel" id="cursosPanel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>Cumplimiento de Forms RIM del personal</h2>
+
+            <p>Porcentaje de personal activo con Forms RIM al día (cruce con evidencias escaneadas)</p>
+
+          </div>
+
+        </div>
+
+        <div class="filters" style="grid-template-columns: 1fr;">
+
+          <label class="field">
+
+            <span>Filtrar por turno</span>
+
+            <select id="rimTurnoFilter">
+
+              <option value="">Todos los turnos</option>
+
+            </select>
+
+          </label>
+
+        </div>
+
+        <div class="cursos-grid" id="cursosGrid"></div>
+
+      </section>
+
+
+
+      <!-- PLAN DE CIERRE DE BRECHAS: REGLAMENTOS INTERNOS -->
+
+      <section class="panel" id="planReglamentosPanel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>Plan de Cierre de Brechas — Reglamentos Internos de Minería</h2>
+
+            <p>Avance de difusión y evaluación de los 15 reglamentos aplicables (REGIN_SKIC_424_CA_007). El cumplimiento de los reglamentos con Forms RIM se guía por la columna ENTREGA.</p>
+
+          </div>
+
+        </div>
+
+
+
+        <section class="cards" id="planReglamentosKpis"></section>
+
+
+
+        <div class="panel-header" style="margin-top:22px;">
+
+          <div>
+
+            <h3 style="margin:0;">Calendario Julio–Diciembre 2026</h3>
+
+            <p>Programación mensual y proyección de cierre a fin de año</p>
+
+          </div>
+
+        </div>
+
+        <div id="planMesesGrid" class="plan-meses-grid"></div>
+
+
+
+        <div class="table-wrap" style="margin-top:18px;">
+
+          <table class="records-table">
+
+            <thead>
+
+              <tr>
+
+                <th>N°</th>
+
+                <th>Código</th>
+
+                <th>Nombre del Reglamento</th>
+
+                <th>Mes programado</th>
+
+                <th>Origen</th>
+
+                <th>Avance</th>
+
+                <th>Estado</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="planReglamentosBody"></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- PERSONAL Y FORMS RIM -->
+
+      <section class="panel" id="personalPanel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>Personal y Forms RIM realizados</h2>
+
+            <p>Listado de personal activo y estado de cumplimiento por Forms RIM</p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="filters">
+
+          <label class="field">
+
+            <span>Buscar persona</span>
+
+            <input id="perSearch" type="text" placeholder="Nombre, RUT o cargo…" />
+
+          </label>
+
+          <label class="field">
+
+            <span>Filtrar</span>
+
+            <select id="perFilter">
+
+              <option value="">Todo el personal</option>
+
+              <option value="IRL">Pendientes de IRL</option>
+
+              <option value="RIM">Pendientes Forms RIM</option>
+
+              <option value="RIM_REPROBADO">Reprobados Forms RIM</option>
+
+            </select>
+
+          </label>
+
+        </div>
+
+
+
+        <div class="results-summary">
+
+          <span class="mini-chip" id="perCount">0 personas</span>
+
+          <span class="mini-chip" id="perRimDone">RIM 01: 0</span>
+
+          <span class="mini-chip alt" id="perRimMiss">RIM 035: 0</span>
+
+          <span class="mini-chip alt" id="perRimRepro">RIM Ingreso: 0</span>
+
+        </div>
+
+
+
+        <div class="table-wrap">
+
+          <table class="records-table">
+
+            <thead>
+
+              <tr>
+
+                <th>N°</th>
+
+                <th>Nombre</th>
+
+                <th>Cargo</th>
+
+                <th class="cell-center">IRL</th>
+
+                <th class="cell-center">RIM 01</th>
+
+                <th class="cell-center">RIM 035</th>
+
+                <th class="cell-center">RIM Ingreso</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="perTableBody"></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+
+      </section><!-- /viewCursos -->
+
+
 
       <!-- ===================== VISTA: INCIDENTES 2026 ===================== -->
       <section class="view" id="viewIncidentes" hidden>
@@ -403,26 +782,6 @@
           <article class="inc-exec-panel inc-month-panel"><div class="inc-exec-head"><div><h2>Incidentes por mes</h2><p>Comparación mensual entre 2025 y 2026</p></div><div class="inc-year-legend"><span><i class="year-2025"></i>2025</span><span><i class="year-2026"></i>2026</span></div></div><div id="incTrendChart"></div></article>
         </section>
         <section class="inc-followup-section"><div class="inc-section-heading"><div><h2>Seguimiento de medidas</h2><p>Control de compromisos por incidente</p></div><button type="button" class="inc-reset-btn" id="incClearPendingFilters">Limpiar filtros</button></div><article class="inc-exec-panel inc-followup-panel"><div class="inc-followup-main"><div class="inc-followup-left"><div id="incPendingChart" class="inc-followup-chart"></div><div class="inc-followup-legend"><button type="button" data-pending-risk="closed"><i class="due-closed"></i>Incidente cerrado</button><button type="button" data-pending-risk="open"><i class="due-open"></i>Incidente abierto</button></div></div><div class="inc-followup-right"><div class="inc-followup-head"><div><h3>Seguimiento de medidas</h3><p>Resumen impactado por los filtros superiores</p></div><strong id="incPendingCount">0</strong></div><div class="inc-followup-table-head"><span>N°</span><span>Categoría</span><span>Incidencia</span><span>Status</span></div><div id="incPendingList" class="inc-followup-list"></div></div></div><div id="incPendingDetail" class="inc-followup-detail"></div></article></section>
-        <section class="inc-trends-section" aria-labelledby="incTrendsTitle">
-          <div class="inc-trends-header">
-            <div class="inc-section-heading"><div><h2 id="incTrendsTitle">Tendencias y relaciones</h2><p>Patrones recurrentes por tipo de evento o acción correctiva</p></div></div>
-            <label class="inc-trend-category">Categoría<select id="incTrendCategory"><option value="">Todas</option></select></label>
-            <div class="inc-trend-modes" id="incTrendModes" role="group" aria-label="Tipo de tendencia">
-              <button type="button" data-trend-mode="events" aria-pressed="true" class="active">Tipo de evento</button>
-              <button type="button" data-trend-mode="categories" aria-pressed="false">Categorías</button>
-              <button type="button" data-trend-mode="measures" aria-pressed="false">Medidas correctivas</button>
-            </div>
-          </div>
-          <div id="incTrendSummary" class="inc-trend-summary" aria-live="polite"></div>
-          <div id="incTrendResults" class="inc-trend-results">
-            <div id="incTrendFocus" class="inc-trend-focus" hidden>
-              <div id="incTrendSelectedCard"></div>
-              <div id="incTrendDetail"></div>
-            </div>
-            <div id="incTrendCards" class="inc-trend-grid"></div>
-          </div>
-          <p class="inc-trend-note">Selecciona una tendencia para ver su desglose en barras. La base se limita al filtro activo; las familias pueden solaparse y reflejan coincidencias del consolidado, no causas confirmadas ni cumplimiento.</p>
-        </section>
         <section class="inc-exec-panel inc-catalog" id="incidentesPanel">
           <div class="inc-catalog-header"><div><h2>Incidentes</h2><p>Listado filtrado por la selección general de la página</p></div><div class="inc-catalog-actions"><span class="inc-count" id="incCount">0 incidentes</span><button type="button" class="inc-reset-btn" id="incClearDetailFilters">Limpiar filtros</button></div></div>
           <section class="inc-manager no-print"><div class="inc-manager-tools"><div><strong>Datos y Excel</strong><span id="incSourceLabel">Consolidado local</span></div><div class="inc-actions"><label class="inc-action-btn secondary" for="incExcelFile">Importar Excel</label><input id="incExcelFile" type="file" accept=".xlsx,.xls,.csv" hidden /><button type="button" class="inc-action-btn secondary" id="incExportExcel">Exportar Excel filtrado</button></div></div><p class="inc-manager-msg" id="incManagerMsg" role="status"></p></section>
@@ -435,36 +794,51 @@
       <!-- ===================== VISTA: AVANCE RESSO ===================== -->
       <section class="view avance-resso-view" id="viewAvanceResso" hidden>
         <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
-        <iframe id="avanceRessoFrame" class="avance-resso-frame" src="avance-resso/?v=17" title="Avance de cumplimiento RESSO"></iframe>
-      </section>
-      <section class="view avance-resso-view" id="viewNami" hidden>
-        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
-        <iframe class="avance-resso-frame" src="nami/?v=1" title="NAMI · Procesar documentos" loading="lazy"></iframe>
+        <iframe id="avanceRessoFrame" class="avance-resso-frame" src="avance-resso/" title="Avance de cumplimiento RESSO"></iframe>
       </section>
     </main>
 
-    <footer class="footer">
-      RESSO SKIC 424 · SKIC S.A. — Sistema de Gestión SSO · Generado automáticamente
-    </footer>
-  </div>
+    <footer class="footer">
 
-  <!-- Modal de evidencia (comentarios + fotos por pregunta) -->
-  <div class="evid-modal" id="evidModal" aria-hidden="true">
-    <div class="evid-card" role="dialog" aria-modal="true">
-      <button class="evid-close" data-close-evid aria-label="Cerrar">✕</button>
-      <div class="evid-body"></div>
-    </div>
-  </div>
+      RESSO SKIC 424 · SKIC S.A. — Sistema de Gestión SSO · Generado automáticamente
 
-  <!-- Lightbox para ampliar fotos -->
-  <div class="img-lightbox" id="imgLightbox" aria-hidden="true">
-    <img src="" alt="Evidencia ampliada">
-  </div>
+    </footer>
+
+  </div>
+
+
+
+  <!-- Modal de evidencia (comentarios + fotos por pregunta) -->
+
+  <div class="evid-modal" id="evidModal" aria-hidden="true">
+
+    <div class="evid-card" role="dialog" aria-modal="true">
+
+      <button class="evid-close" data-close-evid aria-label="Cerrar">✕</button>
+
+      <div class="evid-body"></div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- Lightbox para ampliar fotos -->
+
+  <div class="img-lightbox" id="imgLightbox" aria-hidden="true">
+
+    <img src="" alt="Evidencia ampliada">
+
+  </div>
+
+
 
   <script>window.INCIDENTS_V2 = true;</script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="data/datos.enc.js?v=23"></script>
+  <script src="data/datos.enc.js?v=8"></script>
   <script src="auth.js?v=6"></script>
 </body>
+
 </html>
