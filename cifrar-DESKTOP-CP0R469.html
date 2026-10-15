@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cifrar datos · RESSO 424 (uso local)</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6fb; color: #1f2733; max-width: 720px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #1b3568; font-size: 1.4rem; }
+    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 8px 24px rgba(31,60,116,.08); }
+    label { display: block; font-weight: 600; margin: 16px 0 6px; }
+    input[type=password] { width: 100%; padding: 12px; border: 1px solid #cbd5e6; border-radius: 8px; font-size: 1rem; }
+    button { margin-top: 18px; background: #24407a; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: default; }
+    .note { background: #eaf0fa; border-left: 4px solid #24407a; padding: 12px 14px; border-radius: 6px; font-size: .9rem; margin: 16px 0; }
+    .ok { color: #2e8b57; font-weight: 700; }
+    .err { color: #e1251b; font-weight: 700; }
+    textarea { width: 100%; height: 120px; margin-top: 12px; font-family: monospace; font-size: .8rem; }
+    code { background: #eef2f9; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔒 Cifrar datos del dashboard (herramienta local)</h1>
+    <div class="note">
+      Esta herramienta es <strong>solo para uso local</strong>. Genera el archivo cifrado
+      <code>datos.enc.js</code> que sí se puede publicar. La contraseña nunca se guarda ni se sube.
+    </div>
+
+    <label for="pass">Contraseña</label>
+    <input id="pass" type="password" placeholder="Define la contraseña de acceso" autocomplete="new-password" />
+
+    <label for="pass2">Repetir contraseña</label>
+    <input id="pass2" type="password" placeholder="Repite la contraseña" autocomplete="new-password" />
+
+    <button id="btn" type="button">Cifrar y descargar datos.enc.js</button>
+
+    <p id="status"></p>
+    <p>Si la descarga no inicia, copia el contenido de aquí y guárdalo como <code>data/datos.enc.js</code>:</p>
+    <textarea id="out" readonly placeholder="(salida cifrada)"></textarea>
+  </div>
+
+  <!-- Carga los datos en texto plano (solo existen localmente) -->
+  <script src="data/dashboard_data.js"></script>
+  <script src="data/personal_data.js"></script>
+  <script src="data/reportes_data.js"></script>
+  <script src="data/incidentes_data.js"></script>
+  <script src="data/evidencias_data.js"></script>
+  <script>
+    var PBKDF2_ITERATIONS = 250000;
+
+    function bytesToBase64(bytes) {
+      var bin = "";
+      var chunk = 0x8000;
+      for (var i = 0; i < bytes.length; i += chunk) {
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+      }
+      return btoa(bin);
+    }
+
+    async function cifrar(password, plaintext) {
+      var enc = new TextEncoder();
+      var salt = crypto.getRandomValues(new Uint8Array(16));
+      var iv = crypto.getRandomValues(new Uint8Array(12));
+      var keyMaterial = await crypto.subtle.importKey(
+        "raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]
+      );
+      var key = await crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
+        keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt"]
+      );
+      var ctBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, enc.encode(plaintext));
+      var ct = new Uint8Array(ctBuf);
+      var blob = new Uint8Array(salt.length + iv.length + ct.length);
+      blob.set(salt, 0);
+      blob.set(iv, salt.length);
+      blob.set(ct, salt.length + iv.length);
+      return bytesToBase64(blob);
+    }
+
+    document.getElementById("btn").addEventListener("click", async function () {
+      var status = document.getElementById("status");
+      var out = document.getElementById("out");
+      var p1 = document.getElementById("pass").value;
+      var p2 = document.getElementById("pass2").value;
+      status.className = "";
+      status.textContent = "";
+
+      if (!p1) { status.className = "err"; status.textContent = "Ingresa una contraseña."; return; }
+      if (p1 !== p2) { status.className = "err"; status.textContent = "Las contraseñas no coinciden."; return; }
+      if (p1.length < 6) { status.className = "err"; status.textContent = "Usa al menos 6 caracteres."; return; }
+      if (!window.DASHBOARD_DATA) { status.className = "err"; status.textContent = "No se cargaron los datos (data/dashboard_data.js)."; return; }
+
+      this.disabled = true;
+      status.textContent = "Cifrando…";
+      try {
+        window.DASHBOARD_DATA.evidencias = window.__EVIDENCIAS__ || {};
+        var plaintext = JSON.stringify(window.DASHBOARD_DATA);
+        var b64 = await cifrar(p1, plaintext);
+        var fileContent = "// Datos cifrados RESSO 424 — generado por cifrar.html\n" +
+                          "window.ENCRYPTED_DATA = \"" + b64 + "\";\n";
+        out.value = fileContent;
+
+        var blob = new Blob([fileContent], { type: "application/javascript" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "datos.enc.js";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        status.className = "ok";
+        status.textContent = "✓ Listo. Se descargó datos.enc.js (" + Math.round(b64.length / 1024) + " KB). Muévelo a la carpeta data/.";
+      } catch (e) {
+        status.className = "err";
+        status.textContent = "Error al cifrar: " + e.message;
+      } finally {
+        this.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

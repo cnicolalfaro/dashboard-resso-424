@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RESSO SKIC 424 · Sistema de Gestión SSO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=2" />
+</head>
+<body>
+
+  <!-- PANTALLA DE ACCESO -->
+  <div id="authGate" class="auth-gate">
+    <form id="authForm" class="auth-card" autocomplete="off">
+      <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="auth-logo" />
+      <p class="auth-eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+      <h1 class="auth-title">RESSO SKIC 424</h1>
+      <p class="auth-sub">Acceso restringido — ingresa la contraseña para ver el panel.</p>
+      <label class="auth-label" for="authPass">Contraseña</label>
+      <input id="authPass" type="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" autofocus />
+      <button id="authBtn" type="submit" class="auth-btn">Ingresar</button>
+      <p id="authError" class="auth-error" role="alert"></p>
+    </form>
+  </div>
+
+  <div class="page-shell" id="appShell" style="display:none">
+
+    <!-- ENCABEZADO -->
+    <header class="hero">
+      <div class="hero-brand">
+        <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="brand-logo" />
+        <div>
+          <p class="eyebrow">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+          <h1>RESSO SKIC 424</h1>
+          <p class="lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <span class="badge" id="updatedAt">Actualizado: —</span>
+        <button id="printBtn" class="hero-btn no-print" type="button">Imprimir / PDF</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- ===================== MENÚ PRINCIPAL ===================== -->
+      <section class="view view-home" id="homeView">
+        <div class="home-split">
+          <!-- IZQUIERDA: video en movimiento con el título de la empresa -->
+          <aside class="home-media" aria-hidden="true">
+            <img class="home-media-fallback" src="assets/fondo.jpg?v=3" alt=""
+                 onerror="this.style.display='none'" />
+            <video class="home-media-video" autoplay muted loop playsinline
+                   preload="auto" poster="assets/fondo.jpg?v=3"
+                   onloadeddata="this.classList.add('is-ready')">
+              <source src="assets/fondo.mp4?v=3" type="video/mp4" />
+            </video>
+            <div class="home-media-shade"></div>
+            <div class="home-media-content">
+              <img src="assets/logo-sk.svg" alt="Logo SK Industrial" class="home-media-logo" />
+              <p class="eyebrow eyebrow-light">SKIC S.A. · DIVISIÓN CHUQUICAMATA</p>
+              <h1 class="home-media-title">RESSO SKIC 424</h1>
+              <p class="home-media-lead">Sistema de Gestión de Seguridad y Salud Ocupacional — Evaluación de cumplimiento por contrato.</p>
+              <span class="badge badge-light js-updated">Actualizado: —</span>
+            </div>
+          </aside>
+
+          <!-- DERECHA: información del contrato y accesos a los módulos -->
+          <div class="home-info">
+            <section class="panel contract-panel" id="contractPanel"></section>
+            <div class="menu-cards">
+              <button type="button" class="menu-card" data-goto="viewResso">
+                <span class="menu-card-ico" aria-hidden="true">📋</span>
+                <span class="menu-card-title">RESSO V10 · LV 2026</span>
+                <span class="menu-card-desc">Evaluación de cumplimiento del Sistema de Gestión (PHVA), evidencias, hallazgos y reglamentos.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+              <button type="button" class="menu-card" data-goto="viewAbc">
+                <span class="menu-card-ico" aria-hidden="true">🅰️</span>
+                <span class="menu-card-title">ABC 2026</span>
+                <span class="menu-card-desc">Auditoría ABC-S — Aspectos básicos de la gestión de riesgo en seguridad.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+              <button type="button" class="menu-card" data-goto="viewCursos">
+                <span class="menu-card-ico" aria-hidden="true">🎓</span>
+                <span class="menu-card-title">Cursos y Difusiones 2026</span>
+                <span class="menu-card-desc">Estado de cursos del personal y difusión de aprendizajes CODELCO.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+              <button type="button" class="menu-card" data-goto="viewIncidentes">
+                <span class="menu-card-ico" aria-hidden="true">⚠️</span>
+                <span class="menu-card-title">Incidentes 2026</span>
+                <span class="menu-card-desc">Registro de incidentes del contrato y seguimiento de medidas correctivas.</span>
+                <span class="menu-card-go">Entrar →</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== VISTA: RESSO V10 LV 2026 ===================== -->
+      <section class="view" id="viewResso" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
+      <!-- KPI CARDS -->
+      <section class="cards" id="kpiCards"></section>
+
+      <!-- CUMPLIMIENTO RESSO -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Cumplimiento RESSO — Ciclo PHVA</h2>
+            <p>Evaluación por elemento del Sistema de Gestión (PLAN · DO · CHECK · ACT)</p>
+          </div>
+        </div>
+        <div class="resso-grid" id="resssoGrid"></div>
+      </section>
+
+      <!-- GRÁFICOS -->
+      <section class="grid two-col">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Cumplimiento por elemento</h2>
+              <p>Porcentaje obtenido en cada elemento evaluado</p>
+            </div>
+          </div>
+          <div id="elementBars" class="bars"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Hallazgos</h2>
+              <p>Distribución de hallazgos documentales y en terreno</p>
+            </div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut" id="hallazgosDonut"></div>
+            <div class="legend" id="donutLegend"></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ACCESOS DOCUMENTALES -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Accesos documentales</h2>
+            <p>Documentación de respaldo del sistema de gestión</p>
+          </div>
+        </div>
+        <div id="accessLinks" class="access-links"></div>
+      </section>
+
+      <!-- REGLAMENTOS INTERNOS -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Reglamentos Internos de Minería aplicables</h2>
+            <p>Buscador de reglamentos y estado de difusión a los trabajadores</p>
+          </div>
+        </div>
+
+        <div class="filters">
+          <label class="field">
+            <span>Buscar reglamento</span>
+            <input id="regSearch" type="text" placeholder="Ej: R-001, soldadura, bloqueo…" />
+          </label>
+          <label class="field">
+            <span>Difusión</span>
+            <select id="regFilter">
+              <option value="">Todos</option>
+              <option value="si">Difundido</option>
+              <option value="no">Pendiente</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="results-summary">
+          <span class="mini-chip" id="regCount">0 reglamentos</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Código</th>
+                <th>Nombre del Reglamento</th>
+                <th>Difusión</th>
+              </tr>
+            </thead>
+            <tbody id="regTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+      </section><!-- /viewResso -->
+
+      <!-- ===================== VISTA: ABC 2026 ===================== -->
+      <section class="view" id="viewAbc" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
+      <!-- AUDITORÍA ABC-S -->
+      <section class="panel" id="abcPanel">
+        <div class="panel-header">
+          <div>
+            <h2 id="abcTitulo">Auditoría ABC-S</h2>
+            <p>Auditoría de Aspectos de Gestión de Riesgo Seguridad — 9 criterios evaluados</p>
+          </div>
+        </div>
+
+        <div class="abc-summary" id="abcSummary"></div>
+
+        <div class="abc-layout">
+          <div class="abc-bars" id="abcBars"></div>
+          <div class="abc-scale">
+            <h4>Escala de evaluación</h4>
+            <ul id="abcScale"></ul>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-top:18px">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Criterio evaluado</th>
+                <th>Cumplimiento</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="abcTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+      </section><!-- /viewAbc -->
+
+      <!-- ===================== VISTA: CURSOS Y DIFUSIONES ===================== -->
+      <section class="view" id="viewCursos" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
+      <!-- CUMPLIMIENTO DE CURSOS -->
+      <section class="panel" id="cursosPanel">
+        <div class="panel-header">
+          <div>
+            <h2>Cumplimiento de cursos del personal</h2>
+            <p>Porcentaje de personal activo con curso al día (cruce con evidencias escaneadas)</p>
+          </div>
+        </div>
+        <div class="cursos-grid" id="cursosGrid"></div>
+      </section>
+
+      <!-- PERSONAL Y CURSOS -->
+      <section class="panel" id="personalPanel">
+        <div class="panel-header">
+          <div>
+            <h2>Personal y cursos realizados</h2>
+            <p>Listado de personal activo y estado de cumplimiento por curso</p>
+          </div>
+        </div>
+
+        <div class="filters">
+          <label class="field">
+            <span>Buscar persona</span>
+            <input id="perSearch" type="text" placeholder="Nombre, RUT o cargo…" />
+          </label>
+          <label class="field">
+            <span>Filtrar</span>
+            <select id="perFilter">
+              <option value="">Todo el personal</option>
+              <option value="IRL">Pendientes de IRL</option>
+              <option value="DIFUSION">Pendientes de Difusión</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="results-summary">
+          <span class="mini-chip" id="perCount">0 personas</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Nombre</th>
+                <th>Cargo</th>
+                <th class="cell-center">IRL</th>
+                <th class="cell-center">Difusión Políticas</th>
+              </tr>
+            </thead>
+            <tbody id="perTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- DIFUSIÓN DE APRENDIZAJES CODELCO (búsqueda por RUT) -->
+      <section class="panel" id="reportesPanel">
+        <div class="panel-header">
+          <div>
+            <h2>Difusión de Aprendizajes CODELCO</h2>
+            <p>Busca a una persona por RUT o nombre para ver todos sus reportes registrados</p>
+          </div>
+        </div>
+
+        <div class="filters">
+          <label class="field">
+            <span>Buscar por RUT o nombre</span>
+            <input id="repSearch" type="text" placeholder="Ej. 12.345.678-9 o nombre…" />
+          </label>
+          <label class="field">
+            <span>Semana</span>
+            <select id="repSemana">
+              <option value="">Todas</option>
+            </select>
+          </label>
+          <div class="field">
+            <span>Turno</span>
+            <div class="ms-dropdown" id="repTurnoDrop">
+              <button type="button" class="ms-toggle" id="repTurnoToggle" aria-expanded="false">
+                <span id="repTurnoLabel">Todos</span>
+                <span class="ms-caret">▾</span>
+              </button>
+              <div class="ms-menu" id="repTurnoMenu" hidden></div>
+            </div>
+          </div>
+          <div class="field">
+            <span>RF</span>
+            <div class="ms-dropdown" id="repRfDrop">
+              <button type="button" class="ms-toggle" id="repRfToggle" aria-expanded="false">
+                <span id="repRfLabel">Todos</span>
+                <span class="ms-caret">▾</span>
+              </button>
+              <div class="ms-menu" id="repRfMenu" hidden></div>
+            </div>
+          </div>
+          <div class="field">
+            <span>Cargo</span>
+            <div class="ms-dropdown" id="repCargoDrop">
+              <button type="button" class="ms-toggle" id="repCargoToggle" aria-expanded="false">
+                <span id="repCargoLabel">Todos</span>
+                <span class="ms-caret">▾</span>
+              </button>
+              <div class="ms-menu" id="repCargoMenu" hidden></div>
+            </div>
+          </div>
+          <div class="field rep-export-field">
+            <span>Comparar con turnos</span>
+            <button id="repExport" type="button" class="btn-export">
+              Exportar sin reporte (CSV)
+            </button>
+          </div>
+        </div>
+
+        <div class="results-summary">
+          <span class="mini-chip" id="repCount">Escribe un RUT o nombre, o filtra por semana/turno</span>
+          <span class="mini-chip alt" id="repMissCount"></span>
+        </div>
+
+        <div id="repCharts" class="rep-charts"></div>
+
+        <div id="repResults" class="rep-results"></div>
+      </section>
+      </section><!-- /viewCursos -->
+
+      <!-- ===================== VISTA: INCIDENTES 2026 ===================== -->
+      <section class="view" id="viewIncidentes" hidden>
+        <button type="button" class="back-btn no-print" data-back>← Volver al menú</button>
+
+        <!-- KPIs -->
+        <section class="cards" id="incKpis"></section>
+
+        <!-- GRÁFICOS -->
+        <section class="grid two-col">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Incidentes por categoría</h2>
+                <p>Distribución de incidentes registrados según su categoría</p>
+              </div>
+            </div>
+            <div id="incCatBars" class="bars"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Estado de medidas correctivas</h2>
+                <p>Avance del cierre de las medidas comprometidas</p>
+              </div>
+            </div>
+            <div class="donut-layout">
+              <div class="donut" id="incEstadoDonut"></div>
+              <div class="legend" id="incEstadoLegend"></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- REGISTRO DE INCIDENTES -->
+        <section class="panel" id="incidentesPanel">
+          <div class="panel-header">
+            <div>
+              <h2>Registro de incidentes</h2>
+              <p>Busca y revisa cada incidente con sus medidas correctivas y responsables</p>
+            </div>
+          </div>
+
+          <div class="filters">
+            <label class="field">
+              <span>Buscar</span>
+              <input id="incSearch" type="text" placeholder="Evento, descripción, responsable…" />
+            </label>
+            <label class="field">
+              <span>Categoría</span>
+              <select id="incCat">
+                <option value="">Todas</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Turno</span>
+              <select id="incTurno">
+                <option value="">Todos</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Estado medidas</span>
+              <select id="incEstado">
+                <option value="">Todos</option>
+                <option value="cerrado">Totalmente cerrado</option>
+                <option value="pendiente">Con pendientes</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="results-summary">
+            <span class="mini-chip" id="incCount">0 incidentes</span>
+          </div>
+
+          <div id="incResults" class="inc-results"></div>
+        </section>
+      </section><!-- /viewIncidentes -->
+    </main>
+
+    <footer class="footer">
+      RESSO SKIC 424 · SKIC S.A. — Sistema de Gestión SSO · Generado automáticamente
+    </footer>
+  </div>
+
+  <!-- Modal de evidencia (comentarios + fotos por pregunta) -->
+  <div class="evid-modal" id="evidModal" aria-hidden="true">
+    <div class="evid-card" role="dialog" aria-modal="true">
+      <button class="evid-close" data-close-evid aria-label="Cerrar">✕</button>
+      <div class="evid-body"></div>
+    </div>
+  </div>
+
+  <!-- Lightbox para ampliar fotos -->
+  <div class="img-lightbox" id="imgLightbox" aria-hidden="true">
+    <img src="" alt="Evidencia ampliada">
+  </div>
+
+  <script src="data/datos.enc.js?v=1"></script>
+  <script src="auth.js?v=1"></script>
+</body>
+</html>

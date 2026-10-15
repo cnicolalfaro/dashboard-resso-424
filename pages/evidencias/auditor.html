@@ -269,16 +269,32 @@ tbody tr:last-child td{border-bottom:0}
 }
 .evidence-route .action-btn{justify-self:start;margin-top:4px}
 .saved-evidence{
-  border:1px solid #cce7d9;background:#f0faf5;border-radius:14px;
-  padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;
-  align-items:center;gap:14px
+  display:grid;gap:8px;margin-bottom:12px
 }
 .saved-evidence[hidden]{display:none}
-.saved-evidence strong{display:block;color:#23704c;font-size:13px;margin:4px 0}
+.saved-evidence-item{
+  border:1px solid #cce7d9;background:#f0faf5;border-radius:14px;
+  padding:14px;display:flex;justify-content:space-between;align-items:center;gap:14px
+}
+.saved-evidence-item strong{display:block;color:#23704c;font-size:13px;margin:4px 0}
 .saved-evidence small{
   display:block;color:#789087;max-width:480px;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis
 }
+.saved-evidence-actions{display:flex;align-items:center;gap:8px}
+.saved-evidence-remove{white-space:nowrap}
+.evidence-viewer{
+  border:1px solid #dce6f4;border-radius:14px;overflow:hidden;margin-bottom:12px
+}
+.evidence-viewer[hidden]{display:none}
+.evidence-viewer-head{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:11px 14px;background:#f7faff;border-bottom:1px solid #dce6f4
+}
+.evidence-viewer-head strong{font-size:12px;color:#23477f}
+.evidence-viewer iframe{display:block;width:100%;height:min(62vh,620px);min-height:360px;border:0;background:#fff}
+.evidence-viewer-note{padding:8px 12px;color:#6d7c93;font-size:10px;line-height:1.5}
+.evidence-viewer-note a{color:#23477f;font-weight:800}
 .evidence-help{
   border:1px solid #e4eaf3;border-radius:14px;padding:13px;margin-bottom:12px
 }
@@ -315,6 +331,9 @@ tbody tr:last-child td{border-bottom:0}
   .kpis{grid-template-columns:1fr}
   .side-stack{grid-template-columns:1fr}
   .modal-summary{grid-template-columns:1fr 1fr}
+  .saved-evidence-item{align-items:flex-start;flex-direction:column}
+  .saved-evidence-actions{flex-wrap:wrap}
+  .evidence-viewer iframe{height:55vh;min-height:280px}
 }
 </style>
 </head>
@@ -598,20 +617,23 @@ tbody tr:last-child td{border-bottom:0}
         </a>
       </div>
 
-      <div id="savedEvidenceBox" class="saved-evidence" hidden>
-        <div>
-          <span class="saved-label">ARCHIVO SELECCIONADO</span>
-          <strong id="savedEvidenceName"></strong>
-          <small id="savedEvidenceUrl"></small>
+      <div id="savedEvidenceBox" class="saved-evidence" hidden></div>
+
+      <section id="evidenceViewer" class="evidence-viewer" hidden aria-label="Visor de evidencia">
+        <div class="evidence-viewer-head">
+          <strong id="evidenceViewerTitle"></strong>
+          <button class="action-btn secondary" type="button" onclick="closeEvidenceViewer()">Cerrar visor</button>
         </div>
-        <a id="savedEvidenceOpen" class="action-btn" href="#" target="_blank" rel="noopener">
-          Abrir archivo ↗
-        </a>
-      </div>
+        <iframe id="evidenceViewerFrame" title="Visor de archivo SharePoint" loading="lazy"></iframe>
+        <p class="evidence-viewer-note">
+          Si SharePoint no permite mostrar este archivo aquí,
+          <a id="evidenceViewerFallback" href="#" target="_blank" rel="noopener">ábrelo en SharePoint</a>.
+        </p>
+      </section>
 
       <div class="evidence-help">
         <strong>Seleccionar el archivo exacto</strong>
-        <p>Abre la carpeta del requisito, selecciona el archivo en SharePoint, usa <b>Copiar vínculo</b> y pega ese vínculo aquí. El Auditor recordará la elección para este requisito.</p>
+        <p>Abre la carpeta del requisito, selecciona el archivo en SharePoint, usa <b>Copiar vínculo</b> y pega ese vínculo aquí. Puedes agregar varios archivos; el Auditor recordará la selección para este requisito.</p>
       </div>
 
       <div class="evidence-form">
@@ -631,11 +653,11 @@ tbody tr:last-child td{border-bottom:0}
 
     <div class="modal-foot">
       <button id="removeEvidenceBtn" class="action-btn secondary danger-soft" onclick="removeEvidenceSelection()" hidden>
-        Quitar selección
+        Quitar todos
       </button>
       <span class="modal-note evidence-local-note">Se guarda en este navegador.</span>
       <button class="action-btn secondary" onclick="closeEvidencePopup()">Cancelar</button>
-      <button class="action-btn" onclick="saveEvidenceSelection()">Guardar archivo seleccionado</button>
+      <button class="action-btn" onclick="saveEvidenceSelection()">Agregar archivo</button>
     </div>
   </div>
 </div>
@@ -720,7 +742,9 @@ function saveEvidenceMap(map) {
 }
 
 function getEvidenceSelection(id) {
-  return loadEvidenceMap()[String(id)] || null;
+  const saved = loadEvidenceMap()[String(id)];
+  if (!saved) return [];
+  return Array.isArray(saved) ? saved : [saved];
 }
 
 let compactView = true;
@@ -799,7 +823,7 @@ function render() {
     const evidenceButton =
       `<button class="action-btn secondary"
           onclick="openEvidencePopup(${r.id})">
-          ${savedEvidence ? "Evidencia ✓" : "Evidencia"}
+          ${savedEvidence.length ? `Evidencia (${savedEvidence.length}) ✓` : "Evidencia"}
        </button>`;
 
     return `
@@ -853,8 +877,8 @@ function openDetail(id) {
   currentDetailId = r.id;
   const savedEvidence = getEvidenceSelection(r.id);
 
-  el("mEvidenceNote").textContent = savedEvidence
-    ? `Evidencia seleccionada: ${savedEvidence.name || "Archivo SharePoint"}`
+  el("mEvidenceNote").textContent = savedEvidence.length
+    ? `Evidencias seleccionadas (${savedEvidence.length}): ${savedEvidence.map(file => file.name || "Archivo SharePoint").join(", ")}`
     : `${sharePointReadablePath(r)} · Sin archivo específico seleccionado.`;
 
   el("modalBg").classList.add("show");
@@ -893,8 +917,8 @@ function openEvidencePopup(id) {
 
   const saved = getEvidenceSelection(id);
 
-  el("eFileName").value = saved?.name || "";
-  el("eFileUrl").value = saved?.url || "";
+  el("eFileName").value = "";
+  el("eFileUrl").value = "";
   el("evidenceMsg").textContent = "";
   el("evidenceMsg").className = "evidence-msg";
 
@@ -907,8 +931,9 @@ function openEvidencePopup(id) {
 function renderSavedEvidence(saved) {
   const box = el("savedEvidenceBox");
   const removeBtn = el("removeEvidenceBtn");
+  const files = Array.isArray(saved) ? saved : (saved?.url ? [saved] : []);
 
-  if (!saved?.url) {
+  if (!files.length) {
     box.hidden = true;
     removeBtn.hidden = true;
     return;
@@ -916,10 +941,59 @@ function renderSavedEvidence(saved) {
 
   box.hidden = false;
   removeBtn.hidden = false;
-  el("savedEvidenceName").textContent =
-    saved.name || "Archivo SharePoint seleccionado";
-  el("savedEvidenceUrl").textContent = saved.url;
-  el("savedEvidenceOpen").href = saved.url;
+  box.replaceChildren();
+
+  files.forEach((file, index) => {
+    const item = document.createElement("div");
+    item.className = "saved-evidence-item";
+
+    const details = document.createElement("div");
+    const label = document.createElement("span");
+    label.className = "saved-label";
+    label.textContent = `ARCHIVO ${index + 1}`;
+
+    const name = document.createElement("strong");
+    name.textContent = file.name || "Archivo SharePoint seleccionado";
+
+    const url = document.createElement("small");
+    url.textContent = file.url;
+
+    const actions = document.createElement("div");
+    actions.className = "saved-evidence-actions";
+
+    const open = document.createElement("button");
+    open.className = "action-btn";
+    open.type = "button";
+    open.textContent = "Ver en visor";
+    open.addEventListener("click", () => openEvidenceFile(index));
+
+    const remove = document.createElement("button");
+    remove.className = "action-btn secondary danger-soft saved-evidence-remove";
+    remove.type = "button";
+    remove.textContent = "Quitar";
+    remove.addEventListener("click", () => removeEvidenceFile(index));
+
+    details.append(label, name, url);
+    actions.append(open, remove);
+    item.append(details, actions);
+    box.append(item);
+  });
+}
+
+function openEvidenceFile(index) {
+  const file = getEvidenceSelection(currentEvidenceId)[index];
+  if (!file) return;
+
+  el("evidenceViewerTitle").textContent =
+    file.name || "Archivo SharePoint seleccionado";
+  el("evidenceViewerFallback").href = file.url;
+  el("evidenceViewerFrame").src = file.url;
+  el("evidenceViewer").hidden = false;
+}
+
+function closeEvidenceViewer() {
+  el("evidenceViewerFrame").removeAttribute("src");
+  el("evidenceViewer").hidden = true;
 }
 
 function saveEvidenceSelection() {
@@ -944,19 +1018,27 @@ function saveEvidenceSelection() {
   }
 
   const map = loadEvidenceMap();
+  const files = getEvidenceSelection(currentEvidenceId);
 
-  map[String(currentEvidenceId)] = {
+  if (files.some(file => file.url === url)) {
+    msg.textContent = "Este vínculo ya está agregado para este requisito.";
+    msg.className = "evidence-msg error";
+    return;
+  }
+
+  files.push({
     name: name || `Evidencia requisito ${currentEvidenceId}`,
     url
-  };
+  });
+  map[String(currentEvidenceId)] = files;
 
   saveEvidenceMap(map);
-
-  const saved = map[String(currentEvidenceId)];
-  renderSavedEvidence(saved);
+  renderSavedEvidence(files);
+  el("eFileName").value = "";
+  el("eFileUrl").value = "";
 
   msg.textContent =
-    "Archivo seleccionado guardado para este requisito.";
+    "Archivo agregado a este requisito.";
   msg.className = "evidence-msg ok";
 
   render();
@@ -969,17 +1051,39 @@ function removeEvidenceSelection() {
   delete map[String(currentEvidenceId)];
   saveEvidenceMap(map);
 
+  closeEvidenceViewer();
   el("eFileName").value = "";
   el("eFileUrl").value = "";
   renderSavedEvidence(null);
 
-  el("evidenceMsg").textContent = "Selección eliminada.";
+  el("evidenceMsg").textContent = "Se quitaron todos los archivos seleccionados.";
   el("evidenceMsg").className = "evidence-msg";
 
   render();
 }
 
+function removeEvidenceFile(index) {
+  if (!currentEvidenceId) return;
+
+  const files = getEvidenceSelection(currentEvidenceId);
+  files.splice(index, 1);
+
+  const map = loadEvidenceMap();
+  if (files.length) {
+    map[String(currentEvidenceId)] = files;
+  } else {
+    delete map[String(currentEvidenceId)];
+  }
+  saveEvidenceMap(map);
+  renderSavedEvidence(files);
+
+  el("evidenceMsg").textContent = "Archivo quitado de este requisito.";
+  el("evidenceMsg").className = "evidence-msg";
+  render();
+}
+
 function closeEvidencePopup() {
+  closeEvidenceViewer();
   el("evidenceBg").classList.remove("show");
   document.body.style.overflow = "";
 }
