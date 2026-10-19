@@ -433,7 +433,7 @@
   }
   function populateOptions() {
     const shifts = [...new Set(data.map((item) => item.turno).filter(Boolean))].sort();
-    setOptions($("#incCat"), categories, "Todas"); setOptions($("#incTrendCategory"), categories, "Todas"); $("#incTrendCategory").value = state.category; setOptions($("#incTurno"), shifts, "Todos"); setOptions($("#incArea"), areas, "Todas");
+    setOptions($("#incCat"), categories, "Todas"); setOptions($("#incTrendCategory"), categories, "Todas"); if ($("#incTrendCategory")) $("#incTrendCategory").value = state.category; setOptions($("#incTurno"), shifts, "Todos"); setOptions($("#incArea"), areas, "Todas");
     setFormOptions($("#incForm").elements.turno, shifts, "Seleccionar turno");
     setFormOptions($("#incForm").elements.categoria, categories, "Seleccionar categoría");
     setFormOptions($("#incForm").elements.area, areas, "Por definir");
@@ -570,6 +570,8 @@
 
   function renderTrendAnalysis() {
     const categorySelect = $("#incTrendCategory");
+    // index.html sin la sección de análisis de tendencia (desde 14-10): no se dibuja, el resto de la página sigue.
+    if (!categorySelect || !$("#incTrendSummary") || !$("#incTrendCards")) return;
     const compareCategories = trendMode === "categories";
     categorySelect.disabled = compareCategories;
     categorySelect.value = compareCategories ? "" : state.category;
@@ -1032,6 +1034,7 @@
 
   function bindEvents() {
     document.querySelector('[data-goto="viewIncidentes"]').addEventListener("click",()=>document.body.classList.add("incidents-mode")); document.querySelectorAll("#viewIncidentes [data-back]").forEach((button)=>button.addEventListener("click",()=>document.body.classList.remove("incidents-mode")));
+    if ($("#incTrendCategory") && $("#incTrendModes") && $("#incTrendResults") && $("#incTrendDetail")) {
     $("#incTrendCategory").addEventListener("change", () => { state.category = $("#incTrendCategory").value; $("#incCat").value = state.category; state.focusedItem = ""; state.followupItem = ""; renderAll(); });
     $("#incTrendModes").onclick = (event) => { const button = event.target.closest("[data-trend-mode]"); if (!button) return; trendMode = button.dataset.trendMode; expandedTrendKey = ""; renderTrendAnalysis(); };
     $("#incTrendResults").onclick = (event) => {
@@ -1047,6 +1050,7 @@
       renderTrendAnalysis();
       $("#incTrendResults").scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
+    }
     [["#incSearch","input","search"],["#incCat","change","category"],["#incTurno","change","shift"],["#incArea","change","area"],["#incEstado","change","status"]].forEach(([selector,event,key])=>$(selector).addEventListener(event,()=>{state[key]=$(selector).value;state.focusedItem="";state.followupItem="";renderAll();}));
     $("#incCategoryNav").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";state.followupItem="";renderAll();};
     $("#incOpenBars").onclick=(event)=>{const button=event.target.closest("[data-category]");if(!button)return;state.category=state.category===button.dataset.category?"":button.dataset.category;$("#incCat").value=state.category;state.focusedItem="";state.followupItem="";renderAll();$("#incidentesPanel").scrollIntoView({behavior:"smooth"});};
