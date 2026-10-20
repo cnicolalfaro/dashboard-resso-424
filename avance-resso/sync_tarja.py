@@ -3,8 +3,10 @@
 Uso:
     python avance-resso/sync_tarja.py "TARJA OCTUBRE OBRA 424..xlsb"
 
-- Agrega a las personas de la hoja TARJA que figuran "Activo" en la hoja Maestra y aún
-  no están en el snapshot (entran con todos los cursos pendientes).
+- Agrega a las personas de la hoja TARJA que figuran "Activo" en la hoja Maestra (o "Aportado" en
+  G PERS) y aún no están en el snapshot (entran con todos los cursos pendientes).
+- G PERS = "Dado de baja": siguen listados en la TARJA del mes pero ya no cuentan; quedan como
+  finiquitados con la fecha F FIN (o la de la hoja Finiquitados si la hay).
 - No borra a nadie: quien ya no está en la TARJA queda marcado como finiquitado (con fecha
   y motivo de la hoja Finiquitados) o "fuera de tarja". Sigue visible en la matriz con sus
   evidencias, pero no cuenta en dotación, aprobados ni porcentajes.
@@ -52,8 +54,12 @@ def main() -> None:
 
     tarja = read_sheet(args.tarja, "TARJA")
     header = [text(h).upper() for h in tarja[2]]
-    col = {name: header.index(name) for name in ("RUT", "NOMBRE", "A PATERNO", "A MATERNO", "ESPECIALIDAD", "CATEGORIA", "TURNO")}
-    in_tarja = {normalize_rut(row[col["RUT"]]): row for row in tarja[3:] if len(normalize_rut(row[col["RUT"]])) >= 7}
+    col = {name: header.index(name) for name in ("RUT", "NOMBRE", "A PATERNO", "A MATERNO", "ESPECIALIDAD", "CATEGORIA", "TURNO", "G PERS", "F FIN")}
+    filas = {normalize_rut(row[col["RUT"]]): row for row in tarja[3:] if len(normalize_rut(row[col["RUT"]])) >= 7}
+    estado_tarja = {rut: text(row[col["G PERS"]]).lower() for rut, row in filas.items()}
+    in_tarja = {rut: row for rut, row in filas.items() if estado_tarja[rut] != "dado de baja"}
+    bajas_tarja = {rut: (excel_date(row[col["F FIN"]]) if float(row[col["F FIN"]] or 0) > 1 else "", "Dado de baja (tarja)")
+                   for rut, row in filas.items() if estado_tarja[rut] == "dado de baja"}
     active = {normalize_rut(row[0]) for row in read_sheet(args.tarja, "Maestra")[1:] if text(row[5]).lower() == "activo"}
     # Finiquitados: columnas RUT, ..., Motivo (6), ..., Fe_Fin (10). Si hay varias bajas, la más reciente.
     finiquitos: dict[str, tuple[str, str]] = {}
@@ -72,7 +78,7 @@ def main() -> None:
     known = {normalize_rut(p["rut"]) for p in data["personas"]}
     added = []
     for rut, row in in_tarja.items():
-        if rut in known or rut not in active:
+        if rut in known or (rut not in active and estado_tarja[rut] != "aportado"):
             continue
         person = {
             "rut": text(row[col["RUT"]]),
@@ -95,9 +101,9 @@ def main() -> None:
                 person.pop("motivo_baja", None)
                 reactivated.append(person)
             continue
-        if rut in finiquitos:
+        if rut in finiquitos or rut in bajas_tarja:
             person["estado"] = "finiquitado"
-            person["baja"], person["motivo_baja"] = finiquitos[rut]
+            person["baja"], person["motivo_baja"] = finiquitos.get(rut) or bajas_tarja[rut]
         else:
             person["estado"] = "fuera_tarja"
             person.pop("baja", None)
