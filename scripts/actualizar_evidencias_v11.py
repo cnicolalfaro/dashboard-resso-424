@@ -88,10 +88,10 @@ const SP_ROOT_FOLDER = {shared.js_data(SP_ROOT, False)};
 const SP_LIBRARY_URL = {shared.js_data(SP_LIBRARY, False)};
 function specificSharePointLink(r) {{
   if (r.evidence_ref || r.link) return r.evidence_ref || r.link;
-  return `${{SP_LIBRARY_URL}}?id=${{encodeURIComponent(`${{SP_ROOT_FOLDER}}/${{r.id}} versión 11`)}}`;
+  return `${{SP_LIBRARY_URL}}?id=${{encodeURIComponent(`${{SP_ROOT_FOLDER}}/${{String(r.id).padStart(2, "0")}} versión 11`)}}`;
 }}
 function sharePointReadablePath(r) {{
-  return r.evidence_ref || r.link ? "Evidencia indicada en la planilla" : `${{r.id}} versión 11`;
+  return r.evidence_ref || r.link ? "Evidencia indicada en la planilla" : `${{String(r.id).padStart(2, "0")}} versión 11`;
 }}
 """
 

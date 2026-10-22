@@ -1,4 +1,5 @@
 import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -8,6 +9,23 @@ import actualizar_evidencias_v11 as v11
 
 
 class V11Tests(unittest.TestCase):
+    def test_numbered_folder_paths(self):
+        code = v11.link_code() + r"""
+for (const id of [1, 9, 10, 40]) {
+  const r = {id};
+  const folder = String(id).padStart(2, "0") + " versi\u00f3n 11";
+  const actual = new URL(specificSharePointLink(r)).searchParams.get("id");
+  if (actual !== SP_ROOT_FOLDER + "/" + folder) throw Error(actual);
+  if (sharePointReadablePath(r) !== folder) throw Error(sharePointReadablePath(r));
+}
+const explicit = "https://empresassk.sharepoint.com/explicit";
+if (specificSharePointLink({id: 36, link: explicit}) !== explicit) throw Error("Link changed");
+"""
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "paths.js"
+            path.write_text(code, encoding="utf-8")
+            subprocess.run(["node", str(path)], check=True, capture_output=True)
+
     def test_formula_results_and_pending_are_calculated_from_levels(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "v11.xlsx"
@@ -47,7 +65,7 @@ class V11Tests(unittest.TestCase):
         self.assertNotIn("PHASE_FOLDER", text)
         self.assertIn('id="evidenceMsg"', text)
         self.assertIn("05 RESSO V11", text)
-        self.assertIn("${r.id} versión 11", text)
+        self.assertIn('${String(r.id).padStart(2, "0")} versión 11', text)
 
 
 if __name__ == "__main__":

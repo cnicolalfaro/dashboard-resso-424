@@ -33,8 +33,9 @@ actualizador de v10.
   incluso cuando Excel no ha guardado los resultados de sus fórmulas.
 - Los niveles vacíos quedan como **Pendiente**; se excluyen del porcentaje,
   al igual que los **N/A**. Los hipervínculos de evidencia de Excel se conservan.
-- Las evidencias se buscan directamente en `05 RESSO V11/<número> versión 11`,
-  sin carpetas intermedias por fase o subsección.
+- Las evidencias se buscan directamente en `05 RESSO V11/01 versión 11`,
+  `02 versión 11`, etc., con número de dos dígitos y sin carpetas intermedias
+  por fase o subsección.
 - Los archivos seleccionados en modo auditor se guardan en el navegador con
   la clave `resso424_v11_auditor_evidence_links_v1`, sin leer ni modificar la
   clave de v10. No son un respaldo compartido entre navegadores o equipos.
