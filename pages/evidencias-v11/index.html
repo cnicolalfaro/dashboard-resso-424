@@ -67,10 +67,21 @@ body{font-family:"Open Sans",Arial,sans-serif;background:linear-gradient(180deg,
 .note{margin-top:12px;font-size:9px;color:#8894a7;text-align:right}
 @media(max-width:1050px){.phases{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.executive-grid{grid-template-columns:1fr}}
 @media(max-width:650px){.topbar,.hero{flex-direction:column;align-items:flex-start}.phases,.kpis{grid-template-columns:1fr}.donut-layout{grid-template-columns:1fr}}
-.chip.gray{background:#edf1f6;color:#64748b}</style>
+.chip.gray{background:#edf1f6;color:#64748b}
+.migration-new{--migration-bg:#fce7ef}
+.migration-review{--migration-bg:#fff4c7}
+.migration-complete{--migration-bg:#e4f4e8}
+.migration-na{--migration-bg:#eef1f5}
+.req[class*="migration-"],tbody tr[class*="migration-"]>td,
+tbody tr[class*="migration-"]:hover>td{background:var(--migration-bg)}
+.migration-badge{display:inline-block;background:var(--migration-bg);color:#334155;
+border:1px solid #cbd5e1;border-radius:8px;padding:5px 8px;font-size:11px;margin-top:7px;line-height:1.5}
+.migration-legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.migration-detail{background:var(--migration-bg)}
+</style>
 </head>
 <body>
-<main class="page"><p class="note">32 evaluados · 6 pendientes · 2 no aplican. Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; preguntas nuevas pendientes de evaluar. Actualización: 22-10-2026.</p>
+<main class="page"><p class="note">32 evaluados · 6 pendientes · 2 no aplican. Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; preguntas nuevas pendientes de evaluar. Actualización: 22-10-2026.</p><aside aria-label="Adaptación de v10 a v11"><div class="migration-legend"><span class="migration-badge migration-new">Nueva: 6</span><span class="migration-badge migration-review">Revisar / complementar: 23</span><span class="migration-badge migration-complete">Equivalente y completa: 9</span><span class="migration-badge migration-na">No aplica: 2</span></div><p>Colores de adaptación a v11, no de cumplimiento. Amarillo: pregunta modificada o equivalente con brechas. Verde: equivalente (incluye solo redacción/ponderación) y nivel 100 % en la planilla; no implica una nueva validación de evidencia.</p></aside>
   <header class="topbar">
     <div class="brand"><div class="logo"><span>SK</span></div><div><strong>SKIC S.A.</strong><small>DIVISIÓN CHUQUICAMATA</small></div></div>
     <a class="auditor-btn" href="auditor.html">⌕ &nbsp; Modo auditor</a>

@@ -41,6 +41,10 @@ if (specificSharePointLink({id: 36, link: explicit}) !== explicit) throw Error("
                     sheet.cell(row, col, value)
             sheet["P30"] = "Abrir SharePoint"
             sheet["P30"].hyperlink = "https://empresassk.sharepoint.com/evidencia"
+            changes = workbook.create_sheet("Cambios v10 → v11")
+            for n in range(1, 7):
+                changes.append([n, "A1", f"Pregunta {n}", .04, n, "Anterior", .04,
+                                "Nueva" if n == 4 else "Sin cambio", "Detalle"])
             workbook.save(path)
             rows = v11.load(path)
         self.assertEqual([r["status"] for r in rows],
@@ -55,6 +59,20 @@ if (specificSharePointLink({id: 36, link: explicit}) !== explicit) throw Error("
         s = v11.stats(rows)
         self.assertEqual((s["n"], s["napp"], s["pending"], s["na"], s["gap"]), (6, 4, 1, 1, 3))
         self.assertEqual(s["pct"], 56.25)
+
+    def test_change_colors_follow_agreed_rules(self):
+        cases = [
+            ("Nueva", None, "new"), ("Nueva", 1, "new"),
+            ("Modificada", 1, "review"), ("Modificada / reubicada", .5, "review"),
+            ("Sin cambio", 1, "complete"), ("Redacción", 1, "complete"),
+            ("Ponderación", 1, "complete"), ("Sin cambio", .75, "review"),
+            ("Sin cambio", None, "review"), ("Modificada", "N/A", "na"),
+        ]
+        for change_type, level, expected in cases:
+            with self.subTest(change_type=change_type, level=level):
+                self.assertEqual(v11.classify_change(change_type, level)["migration"], expected)
+        with self.assertRaises(ValueError):
+            v11.classify_change("Desconocida", 1)
 
     def test_v11_template_isolates_storage_and_local_service(self):
         text = v11.auditor_page([], "22-10-2026")

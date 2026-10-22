@@ -39,6 +39,12 @@ actualizador de v10.
 - Los archivos seleccionados en modo auditor se guardan en el navegador con
   la clave `resso424_v11_auditor_evidence_links_v1`, sin leer ni modificar la
   clave de v10. No son un respaldo compartido entre navegadores o equipos.
+- La hoja `Cambios v10 → v11` alimenta las marcas de adaptación en fases y modo
+  auditor: rosado pálido para preguntas nuevas; amarillo para modificadas
+  (incluidas reubicadas) o equivalentes incompletas; verde para equivalentes
+  con nivel 100 % (incluye cambios solo de redacción o ponderación).
+  Los N/A mantienen una marca neutral. La etiqueta y el detalle explican el
+  motivo; estos colores no alteran los estados ni certifican evidencia nueva.
 - El visor de SharePoint conserva el enlace alternativo para abrir el archivo
   si SharePoint impide incrustarlo. El visor local y la subida de v11 quedan
   pendientes de configurar su carpeta sincronizada; no usan el servicio de v10.

@@ -61,7 +61,18 @@ body{font-family:"Open Sans",Arial,sans-serif;background:radial-gradient(circle 
 .modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:16px 24px;border-top:1px solid var(--line)} .sharepoint-note{font-size:11px;color:#8a96a8;margin-right:auto;align-self:center}
 @media(max-width:1150px){.hero{grid-template-columns:120px 1fr}.hero-note{grid-column:1/-1}.kpis{grid-template-columns:repeat(2,1fr)}.groups{grid-template-columns:1fr}.req{grid-template-columns:50px 1fr 120px 130px}.actions{grid-column:2/-1;grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.topbar{grid-template-columns:1fr;gap:10px}.contract{justify-self:start}.hero{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.req{grid-template-columns:1fr}.num{width:42px;height:42px}.actions{grid-column:auto;grid-template-columns:1fr}.modal-summary{grid-template-columns:1fr 1fr}}
-.chip.gray{background:#edf1f6;color:#64748b}</style>
+.chip.gray{background:#edf1f6;color:#64748b}
+.migration-new{--migration-bg:#fce7ef}
+.migration-review{--migration-bg:#fff4c7}
+.migration-complete{--migration-bg:#e4f4e8}
+.migration-na{--migration-bg:#eef1f5}
+.req[class*="migration-"],tbody tr[class*="migration-"]>td,
+tbody tr[class*="migration-"]:hover>td{background:var(--migration-bg)}
+.migration-badge{display:inline-block;background:var(--migration-bg);color:#334155;
+border:1px solid #cbd5e1;border-radius:8px;padding:5px 8px;font-size:11px;margin-top:7px;line-height:1.5}
+.migration-legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.migration-detail{background:var(--migration-bg)}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -70,7 +81,7 @@ body{font-family:"Open Sans",Arial,sans-serif;background:radial-gradient(circle 
   <div class="contract">RESSO V11 · Contrato 424</div>
 </header>
 
-<main class="page"><p class="note">2 evaluados · 1 pendientes · 0 no aplican. Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; preguntas nuevas pendientes de evaluar. Actualización: 22-10-2026.</p>
+<main class="page"><p class="note">2 evaluados · 1 pendientes · 0 no aplican. Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; preguntas nuevas pendientes de evaluar. Actualización: 22-10-2026.</p><aside aria-label="Adaptación de v10 a v11"><div class="migration-legend"><span class="migration-badge migration-new">Nueva: 1</span><span class="migration-badge migration-review">Revisar / complementar: 2</span><span class="migration-badge migration-complete">Equivalente y completa: 0</span><span class="migration-badge migration-na">No aplica: 0</span></div><p>Colores de adaptación a v11, no de cumplimiento. Amarillo: pregunta modificada o equivalente con brechas. Verde: equivalente (incluye solo redacción/ponderación) y nivel 100 % en la planilla; no implica una nueva validación de evidencia.</p></aside>
   <div class="breadcrumb"><a href="../../index.html">Inicio</a> &nbsp;/&nbsp; <a href="index.html">Centro de Evidencias</a> &nbsp;/&nbsp; D. ACT</div>
 
   <section class="hero">
@@ -110,7 +121,7 @@ body{font-family:"Open Sans",Arial,sans-serif;background:radial-gradient(circle 
         <div class="mini"><span>Nivel</span><strong id="mLevel"></strong></div>
         <div class="mini"><span>Responsable</span><strong id="mResponsible"></strong></div>
       </div>
-      <div class="detail">
+      <div class="detail"><div id="mMigrationCard" class="detail-card"><h4>Adaptación de v10 a v11</h4><p id="mMigration"></p></div>
         <div class="detail-card"><h4>Requisito evaluado</h4><p id="mQuestion"></p></div>
         <div class="detail-card"><h4>Criterio del nivel alcanzado</h4><p id="mCriterion"></p></div>
         <div class="detail-card"><h4>Observación de auditoría</h4><p id="mObservation"></p></div>
@@ -122,7 +133,7 @@ body{font-family:"Open Sans",Arial,sans-serif;background:radial-gradient(circle 
 </div>
 
 <script>
-const DATA = [{"id": 38, "group": "D1", "groupName": "Gestión de Incidentes", "question": "¿Cuenta la empresa con personal capacitado con el método ICAM? Si corresponde, ¿Considera la capacitación a los integrantes del CPHS?", "weight": 2.0, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Personal capacitado en ICAM, incluidos AdC, supervisión y CPHS.", "observation": "A la fecha hay 12 personas capacitadas en ICAM; la formación continuará.", "action": "Continuar el programa de capacitación ICAM y mantener el registro actualizado.", "responsible": "MAX / NATALY", "link": ""}, {"id": 39, "group": "D1", "groupName": "Gestión de Incidentes", "question": "¿Los incidentes se investigan según metodología corporativa? ¿Las acciones correctivas son verificadas en terreno, se encuentran cerradas en plazo y se privilegian controles de alta jerarquía?", "weight": 5.0, "level": 75.0, "status": "Brecha menor", "priority": "Alta", "criterion": "Investigaciones aplican ICAM (SIGO-P-030) con evidencia y trazabilidad.", "observation": "Las investigaciones se realizan conforme a la metodología corporativa.", "action": "Revisar el estado de las medidas correctivas señaladas por el Corporativo. SE DEBEN CERRAR CON LAS MEDIDAS CORRECTIVAS ABIERTAS", "responsible": "RODRIGO / JAIME", "link": ""}, {"id": 40, "group": "D2", "groupName": "Actualización del Sistema Preventivo", "question": "¿Se verifica la ejecución de actividades y responsabilidades definidas para el Administrador de la EECC?", "weight": 4.0, "level": null, "status": "Pendiente", "priority": "—", "criterion": "Pregunta nueva en v11 — pendiente de evaluar.", "observation": "", "action": "", "responsible": "", "link": ""}];
+const DATA = [{"id": 38, "group": "D1", "groupName": "Gestión de Incidentes", "question": "¿Cuenta la empresa con personal capacitado con el método ICAM? Si corresponde, ¿Considera la capacitación a los integrantes del CPHS?", "weight": 2.0, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Personal capacitado en ICAM, incluidos AdC, supervisión y CPHS.", "observation": "A la fecha hay 12 personas capacitadas en ICAM; la formación continuará.", "action": "Continuar el programa de capacitación ICAM y mantener el registro actualizado.", "responsible": "MAX / NATALY", "link": "", "migration": "review", "migration_label": "Modificada: revisar y complementar respaldo", "change_type": "Modificada", "change_detail": "Agrega capacitación ICAM a integrantes del CPHS."}, {"id": 39, "group": "D1", "groupName": "Gestión de Incidentes", "question": "¿Los incidentes se investigan según metodología corporativa? ¿Las acciones correctivas son verificadas en terreno, se encuentran cerradas en plazo y se privilegian controles de alta jerarquía?", "weight": 5.0, "level": 75.0, "status": "Brecha menor", "priority": "Alta", "criterion": "Investigaciones aplican ICAM (SIGO-P-030) con evidencia y trazabilidad.", "observation": "Las investigaciones se realizan conforme a la metodología corporativa.", "action": "Revisar el estado de las medidas correctivas señaladas por el Corporativo. SE DEBEN CERRAR CON LAS MEDIDAS CORRECTIVAS ABIERTAS", "responsible": "RODRIGO / JAIME", "link": "", "migration": "review", "migration_label": "Equivalente a v10: falta completar evaluación o respaldo", "change_type": "Sin cambio", "change_detail": "Igual."}, {"id": 40, "group": "D2", "groupName": "Actualización del Sistema Preventivo", "question": "¿Se verifica la ejecución de actividades y responsabilidades definidas para el Administrador de la EECC?", "weight": 4.0, "level": null, "status": "Pendiente", "priority": "—", "criterion": "Pregunta nueva en v11 — pendiente de evaluar.", "observation": "", "action": "", "responsible": "", "link": "", "migration": "new", "migration_label": "Totalmente nueva en v11", "change_type": "Nueva", "change_detail": "Pregunta nueva: verificación de actividades y responsabilidades del Administrador de la EECC."}];
 
 
 const SP_ROOT_FOLDER = "/sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/0.- RESSO Ver. 10/05 RESSO V11";
@@ -134,6 +145,14 @@ function specificSharePointLink(r) {
 function sharePointReadablePath(r) {
   return r.evidence_ref || r.link ? "Evidencia indicada en la planilla" : `${String(r.id).padStart(2, "0")} versión 11`;
 }
+
+function migrationBadge(r) {
+  const badge = document.createElement("span");
+  badge.className = `migration-badge migration-${r.migration}`;
+  badge.textContent = r.migration_label;
+  return badge.outerHTML;
+}
+
 const el = id => document.getElementById(id);
 
 function statusClass(status) {
@@ -156,9 +175,9 @@ function render() {
     return (!q || hay.includes(q)) && (g==="all" || r.group===g) && (s==="all" || r.status===s) && (p==="all" || r.priority===p);
   });
   el("reqList").innerHTML = rows.map(r => `
-    <article class="req">
+    <article class="req migration-${r.migration}">
       <div class="num">${String(r.id).padStart(2,"0")}</div>
-      <div><h3>${r.group} · ${r.groupName}</h3><div class="question">${r.question}</div></div>
+      <div><h3>${r.group} · ${r.groupName}</h3><div class="question">${r.question}</div>${migrationBadge(r)}</div>
       <div><span class="label">Estado</span><span class="chip ${statusClass(r.status)}">● ${r.status}</span></div>
       <div><span class="label">Prioridad</span><span class="value">${r.priority}</span><br><span class="label" style="margin-top:8px">Nivel</span><span class="score">${levelText(r.level)}</span></div>
       <div><span class="label">Responsable</span><span class="value">${r.responsible}</span></div>
@@ -180,6 +199,8 @@ function openDetail(id) {
   el("mPriority").textContent = r.priority;
   el("mLevel").textContent = `${levelText(r.level)}`;
   el("mResponsible").textContent = r.responsible;
+  el("mMigrationCard").className = `detail-card migration-detail migration-${r.migration}`;
+  el("mMigration").textContent = `${r.migration_label}. ${r.change_type}: ${r.change_detail}`;
   el("mQuestion").textContent = r.question;
   el("mCriterion").textContent = r.criterion;
   el("mObservation").textContent = r.observation;

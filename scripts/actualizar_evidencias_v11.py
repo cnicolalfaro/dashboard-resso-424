@@ -30,7 +30,8 @@ SP_URL = SP_LIBRARY + "?id=" + quote(SP_ROOT, safe="")
 
 
 def load(path):
-    ws = openpyxl.load_workbook(path, data_only=True).worksheets[0]
+    workbook = openpyxl.load_workbook(path, data_only=True)
+    ws = workbook.worksheets[0]
     if not str(ws["A29"].value).startswith("N"):
         raise ValueError("No se encontro la cabecera de requisitos en A29.")
     records = []
@@ -70,7 +71,89 @@ def load(path):
         raise ValueError("La planilla debe contener requisitos con identificadores unicos.")
     if any(r["phase"] not in dict(shared.PHASES) for r in records):
         raise ValueError("La planilla contiene una fase desconocida.")
+    if "Cambios v10 → v11" not in workbook.sheetnames:
+        raise ValueError("Falta la hoja Cambios v10 → v11 para clasificar las preguntas.")
+    changes = {}
+    for row in workbook["Cambios v10 → v11"].iter_rows(values_only=True):
+        if len(row) >= 9 and isinstance(row[0], int) and isinstance(row[3], (int, float)):
+            if row[0] in changes:
+                raise ValueError(f"Clasificacion duplicada del requisito {row[0]}.")
+            changes[row[0]] = row
+    for record in records:
+        if record["id"] not in changes:
+            raise ValueError(f"Falta la comparacion del requisito {record['id']}.")
+        change = changes[record["id"]]
+        record.update(classify_change(change[7], record["level"]))
+        record["change_type"] = change[7]
+        record["change_detail"] = shared.clean(change[8]) or ""
     return records
+
+
+def classify_change(change_type, level):
+    allowed = ("Nueva", "Modificada", "Modificada / reubicada", "Sin cambio", "Redacción", "Ponderación")
+    if change_type not in allowed:
+        raise ValueError(f"Tipo de cambio desconocido: {change_type!r}")
+    if level == "N/A":
+        category, label = "na", "No aplica"
+    elif change_type == "Nueva":
+        category, label = "new", "Totalmente nueva en v11"
+    elif change_type.startswith("Modificada"):
+        category, label = "review", "Modificada: revisar y complementar respaldo"
+    elif level == 1:
+        category, label = "complete", "Equivalente a v10: completa según planilla"
+    else:
+        category, label = "review", "Equivalente a v10: falta completar evaluación o respaldo"
+    return dict(migration=category, migration_label=label)
+
+
+def migration_ui(text, records, auditor=False):
+    css = """
+.migration-new{--migration-bg:#fce7ef}
+.migration-review{--migration-bg:#fff4c7}
+.migration-complete{--migration-bg:#e4f4e8}
+.migration-na{--migration-bg:#eef1f5}
+.req[class*="migration-"],tbody tr[class*="migration-"]>td,
+tbody tr[class*="migration-"]:hover>td{background:var(--migration-bg)}
+.migration-badge{display:inline-block;background:var(--migration-bg);color:#334155;
+border:1px solid #cbd5e1;border-radius:8px;padding:5px 8px;font-size:11px;margin-top:7px;line-height:1.5}
+.migration-legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.migration-detail{background:var(--migration-bg)}
+"""
+    legend = '<aside aria-label="Adaptación de v10 a v11"><div class="migration-legend">'
+    for category, label in (("new", "Nueva"), ("review", "Revisar / complementar"),
+                            ("complete", "Equivalente y completa"), ("na", "No aplica")):
+        count = sum(r["migration"] == category for r in records)
+        legend += f'<span class="migration-badge migration-{category}">{label}: {count}</span>'
+    legend += ('</div><p>Colores de adaptación a v11, no de cumplimiento. Amarillo: pregunta modificada '
+               'o equivalente con brechas. Verde: equivalente (incluye solo redacción/ponderación) '
+               'y nivel 100 % en la planilla; no implica una nueva validación de evidencia.</p></aside>')
+    text = text.replace("</style>", css + "</style>", 1)
+    text = text.replace('<main class="page">', '<main class="page">' + legend, 1)
+    if 'id="mQuestion"' not in text:
+        return text
+    helper = """
+function migrationBadge(r) {
+  const badge = document.createElement("span");
+  badge.className = `migration-badge migration-${r.migration}`;
+  badge.textContent = r.migration_label;
+  return badge.outerHTML;
+}
+"""
+    text = text.replace("const el = id =>", helper + "\nconst el = id =>", 1)
+    if auditor:
+        text = text.replace("      <tr>", '      <tr class="migration-${r.migration}">')
+        text = text.replace("<td>${detailLine}</td>", "<td>${detailLine}${migrationBadge(r)}</td>")
+    else:
+        text = text.replace('<article class="req">', '<article class="req migration-${r.migration}">')
+        text = text.replace('${r.question}</div></div>', '${r.question}</div>${migrationBadge(r)}</div>')
+    text = text.replace('<div class="detail">', '<div class="detail">'
+                        '<div id="mMigrationCard" class="detail-card">'
+                        '<h4>Adaptación de v10 a v11</h4><p id="mMigration"></p></div>', 1)
+    text = text.replace('  el("mQuestion").textContent =',
+                        '  el("mMigrationCard").className = `detail-card migration-detail migration-${r.migration}`;\n'
+                        '  el("mMigration").textContent = `${r.migration_label}. ${r.change_type}: ${r.change_detail}`;\n'
+                        '  el("mQuestion").textContent =', 1)
+    return text
 
 
 def stats(records):
@@ -122,6 +205,8 @@ def phase_page(phase, name, records, date):
     rows = [shared.phase_record(r) for r in records]
     for row, source in zip(rows, records):
         row["level"] = source["level"] * 100 if isinstance(source["level"], (int, float)) else source["level"]
+        for key in ("migration", "migration_label", "change_type", "change_detail"):
+            row[key] = source[key]
     text = re.sub(shared.DATA_RE, lambda m: "const DATA = " + shared.js_data(rows, False) + ";", text, flags=re.S)
     s = stats(records)
     text = shared.update_phase_kpis(text, s, name)
@@ -146,7 +231,7 @@ function levelText(level) {
     text = text.replace(f'{s["napp"]} requisitos aplicables', f'{s["napp"]} requisitos evaluados')
     text = text.replace(f'{s["napp"]} aplicables · {s["na"]} N/A',
                         f'{s["napp"]} evaluados · {s["pending"]} pendientes · {s["na"]} N/A')
-    return text
+    return migration_ui(text, records)
 
 
 def group_cards(records):
@@ -186,7 +271,7 @@ def auditor_page(records, date):
                   '  msg.className = "evidence-msg";', text, count=1, flags=re.S)
     text = re.sub(r'async function uploadEvidenceFile\(\).*?(?=function saveEvidenceSelection)',
                   '', text, count=1, flags=re.S)
-    return add_filters(text, records)
+    return migration_ui(add_filters(text, records), records, auditor=True)
 
 
 def finalize(name, records, date):
@@ -233,7 +318,7 @@ def main():
         rows = [r for r in records if r["phase"] == phase]
         shared.write(name + ".html", phase_page(phase, name, rows, args.date))
     shared.write("auditor.html", auditor_page(records, args.date))
-    shared.write("index.html", template("index", args.date))
+    shared.write("index.html", migration_ui(template("index", args.date), records))
     shared.update_auditor(records, args.date, total)
     shared.update_index(records, phases, total, args.date)
     for phase, name in shared.PHASES:
