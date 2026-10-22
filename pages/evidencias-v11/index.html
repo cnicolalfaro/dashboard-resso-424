@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centro de Auditorías</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#173b7e;--blue2:#2e79df;--bg:#f3f6fb;--line:#dfe7f2;--text:#18345f;--muted:#6f7f98;
+  --green:#19965f;--green-soft:#eaf8f1;--amber:#e2a521;--amber-soft:#fff5dc;
+  --red:#e04b43;--red-soft:#ffebe9;--purple:#6b39d3;--purple-soft:#f1ebff;
+}
+body{font-family:"Open Sans",Arial,sans-serif;background:linear-gradient(180deg,#eef4fb,#f7f9fc);color:var(--text);min-height:100vh}
+.page{width:min(1500px,calc(100% - 36px));margin:18px auto 40px}
+.topbar{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 26px;display:flex;justify-content:space-between;align-items:center;gap:20px;box-shadow:0 7px 24px rgba(32,55,104,.05)}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:48px;height:48px;border:3px solid var(--blue);border-radius:13px;display:grid;place-items:center;font-weight:900;transform:rotate(45deg)}
+.logo span{transform:rotate(-45deg)}
+.brand strong{display:block;font-size:15px;letter-spacing:1px} .brand small{display:block;color:#667a98;font-weight:700;font-size:11px;margin-top:3px}
+.auditor-btn{text-decoration:none;background:#1c468d;color:#fff;padding:12px 18px;border-radius:11px;font-weight:900;font-size:12px;box-shadow:0 7px 18px rgba(27,70,141,.2)}
+
+.hero{background:#fff;border:1px solid var(--line);border-radius:20px;margin-top:14px;padding:24px 28px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.hero small{font-size:10px;font-weight:900;letter-spacing:.8px;color:#294f90}
+.hero h1{font-size:38px;color:#12346f;margin:5px 0 6px} .hero p{color:#6d7d95;font-size:15px}
+.badge{background:#edf3ff;color:#244b8b;font-size:11px;font-weight:900;padding:9px 14px;border-radius:999px}
+
+.section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:14px;box-shadow:0 6px 20px rgba(32,55,104,.04)}
+.section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:14px}
+.section-head h2{font-size:21px;color:#173b7e} .section-head p{font-size:11px;color:#7d899c;margin-top:4px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.kpi{border:1px solid var(--line);border-radius:15px;padding:14px;background:#fff;display:flex;align-items:center;gap:12px}
+.kpi-icon{width:44px;height:44px;border-radius:13px;background:#edf4ff;color:#2164c4;display:grid;place-items:center;font-size:20px;font-weight:900}
+.kpi.green .kpi-icon{background:var(--green-soft);color:var(--green)}
+.kpi.amber .kpi-icon{background:var(--amber-soft);color:#c48400}
+.kpi.red .kpi-icon{background:var(--red-soft);color:var(--red)}
+.kpi small{display:block;text-transform:uppercase;color:#7d899c;font-weight:900;font-size:9px} .kpi strong{display:block;font-size:28px;color:#173b7e;margin-top:2px} .kpi span{font-size:10px;color:#8390a3}
+
+.executive-grid{display:grid;grid-template-columns:1.05fr 1.25fr;gap:13px;margin-top:13px}
+.exec-card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}
+.exec-title{font-size:13px;font-weight:900;color:#24487f;margin-bottom:12px}
+.donut-layout{display:grid;grid-template-columns:160px 1fr;gap:18px;align-items:center}
+.donut{width:150px;height:150px;border-radius:50%;background:conic-gradient(#22a96b 0% 55.00000000000001%,#e6a022 55.00000000000001% 72.5%,#e34f5f 72.5% 80.0%,#9f1239 80.0% 80.0%,#b9c2cf 80.0% 85.0%,#7185a5 85.0% 100.0%);display:grid;place-items:center;position:relative;margin:auto}
+.donut:after{content:"";width:96px;height:96px;border-radius:50%;background:#fff;position:absolute}
+.donut-center{position:relative;z-index:2;text-align:center} .donut-center strong{display:block;font-size:27px;color:#173b7e} .donut-center span{font-size:9px;color:#7f8ba0}
+.legend{display:grid;gap:9px} .legend-row{display:flex;justify-content:space-between;gap:12px;font-size:10px;color:#5e6f89;border-bottom:1px solid #edf1f5;padding-bottom:7px}
+.legend-row:last-child{border-bottom:0} .legend-label{display:flex;align-items:center;gap:7px} .dot{width:10px;height:10px;border-radius:50%}
+
+.phase-bars{display:grid;gap:12px}
+.bar-row{display:grid;grid-template-columns:70px 1fr 55px;gap:10px;align-items:center}
+.bar-label{font-size:10px;font-weight:900;color:#536782} .bar-track{height:12px;background:#edf1f6;border-radius:999px;overflow:hidden} .bar-fill{height:100%;border-radius:999px} .bar-val{font-size:11px;font-weight:900;color:#173b7e;text-align:right}
+
+.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-top:14px}
+.phase{border:1px solid var(--line);border-radius:20px;padding:18px;min-height:390px;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:.18s}
+.phase:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(32,55,104,.09)}
+.phase.plan{background:linear-gradient(145deg,#e7f3ff,#fff)} .phase.do{background:linear-gradient(145deg,#e6fbef,#fff)} .phase.check{background:linear-gradient(145deg,#fff0ce,#fff)} .phase.act{background:linear-gradient(145deg,#f0e6ff,#fff)}
+.phase-icon{width:74px;height:74px;border-radius:21px;display:grid;place-items:center;color:#fff;font-size:31px;font-weight:900;box-shadow:0 8px 18px rgba(25,55,110,.14)}
+.plan .phase-icon{background:linear-gradient(145deg,#3d91f4,#1d65cc)} .do .phase-icon{background:linear-gradient(145deg,#22c37a,#11965c)} .check .phase-icon{background:linear-gradient(145deg,#ffb12b,#f39000)} .act .phase-icon{background:linear-gradient(145deg,#824ee7,#5e28c6)}
+.phase h3{font-size:29px;margin:48px 0 12px} .plan h3{color:#19498d} .do h3{color:#17764e} .check h3{color:#a15d00} .act h3{color:#5d2bae}
+.phase p{font-size:12px;color:#65758f;line-height:1.5;min-height:72px}
+.phase-meta{margin-top:auto;border-radius:13px;padding:12px;background:rgba(255,255,255,.55);display:flex;justify-content:space-between;align-items:center}
+.phase-meta span{font-size:10px;color:#6f7d92} .phase-meta strong{font-size:19px}
+.phase-open{margin-top:12px;border-radius:11px;padding:13px;text-align:center;color:#fff;font-weight:900;font-size:12px}
+.plan .phase-open{background:#276dcc} .do .phase-open{background:#15985e} .check .phase-open{background:#f39a00} .act .phase-open{background:#6a30ce}
+
+.note{margin-top:12px;font-size:9px;color:#8894a7;text-align:right}
+@media(max-width:1050px){.phases{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.executive-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.topbar,.hero{flex-direction:column;align-items:flex-start}.phases,.kpis{grid-template-columns:1fr}.donut-layout{grid-template-columns:1fr}}
+.chip.gray{background:#edf1f6;color:#64748b}</style>
+</head>
+<body>
+<main class="page"><p class="note">32 evaluados · 6 pendientes · 2 no aplican. Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; preguntas nuevas pendientes de evaluar. Actualización: 22-10-2026.</p>
+  <header class="topbar">
+    <div class="brand"><div class="logo"><span>SK</span></div><div><strong>SKIC S.A.</strong><small>DIVISIÓN CHUQUICAMATA</small></div></div>
+    <a class="auditor-btn" href="auditor.html">⌕ &nbsp; Modo auditor</a>
+  </header>
+
+  <section class="hero">
+    <div><small>RESSO V11 · CONTRATO 424</small><h1>Centro de Auditorías</h1><p>Acceso rápido a respaldos documentales para revisión, seguimiento y auditoría.</p></div>
+    <span class="badge">Revisión documental · 22-10-2026</span>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><h2>Resumen Ejecutivo</h2><p>Estado consolidado de la revisión documental del contrato.</p></div></div>
+
+    <div class="kpis">
+      <article class="kpi"><div class="kpi-icon">▤</div><div><small>Requisitos</small><strong>40</strong><span>Universo RESSO</span></div></article>
+      <article class="kpi green"><div class="kpi-icon">✓</div><div><small>Cumplen</small><strong>22</strong><span>Requisitos al 100%</span></div></article>
+      <article class="kpi amber"><div class="kpi-icon">!</div><div><small>Con brecha</small><strong>10</strong><span>7 menores · 3 relevantes</span></div></article>
+      <article class="kpi red"><div class="kpi-icon">%</div><div><small>Cumplimiento global</small><strong>89.46%</strong><span>Ponderación documental</span></div></article>
+    </div>
+
+    <div class="executive-grid">
+      <article class="exec-card">
+        <div class="exec-title">Estado de los requisitos</div>
+        <div class="donut-layout">
+          <div class="donut"><div class="donut-center"><strong>89%</strong><span>Cumplimiento<br>ponderado</span></div></div>
+          <div class="legend"><div class="legend-row"><span>Pendiente</span><strong>6</strong></div><div class="legend-row"><span>Crítico</span><strong>0</strong></div>
+            <div class="legend-row"><span class="legend-label"><i class="dot" style="background:var(--green)"></i>Cumple</span><strong>22</strong></div>
+            <div class="legend-row"><span class="legend-label"><i class="dot" style="background:var(--amber)"></i>Brecha menor</span><strong>7</strong></div>
+            <div class="legend-row"><span class="legend-label"><i class="dot" style="background:var(--red)"></i>Brecha relevante</span><strong>3</strong></div>
+            <div class="legend-row"><span class="legend-label"><i class="dot" style="background:#b9c2cf"></i>No aplica</span><strong>2</strong></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="exec-card">
+        <div class="exec-title">Cumplimiento por fase</div>
+        <div class="phase-bars">
+          <div class="bar-row"><span class="bar-label">A. PLAN</span><div class="bar-track"><div class="bar-fill" style="width:90.00%;background:#2e79df"></div></div><span class="bar-val">90.00%</span></div>
+          <div class="bar-row"><span class="bar-label">B. DO</span><div class="bar-track"><div class="bar-fill" style="width:89.10%;background:#22a96b"></div></div><span class="bar-val">89.10%</span></div>
+          <div class="bar-row"><span class="bar-label">C. CHECK</span><div class="bar-track"><div class="bar-fill" style="width:92.65%;background:#e6a022"></div></div><span class="bar-val">92.65%</span></div>
+          <div class="bar-row"><span class="bar-label">D. ACT</span><div class="bar-track"><div class="bar-fill" style="width:82.14%;background:#7040d4"></div></div><span class="bar-val">82.14%</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="phases">
+    <a class="phase plan" href="plan.html"><div class="phase-icon">▤</div><h3>A. PLAN</h3><p>Planificación, liderazgo, roles, evaluación de riesgos y cumplimiento regulatorio.</p><div class="phase-meta"><span>8 requisitos</span><strong>90.0%</strong></div><div class="phase-open">Abrir fase &nbsp; →</div></a>
+    <a class="phase do" href="do.html"><div class="phase-icon">☷</div><h3>B. DO</h3><p>Ejecución, inducción, competencias, capacitación, controles operacionales e implementación.</p><div class="phase-meta"><span>23 requisitos</span><strong>89.1%</strong></div><div class="phase-open">Abrir fase &nbsp; →</div></a>
+    <a class="phase check" href="check.html"><div class="phase-icon">▥</div><h3>C. CHECK</h3><p>Verificación, seguimiento, mediciones, auditorías y revisión del desempeño.</p><div class="phase-meta"><span>6 requisitos</span><strong>92.7%</strong></div><div class="phase-open">Abrir fase &nbsp; →</div></a>
+    <a class="phase act" href="act.html"><div class="phase-icon">↻</div><h3>D. ACT</h3><p>Acciones correctivas, cierre de brechas, aprendizaje y mejora continua.</p><div class="phase-meta"><span>3 requisitos</span><strong>82.1%</strong></div><div class="phase-open">Abrir fase &nbsp; →</div></a>
+  </section>
+
+  <div class="note">Los indicadores corresponden a la revisión documental RESSO del 22-10-2026.</div>
+</main>
+</body>
+</html>

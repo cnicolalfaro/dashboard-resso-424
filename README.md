@@ -16,6 +16,32 @@ para el contrato **SKIC 424** (CC-101, División Chuquicamata — Codelco).
 Publicado con GitHub Pages. Los porcentajes se alimentan desde
 [`data/dashboard_data.js`](data/dashboard_data.js).
 
+## Centro de Auditorías RESSO v11
+
+El menú tiene accesos independientes para [RESSO v10](pages/evidencias/index.html)
+y [RESSO v11](pages/evidencias-v11/index.html). Para actualizar únicamente v11:
+
+```powershell
+python scripts\actualizar_evidencias_v11.py "C:\ruta\Revision_Documental_RESSO_v11.xlsx" --date 22-10-2026
+```
+
+`--date` indica la fecha de actualización. Agrega `--dry-run` para consultar
+los indicadores sin escribir páginas. Requiere `openpyxl`, igual que el
+actualizador de v10.
+
+- Calcula resultados, estados y prioridades desde los niveles de la planilla,
+  incluso cuando Excel no ha guardado los resultados de sus fórmulas.
+- Los niveles vacíos quedan como **Pendiente**; se excluyen del porcentaje,
+  al igual que los **N/A**. Los hipervínculos de evidencia de Excel se conservan.
+- Las evidencias se buscan directamente en `05 RESSO V11/<número> versión 11`,
+  sin carpetas intermedias por fase o subsección.
+- Los archivos seleccionados en modo auditor se guardan en el navegador con
+  la clave `resso424_v11_auditor_evidence_links_v1`, sin leer ni modificar la
+  clave de v10. No son un respaldo compartido entre navegadores o equipos.
+- El visor de SharePoint conserva el enlace alternativo para abrir el archivo
+  si SharePoint impide incrustarlo. El visor local y la subida de v11 quedan
+  pendientes de configurar su carpeta sincronizada; no usan el servicio de v10.
+
 ## Tecnología
 
 Dashboard estático en HTML, CSS y JavaScript. NAMI incorpora un servicio Python

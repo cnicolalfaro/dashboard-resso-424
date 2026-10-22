@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A. PLAN · Evidencias RESSO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#24407a;--blue-dark:#17376f;--plan:#2878f0;--plan2:#155bc2;
+  --bg:#f4f6fb;--text:#17345f;--muted:#71809a;
+  --green:#168b57;--green-soft:#e9f7ef;
+  --amber:#b77600;--amber-soft:#fff4da;
+  --red:#bf4238;--red-soft:#ffe9e7;--line:#e2e9f3;
+}
+body{font-family:"Open Sans",Arial,sans-serif;background:radial-gradient(circle at top left,#edf5ff 0,transparent 28%),var(--bg);color:var(--text);min-height:100vh}
+.topbar{min-height:74px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 34px;background:rgba(255,255,255,.95);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border:3px solid var(--blue-dark);border-radius:13px;display:grid;place-items:center;font-weight:900;transform:rotate(45deg);background:#fff}
+.logo span{transform:rotate(-45deg)}
+.brand strong{display:block;font-size:14px} .brand small{color:var(--muted)}
+.mode{display:flex;gap:4px;background:#edf2fa;border:1px solid #dce5f2;padding:5px;border-radius:14px}
+.mode a{text-decoration:none;color:#64728b;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:800}
+.mode a.active{background:#fff;color:var(--blue);box-shadow:0 4px 14px rgba(30,60,120,.1)}
+.contract{justify-self:end;background:#edf3ff;color:var(--blue);padding:9px 15px;border-radius:30px;font-size:12px;font-weight:800}
+.page{width:min(1540px,calc(100% - 40px));margin:20px auto 42px}
+.breadcrumb{font-size:13px;color:#7b889d;margin-bottom:12px} .breadcrumb a{color:var(--blue);text-decoration:none;font-weight:800}
+.hero{display:grid;grid-template-columns:150px 1fr 350px;gap:22px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 26px rgba(30,57,108,.06)}
+.hero-icon{height:140px;border-radius:20px;display:grid;place-items:center;font-size:58px;color:#fff;background:linear-gradient(145deg,#3c91ff,#185cc9);box-shadow:inset 0 0 40px rgba(255,255,255,.2)}
+.hero small{color:var(--plan);font-weight:900;letter-spacing:.6px} .hero h1{font-size:48px;color:#173d87;margin:5px 0 9px} .hero p{color:#657595;font-size:16px;line-height:1.5}
+.hero-note{background:#f1f6fd;padding:17px;border-radius:15px;color:#5e7090;font-size:13px;line-height:1.55}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px 18px;display:flex;gap:13px;align-items:center;box-shadow:0 5px 16px rgba(34,58,104,.04)}
+.kpi-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#eaf3ff;color:var(--plan);font-size:20px;font-weight:900}
+.kpi.green .kpi-icon{background:var(--green-soft);color:var(--green)} .kpi.amber .kpi-icon{background:var(--amber-soft);color:var(--amber)}
+.kpi small{display:block;text-transform:uppercase;font-size:10px;font-weight:900;color:#74819a} .kpi strong{display:block;font-size:27px;color:#153878} .kpi span{font-size:11px;color:#8792a5}
+.groups{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.group-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px;cursor:pointer;transition:.2s;box-shadow:0 5px 16px rgba(34,58,104,.04)}
+.group-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(34,58,104,.09)}
+.group-top{display:flex;justify-content:space-between;gap:12px;align-items:start} .group-code{background:#eaf3ff;color:var(--plan);font-weight:900;border-radius:10px;padding:7px 10px} .group-card h3{font-size:15px;color:#173b80;margin-top:8px}
+.group-meta{display:flex;justify-content:space-between;color:#7a879d;font-size:11px;margin:13px 0 7px} .bar{height:7px;background:#edf1f6;border-radius:20px;overflow:hidden} .bar span{display:block;height:100%;background:linear-gradient(90deg,#2d84f7,#1563d5);border-radius:20px}
+.panel{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 6px 22px rgba(32,55,104,.05)}
+.panel-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:15px} .panel h2{font-size:23px;color:#173b80} .panel-head p{font-size:12px;color:#7a879d;margin-top:5px}
+.filters{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:9px;margin-bottom:14px} .filters input,.filters select{height:42px;border:1px solid #d9e2f0;border-radius:10px;padding:0 12px;background:#fff;color:#546681;outline:none}
+.req-list{display:grid;gap:10px}
+.req{border:1px solid var(--line);border-radius:16px;padding:15px;display:grid;grid-template-columns:54px 1fr 130px 120px 160px 170px;gap:13px;align-items:center;transition:.15s}
+.req:hover{box-shadow:0 7px 20px rgba(32,55,104,.06);transform:translateY(-1px)}
+.num{width:48px;height:48px;border-radius:13px;background:#edf5ff;color:var(--plan);display:grid;place-items:center;font-weight:900}
+.req h3{font-size:14px;color:#173b80;margin-bottom:4px} .req .question{font-size:12px;color:#687791;line-height:1.4}
+.label{display:block;color:#8a96a9;font-size:9px;text-transform:uppercase;font-weight:900;margin-bottom:6px} .value{font-size:11px;color:#52647f;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 9px;font-size:10px;font-weight:900;white-space:nowrap}
+.chip.green{background:var(--green-soft);color:var(--green)} .chip.amber{background:var(--amber-soft);color:var(--amber)} .chip.red{background:var(--red-soft);color:var(--red)}
+.score{font-size:18px;font-weight:900;color:#153878}
+.actions{display:grid;grid-template-columns:1fr;gap:6px} .btn{border:1px solid #bfd2ee;background:#edf4ff;color:#2051a2;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:900;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit}
+.btn.secondary{background:#fff} .btn.disabled{opacity:.48;cursor:not-allowed;pointer-events:none}
+.modal-bg{position:fixed;inset:0;background:rgba(11,28,61,.55);backdrop-filter:blur(4px);z-index:100;display:none;place-items:center;padding:18px}
+.modal-bg.show{display:grid} .modal{width:min(900px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:22px;box-shadow:0 30px 90px rgba(8,28,65,.28)}
+.modal-head{display:flex;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid var(--line)} .modal-head h2{font-size:22px;color:#173b80;margin-top:7px} .close{border:0;width:38px;height:38px;border-radius:50%;background:#eff3f8;font-size:22px;color:#596984;cursor:pointer}
+.modal-body{padding:20px 24px} .modal-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px} .mini{background:#f7f9fc;border:1px solid #e6ecf4;border-radius:13px;padding:12px} .mini span{display:block;font-size:9px;text-transform:uppercase;color:#8995a8;font-weight:900;margin-bottom:5px} .mini strong{font-size:12px;color:#38527c}
+.detail{display:grid;gap:11px} .detail-card{border:1px solid #e4eaf3;border-radius:14px;padding:14px} .detail-card h4{font-size:11px;color:#173b80;text-transform:uppercase;margin-bottom:7px} .detail-card p{font-size:12px;color:#5f6f89;line-height:1.55}
+.modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:16px 24px;border-top:1px solid var(--line)} .sharepoint-note{font-size:11px;color:#8a96a8;margin-right:auto;align-self:center}
+@media(max-width:1150px){.hero{grid-template-columns:120px 1fr}.hero-note{grid-column:1/-1}.kpis{grid-template-columns:repeat(2,1fr)}.groups{grid-template-columns:1fr}.req{grid-template-columns:50px 1fr 120px 130px}.actions{grid-column:2/-1;grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.topbar{grid-template-columns:1fr;gap:10px}.contract{justify-self:start}.hero{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.req{grid-template-columns:1fr}.num{width:42px;height:42px}.actions{grid-column:auto;grid-template-columns:1fr}.modal-summary{grid-template-columns:1fr 1fr}}
+.chip.gray{background:#edf1f6;color:#64748b}</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><span>SK</span></div><div><strong>SKIC S.A.</strong><small>División Chuquicamata</small></div></div>
+  <nav class="mode"><a class="active" href="index.html">◉ Modo usuario</a><a href="auditor.html">◈ Modo auditor</a></nav>
+  <div class="contract">RESSO V11 · Contrato 424</div>
+</header>
+
+<main class="page"><p class="note">7 evaluados · 1 pendientes · 0 no aplican. Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; preguntas nuevas pendientes de evaluar. Actualización: 22-10-2026.</p>
+  <div class="breadcrumb"><a href="../../index.html">Inicio</a> &nbsp;/&nbsp; <a href="index.html">Centro de Evidencias</a> &nbsp;/&nbsp; A. PLAN</div>
+
+  <section class="hero">
+    <div class="hero-icon">▤</div>
+    <div><small>FASE RESSO</small><h1>A. PLAN</h1><p>Revisión documental RESSO v11 · Requisitos y resultados por fase.</p></div>
+    <div class="hero-note"><strong>Estado real al 22-10-2026</strong><br>La fase PLAN presenta un cumplimiento ponderado de <strong>90%</strong>, con 7 requisitos evaluados y 2 requisitos con brecha.</div>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi"><div class="kpi-icon">8</div><div><small>Requisitos PLAN</small><strong>8</strong><span>7 evaluados · 1 pendientes · 0 N/A</span></div></div>
+    <div class="kpi green"><div class="kpi-icon">✓</div><div><small>Cumplen</small><strong>5</strong><span>100% de nivel</span></div></div>
+    <div class="kpi amber"><div class="kpi-icon">!</div><div><small>Con brecha</small><strong>2</strong><span>2 menor · 0 relevante</span></div></div>
+    <div class="kpi"><div class="kpi-icon">%</div><div><small>Cumplimiento</small><strong>90%</strong><span>Solo requisitos evaluados</span></div></div>
+  </section>
+
+  <section class="groups"><div class="group-card" onclick="setGroup('A1')"><div class="group-top"><div><span class="group-code">A1</span><h3>Programa de Trabajo y Planificación</h3></div><strong>87,5%</strong></div><div class="group-meta"><span>5 requisitos</span><span>2 con brecha · 0 pendientes · 0 N/A</span></div><div class="bar"><span style="width:87.5%"></span></div></div><div class="group-card" onclick="setGroup('A2')"><div class="group-top"><div><span class="group-code">A2</span><h3>Marco Regulatorio y Cumplimiento</h3></div><strong>100%</strong></div><div class="group-meta"><span>3 requisitos</span><span>0 con brecha · 1 pendientes · 0 N/A</span></div><div class="bar"><span style="width:100.0%"></span></div></div></section>
+
+  <section class="panel">
+    <div class="panel-head"><div><h2>Requisitos A. PLAN</h2><p>Información tomada de la revisión documental RESSO del 22-10-2026, con observaciones al corte indicado en la matriz.</p></div></div>
+    <div class="filters">
+      <input id="search" placeholder="Buscar requisito, responsable, palabra clave...">
+      <select id="groupFilter"><option value="all">Todas las sub-secciones</option><option value="A1">A1 · Programa de Trabajo y Planificación</option><option value="A2">A2 · Marco Regulatorio y Cumplimiento</option></select>
+      <select id="statusFilter"><option value="all">Todos los estados</option><option value="Cumple">Cumple</option><option value="Brecha menor">Brecha menor</option><option value="Pendiente">Pendiente</option></select>
+      <select id="priorityFilter"><option value="all">Todas las prioridades</option><option value="Baja">Baja</option><option value="Alta">Alta</option><option value="Media">Media</option><option value="—">—</option></select>
+    </div>
+    <div id="reqList" class="req-list"></div>
+  </section>
+</main>
+
+<div id="modalBg" class="modal-bg" onclick="outsideClose(event)">
+  <div class="modal">
+    <div class="modal-head"><div><span id="mCode" class="group-code"></span><h2 id="mTitle"></h2></div><button class="close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="modal-summary">
+        <div class="mini"><span>Estado</span><strong id="mStatus"></strong></div>
+        <div class="mini"><span>Prioridad</span><strong id="mPriority"></strong></div>
+        <div class="mini"><span>Nivel</span><strong id="mLevel"></strong></div>
+        <div class="mini"><span>Responsable</span><strong id="mResponsible"></strong></div>
+      </div>
+      <div class="detail">
+        <div class="detail-card"><h4>Requisito evaluado</h4><p id="mQuestion"></p></div>
+        <div class="detail-card"><h4>Criterio del nivel alcanzado</h4><p id="mCriterion"></p></div>
+        <div class="detail-card"><h4>Observación de auditoría</h4><p id="mObservation"></p></div>
+        <div class="detail-card"><h4>Acción / próximo paso</h4><p id="mAction"></p></div>
+      </div>
+    </div>
+    <div class="modal-foot"><span id="linkNote" class="sharepoint-note">Enlace de evidencia aún no informado en la matriz.</span><button class="btn secondary" onclick="closeModal()">Cerrar</button><a id="mLink" class="btn disabled" href="#">Abrir SharePoint →</a></div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"id": 1, "group": "A1", "groupName": "Programa de Trabajo y Planificación", "question": "¿La empresa contratista ha designado formalmente e implementado la gobernanza de los riesgos de Fatalidad aplicables al contrato (DdR, DdC, otros).?", "weight": 3.0, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Listado formal con declaración de RF, responsables identificados y firmas.", "observation": "Documento vigente en su revisión N° 7 al 30-09-2026. Se actualiza de forma continua por la rotación de personal, lo que asegura que los Dueños del Riesgo designados correspondan a la dotación actual.", "action": "Confirmar que las cartas de compromiso firmadas de cada Dueño del Riesgo estén cargadas en la carpeta de evidencias.", "responsible": "Auditorías", "link": ""}, {"id": 2, "group": "A1", "groupName": "Programa de Trabajo y Planificación", "question": "¿El Programa de Seguridad y Salud en el Trabajo está aprobado por la empresa y suscrito por el Organismo Administrador? ¿Además, es difundido y está alineado a los lineamientos establecidos en Manual del SIGO?", "weight": 2.0, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Programa SST validado (OAL, AdC CODELCO y Administrador), firmado por el representante legal, formalizado en LOD y con ID SERNAGEOMIN.", "observation": "El programa cuenta con respaldo de su envío a las entidades correspondientes. Queda pendiente reforzar la difusión interna y la ubicación del documento vigente.", "action": "Emitir comunicado masivo informando el documento enviado y su ubicación actualizada en la Biblioteca Digital.", "responsible": "Auditorías", "link": ""}, {"id": 3, "group": "A1", "groupName": "Programa de Trabajo y Planificación", "question": "¿La planificación incluye objetivos, metas, indicadores leading (proactivos) y lagging (reactivos), recursos y plazos, definiendo responsabilidades, consistentes con la criticidad de las actividades?", "weight": 3.0, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Programa con indicadores, responsables, recursos y plazos; brecha menor en el respaldo de los recursos declarados.", "observation": "El programa cuenta con la información requerida, se debe vincular con los cierres de mes de personal de gestión", "action": "Recopilar evidencia de los recursos ejecutados (facturas, órdenes de compra u otros) que respalde los montos informados.", "responsible": "Auditorías", "link": ""}, {"id": 4, "group": "A1", "groupName": "Programa de Trabajo y Planificación", "question": "¿La empresa realiza el levantamiento, caracterización y análisis de peligros y evaluación de riesgos, en función de la metodología corporativa, considerando riesgos específicos del área/lugar del contrato, riesgos naturales e histórico de accidentes de la empresa, también, es actualizada periódicamente por la empresa?", "weight": 5.0, "level": 75.0, "status": "Brecha menor", "priority": "Alta", "criterion": "Procedimiento IPER alineado a la metodología corporativa vigente y matrices actualizadas.", "observation": "En carpeta se encuentran procedimiento para la identificación de peligros que conversa con el procedimiento corporativo para su elaboración y tambien de las matrices de riesgos. Falta vincular los incidentes del proyecto y de SK conocidos ( incidentes del 418) incluidos en la matriz", "action": "Mantener en la carpeta vinculada (link) las versiones actualizadas de las matrices. Versión actual .02\nSe debe agregar los aprendizajes", "responsible": "Auditorías", "link": ""}, {"id": 5, "group": "A1", "groupName": "Programa de Trabajo y Planificación", "question": "¿Existen criterios de trazabilidad en la incorporación de Riesgos de Fatalidad en la matriz IPER, considerando el tratamiento de medidas preventivas mediante la aplicación de jerarquía de controles?", "weight": 3.0, "level": 75.0, "status": "Brecha menor", "priority": "Media", "criterion": "Evaluación mensual documentada con aplicación parcial en terreno; plan de brechas y envío por LOD incompletos.", "observation": "Se debe pedir respaldar el cierre de este punto con las inspecciones por turno en terreno ( repositorio VACIO)", "action": "Consultar formalmente a CODELCO los criterios aceptables y ajustar la evaluación mensual y el plan de brechas en consecuencia. Comenzar con generar LOD por lo ocurrido el fin de semana.", "responsible": "RODRIGO / JAIME", "link": ""}, {"id": 6, "group": "A2", "groupName": "Marco Regulatorio y Cumplimiento", "question": "¿La empresa considera la identificación y cumplimiento del marco legal en el desempeño de sus actividades, considerando al menos, una metodología formal para su aplicación, la actualización periódica y la gestión de brechas, según corresponda?", "weight": 3.0, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Metodología formal, evaluación del nivel de cumplimiento, programa de brechas y monitoreo.", "observation": "existe procedimiento para la MIRLO, existe la última versión enviada a través de SG3, pero falta establecer un programa para levantamiento de brechas.", "action": "Revisar si existen brechas respecto de la última actualización enviada por LOD y formalizar vía SGDOC. FALTA EL PLAN DE BRECHAS", "responsible": "ANGIE / TAMARA", "link": ""}, {"id": 7, "group": "A2", "groupName": "Marco Regulatorio y Cumplimiento", "question": "¿Se dio cumplimiento en plazo a las instrucciones/observaciones de los organismos y autoridades fiscalizadoras competentes y la de sus subcontratos? Si aplica. ¿Informando los resultados al administrador CODELCO y a la GSSO vía LOD, Libro de Comunicaciones o carta contractual?", "weight": 1.0, "level": 100, "status": "Cumple", "priority": "Baja", "criterion": "Resultados comunicados vía LOD con programa de cumplimiento en plazo.", "observation": "estan todas, vinculadas incluso, solo encesito traer las carpetas finales desde donde las trabajaron las chicas inicialmente.", "action": "Hacer seguimiento a la respuesta de los organismos fiscalizadores y cargarla una vez recibida. El miercoles 7 , fue la ultima fiscalización, se notifico por carta contractual al ADC CODELCO. El restos de las revisiones no han tenido respuesta oficial.", "responsible": "Auditorías", "link": ""}, {"id": 8, "group": "A2", "groupName": "Marco Regulatorio y Cumplimiento", "question": "¿Cuenta la empresa con la metodología de aversión al riesgo definida y los cargos críticos que va a evaluar en función de su matriz de riesgos?", "weight": 3.0, "level": null, "status": "Pendiente", "priority": "—", "criterion": "Pregunta nueva en v11 — pendiente de evaluar.", "observation": "", "action": "", "responsible": "", "link": ""}];
+
+
+const SP_ROOT_FOLDER = "/sites/ICSK-HSEC/Documentos compartidos/05 - Respaldo HSEC faenas/424 - CC 101/0.- RESSO Ver. 10/05 RESSO V11";
+const SP_LIBRARY_URL = "https://empresassk.sharepoint.com/sites/ICSK-HSEC/Documentos%20compartidos/Forms/AllItems.aspx";
+function specificSharePointLink(r) {
+  if (r.evidence_ref || r.link) return r.evidence_ref || r.link;
+  return `${SP_LIBRARY_URL}?id=${encodeURIComponent(`${SP_ROOT_FOLDER}/${r.id} versión 11`)}`;
+}
+function sharePointReadablePath(r) {
+  return r.evidence_ref || r.link ? "Evidencia indicada en la planilla" : `${r.id} versión 11`;
+}
+const el = id => document.getElementById(id);
+
+function statusClass(status) {
+  if (status === "Cumple") return "green";
+  if (status === "Brecha menor") return "amber";
+  if (status === "Pendiente" || status === "No aplica") return "gray";
+  return "red";
+}
+function levelText(level) {
+  return typeof level === "number" ? `${level}%` : level === "N/A" ? "N/A" : "Pendiente";
+}
+
+function render() {
+  const q = el("search").value.toLowerCase().trim();
+  const g = el("groupFilter").value;
+  const s = el("statusFilter").value;
+  const p = el("priorityFilter").value;
+  const rows = DATA.filter(r => {
+    const hay = [r.question,r.responsible,r.groupName,r.criterion,r.observation,r.action].join(" ").toLowerCase();
+    return (!q || hay.includes(q)) && (g==="all" || r.group===g) && (s==="all" || r.status===s) && (p==="all" || r.priority===p);
+  });
+  el("reqList").innerHTML = rows.map(r => `
+    <article class="req">
+      <div class="num">${String(r.id).padStart(2,"0")}</div>
+      <div><h3>${r.group} · ${r.groupName}</h3><div class="question">${r.question}</div></div>
+      <div><span class="label">Estado</span><span class="chip ${statusClass(r.status)}">● ${r.status}</span></div>
+      <div><span class="label">Prioridad</span><span class="value">${r.priority}</span><br><span class="label" style="margin-top:8px">Nivel</span><span class="score">${levelText(r.level)}</span></div>
+      <div><span class="label">Responsable</span><span class="value">${r.responsible}</span></div>
+      <div class="actions">
+        <button class="btn" onclick="openDetail(${r.id})">Revisar requisito</button>
+        <a class="btn secondary" target="_blank" rel="noopener" href="${specificSharePointLink(r)}">Abrir SharePoint</a>
+      </div>
+    </article>
+  `).join("") || `<div style="padding:30px;text-align:center;color:#7b879c">No hay requisitos que coincidan con los filtros.</div>`;
+}
+
+function setGroup(group) { el("groupFilter").value=group; render(); document.querySelector(".panel").scrollIntoView({behavior:"smooth"}); }
+
+function openDetail(id) {
+  const r = DATA.find(x => x.id === id);
+  el("mCode").textContent = `${r.group} · Requisito ${String(r.id).padStart(2,"0")}`;
+  el("mTitle").textContent = r.groupName;
+  el("mStatus").textContent = r.status;
+  el("mPriority").textContent = r.priority;
+  el("mLevel").textContent = `${levelText(r.level)}`;
+  el("mResponsible").textContent = r.responsible;
+  el("mQuestion").textContent = r.question;
+  el("mCriterion").textContent = r.criterion;
+  el("mObservation").textContent = r.observation;
+  el("mAction").textContent = r.action;
+  const link = el("mLink");
+  link.href = specificSharePointLink(r);
+  link.classList.remove("disabled");
+  link.target = "_blank";
+  link.rel = "noopener";
+  el("linkNote").textContent =
+    `${sharePointReadablePath(r)} · Abrir carpeta específica en SharePoint.`;
+  el("modalBg").classList.add("show"); document.body.style.overflow="hidden";
+}
+
+function closeModal() { el("modalBg").classList.remove("show"); document.body.style.overflow=""; }
+function outsideClose(e) { if(e.target===el("modalBg")) closeModal(); }
+["search","groupFilter","statusFilter","priorityFilter"].forEach(id => el(id).addEventListener(id==="search"?"input":"change",render));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+render();
+</script>
+</body>
+</html>
