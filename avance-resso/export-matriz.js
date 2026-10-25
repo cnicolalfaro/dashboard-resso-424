@@ -18,6 +18,7 @@
     nami: { symbol: "✓", fill: "C6EFCE", font: "006100", label: "Aprobado · con certificado NAMI (clic abre el PDF)" },
     qr: { symbol: "✓", fill: "C6EFCE", font: "1F5FA8", label: "Aprobado · con certificado QR de Forms (clic abre el PDF)" },
     fisico: { symbol: "✓", fill: "C6EFCE", font: "B4501E", label: "Aprobado · con certificado físico escaneado (clic abre el PDF)" },
+    irl: { symbol: "✓", fill: "C6EFCE", font: "9C6500", label: "Aprobado · con IRL firmada (clic abre el PDF)" },
     otra: { symbol: "✓", fill: "E2F0D9", font: "2E7D32", label: "Aprobado · por otra fuente (sin PDF enlazado)" },
     cert: { symbol: "✓*", fill: "FFEB9C", font: "7F6000", label: "Certificado encontrado, aún no figura aprobado en la fuente (no cuenta en el avance)" },
     pend: { symbol: "✗", fill: "FDE2E1", font: "C00000", label: "Pendiente" },

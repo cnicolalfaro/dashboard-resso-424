@@ -19,7 +19,7 @@ from pathlib import Path
 
 from recalc import mark_calculation_base, recalc
 
-SOURCE_LABELS = {"namiLinks": "Certificado NAMI", "fisicoLinks": "Certificado físico"}
+SOURCE_LABELS = {"namiLinks": "Certificado NAMI", "fisicoLinks": "Certificado físico", "irlLinks": "IRL firmada"}
 
 
 def normalize_rut(value: object) -> str:

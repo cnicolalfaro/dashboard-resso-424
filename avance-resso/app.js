@@ -168,6 +168,21 @@
     const file = links && links.folder && fisicoBase && fisicoDocOrderOk && links.docs && links.docs[docIndex];
     return file
       ? { url: safeSharePointUrl(`https://empresassk.sharepoint.com/${encodePath(fisicoBase + '/' + links.folder + '/' + file)}?web=1`), level: 'fisico' }
+      : irlLinkFor(person, docIndex);
+  }
+
+  // Certificados IRL (CERTIFICADOS IRL; import_qr_links.py --key irlLinks). Solo columnas de IRL; se enlazan al final.
+  const irlBase = DATA.irlLinks && DATA.irlLinks.base ? String(DATA.irlLinks.base) : '';
+  const irlPeople = DATA.irlLinks && DATA.irlLinks.people ? DATA.irlLinks.people : {};
+  const irlDocOrderOk = Boolean(DATA.irlLinks) && Array.isArray(DATA.irlLinks.docOrder) &&
+    DATA.irlLinks.docOrder.length === docs.length &&
+    DATA.irlLinks.docOrder.every((title, i) => title === docs[i].titulo);
+
+  function irlLinkFor(person, docIndex) {
+    const links = irlPeople[normalizeRut(person.rut)];
+    const file = links && links.folder && irlBase && irlDocOrderOk && links.docs && links.docs[docIndex];
+    return file
+      ? { url: safeSharePointUrl(`https://empresassk.sharepoint.com/${encodePath(irlBase + '/' + links.folder + '/' + file)}?web=1`), level: 'irl' }
       : { url: '', level: '' };
   }
 
@@ -525,6 +540,7 @@
     doc: 'Abrir certificado NAMI de este curso',
     qr: 'Abrir certificado QR (Microsoft Forms) de este curso',
     fisico: 'Abrir certificado físico (evaluación en papel escaneada) de este curso',
+    irl: 'Abrir IRL firmada (CERTIFICADOS IRL) de este curso',
   };
 
   function matrixCell(person, docIndex) {
@@ -532,7 +548,7 @@
     if (person.aprob[docIndex] !== '1') {
       if (link.url) {
         // Certificado (NAMI o QR) más nuevo que la fuente de avance de este snapshot.
-        const label = `Certificado ${link.level === 'qr' ? 'QR' : link.level === 'fisico' ? 'físico' : 'NAMI'} encontrado · aún no figura aprobado en la fuente de avance`;
+        const label = `Certificado ${link.level === 'qr' ? 'QR' : link.level === 'fisico' ? 'físico' : link.level === 'irl' ? 'IRL' : 'NAMI'} encontrado · aún no figura aprobado en la fuente de avance`;
         return `<td class="matrix-status nami-only linked level-${link.level}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
       }
       return '<td class="matrix-status pending" title="Pendiente"><span>·</span></td>';
@@ -542,12 +558,15 @@
     const viaNami = Boolean(namiAdded) && namiAdded.split(',').includes(String(docIndex));
     const fisicoAdded = DATA.fisicoLinks && DATA.fisicoLinks.added && DATA.fisicoLinks.added[rut];
     const viaFisico = Boolean(fisicoAdded) && fisicoAdded.split(',').includes(String(docIndex));
+    const irlAdded = DATA.irlLinks && DATA.irlLinks.added && DATA.irlLinks.added[rut];
+    const viaIrl = Boolean(irlAdded) && irlAdded.split(',').includes(String(docIndex));
     const maestraCells = DATA.maestraAdded && DATA.maestraAdded[rut];
     const maestraDate = maestraCells && Object.prototype.hasOwnProperty.call(maestraCells, docIndex) ? maestraCells[docIndex] : null;
     const maestraSeen = DATA.maestraSeen && DATA.maestraSeen[rut] && DATA.maestraSeen[rut][docIndex] === '1';
     const evidence = [];
     if (viaNami) evidence.push('aprobado por certificado NAMI');
     if (viaFisico) evidence.push('aprobado por certificado físico');
+    if (viaIrl) evidence.push('aprobado por IRL firmada (verificada)');
     if (maestraDate !== null) evidence.push(`aprobado por registro en Maestra de Capacitación${maestraDate ? ' (' + maestraDate.split('-').reverse().join('-') + ')' : ''}`);
     else if (maestraSeen) evidence.push('existe registro en Maestra de Capacitación');
     const origin = evidence.length ? ' · ' + evidence.join(' · ') : '';
@@ -620,7 +639,8 @@
       ? `${withFolder} de ${rows.length} trabajadores con carpeta NAMI · enlaces al ${DATA.namiLinks.updatedAt || 'sin fecha'}`
       : 'Sin enlaces NAMI cargados en este snapshot.') +
       (DATA.qrLinks ? ` · ${withQr} con certificados QR al ${DATA.qrLinks.updatedAt || 'sin fecha'}` : '') +
-      (DATA.fisicoLinks ? ` · ${rows.filter(person => fisicoPeople[normalizeRut(person.rut)]).length} con certificados físicos al ${DATA.fisicoLinks.updatedAt || 'sin fecha'}` : '');
+      (DATA.fisicoLinks ? ` · ${rows.filter(person => fisicoPeople[normalizeRut(person.rut)]).length} con certificados físicos al ${DATA.fisicoLinks.updatedAt || 'sin fecha'}` : '') +
+      (DATA.irlLinks ? ` · ${rows.filter(person => irlPeople[normalizeRut(person.rut)]).length} con IRL firmada al ${DATA.irlLinks.updatedAt || 'sin fecha'}` : '');
     document.getElementById('matrixPageInfo').textContent = `Página ${matrixPage} de ${totalPages}`;
     document.getElementById('matrixPrev').disabled = matrixPage <= 1;
     document.getElementById('matrixNext').disabled = matrixPage >= totalPages;
@@ -650,7 +670,7 @@
     const link = namiLinkFor(person, docIndex);
     if (person.aprob[docIndex] !== '1') return link.url ? { state: 'cert', url: link.url, aprobado: false } : { state: 'pend', aprobado: false };
     if (!link.url) return { state: 'otra', aprobado: true };
-    return { state: link.level === 'qr' || link.level === 'fisico' ? link.level : 'nami', url: link.url, aprobado: true };
+    return { state: ['qr', 'fisico', 'irl'].includes(link.level) ? link.level : 'nami', url: link.url, aprobado: true };
   }
 
   function exportStatus(person) {
