@@ -98,8 +98,12 @@ DATA_RE = r"const DATA ?= ?\[.*?\];(?=\r?\n)"
 def replace_dates(text, old_dates, new):
     """Cambia fechas de corte en el texto sin tocar la linea DATA."""
     m = re.search(DATA_RE, text, re.S)
-    head, data, tail = text[:m.start()], m.group(0), text[m.end():]
-    for d in old_dates:
+    head, data, tail = (text[:m.start()], m.group(0), text[m.end():]) if m else (text, "", "")
+    cutoff_dates = re.findall(
+        r"(?:Revisión documental · |Estado real al |RESSO del )(\d{2}-\d{2}-\d{4})",
+        head + tail,
+    )
+    for d in set(old_dates) | set(cutoff_dates):
         head, tail = head.replace(d, new), tail.replace(d, new)
     return head + data + tail
 
@@ -253,9 +257,11 @@ def update_index(recs, per_phase, tot, date):
     for v in (tot["ok"], tot["menor"], tot["rel"]):
         acc += v / n * 100
         cuts.append(round(acc, 2))
-    text = sub1(r"conic-gradient\(.*?\)",
+    text = sub1(r"(\.donut\{[^}]*?background:).*?(;display:grid)",
+                lambda m: m.group(1) +
                 f"conic-gradient(\n  var(--green) 0 {cuts[0]:.2f}%,\n  var(--amber) {cuts[0]:.2f}% {cuts[1]:.2f}%,\n"
-                f"  var(--red) {cuts[1]:.2f}% {cuts[2]:.2f}%,\n  #b9c2cf {cuts[2]:.2f}% 100%\n)", text, "donut")
+                f"  var(--red) {cuts[1]:.2f}% {cuts[2]:.2f}%,\n  #b9c2cf {cuts[2]:.2f}% 100%\n)" +
+                m.group(2), text, "donut")
     for label, key in (("Cumple", "ok"), ("Brecha menor", "menor"), ("Brecha relevante", "rel"), ("No aplica", "na")):
         text = re.sub(rf"(</i>{label}</span><strong>)\d+", lambda m: m.group(1) + str(tot[key]), text, 1)
 
@@ -265,8 +271,7 @@ def update_index(recs, per_phase, tot, date):
                       lambda m: f'{m.group(1)}{s["pct"]:.2f}%{m.group(2)}{s["pct"]:.2f}%', text, 1)
         text = re.sub(rf'(href="{name}\.html">.*?<div class="phase-meta"><span>)\d+( requisitos</span><strong>)[^<]*',
                       lambda m: f'{m.group(1)}{s["n"]}{m.group(2)}{s["pct"]:.1f}%', text, 1)
-    text = replace_dates(text, ["14-10-2026", "30-09-2026"], date) if re.search(DATA_RE, text, re.S) else \
-        text.replace("14-10-2026", date).replace("30-09-2026", date)
+    text = replace_dates(text, ["14-10-2026", "30-09-2026"], date)
     write("index.html", text)
 
 

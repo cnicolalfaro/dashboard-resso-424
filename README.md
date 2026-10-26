@@ -16,6 +16,17 @@ para el contrato **SKIC 424** (CC-101, División Chuquicamata — Codelco).
 Publicado con GitHub Pages. Los porcentajes se alimentan desde
 [`data/dashboard_data.js`](data/dashboard_data.js).
 
+## Actualizar revisión documental RESSO v10
+
+```powershell
+python scripts\actualizar_evidencias.py "C:\ruta\Revision_Documental_RESSO_26-10-2026.xlsx"
+```
+
+La fecha de corte se obtiene del nombre del Excel. Con `--dry-run` se consultan
+los indicadores sin modificar páginas. Actualiza únicamente
+[las páginas de v10](pages/evidencias/index.html), conserva las fechas dentro
+de las observaciones y no modifica los enlaces del visor guardados en el navegador.
+
 ## Centro de Auditorías RESSO v11
 
 El menú tiene accesos independientes para [RESSO v10](pages/evidencias/index.html)
