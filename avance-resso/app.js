@@ -171,7 +171,7 @@
       : irlLinkFor(person, docIndex);
   }
 
-  // Certificados IRL (CERTIFICADOS IRL; import_qr_links.py --key irlLinks). Solo columnas de IRL; se enlazan al final.
+  // Certificados IRL (CERTIFICADOS FISICOS/<persona>/IRL_y_otras_capacitaciones; import_qr_links.py --key irlLinks). Solo columnas de IRL; se enlazan al final.
   const irlBase = DATA.irlLinks && DATA.irlLinks.base ? String(DATA.irlLinks.base) : '';
   const irlPeople = DATA.irlLinks && DATA.irlLinks.people ? DATA.irlLinks.people : {};
   const irlDocOrderOk = Boolean(DATA.irlLinks) && Array.isArray(DATA.irlLinks.docOrder) &&
@@ -182,7 +182,7 @@
     const links = irlPeople[normalizeRut(person.rut)];
     const file = links && links.folder && irlBase && irlDocOrderOk && links.docs && links.docs[docIndex];
     return file
-      ? { url: safeSharePointUrl(`https://empresassk.sharepoint.com/${encodePath(irlBase + '/' + links.folder + '/' + file)}?web=1`), level: 'irl' }
+      ? { url: safeSharePointUrl(`https://empresassk.sharepoint.com/${encodePath(irlBase + '/' + links.folder + '/' + file)}?web=1`), level: 'irl', folder: !/\.pdf$/i.test(file) }
       : { url: '', level: '' };
   }
 
@@ -540,7 +540,7 @@
     doc: 'Abrir certificado NAMI de este curso',
     qr: 'Abrir certificado QR (Microsoft Forms) de este curso',
     fisico: 'Abrir certificado físico (evaluación en papel escaneada) de este curso',
-    irl: 'Abrir IRL firmada (CERTIFICADOS IRL) de este curso',
+    irl: 'Abrir IRL firmada de este curso',
   };
 
   function matrixCell(person, docIndex) {
@@ -574,7 +574,7 @@
       const sources = origin || ` · fuente del curso: ${(docs[docIndex].fuentes || []).filter(s => s !== 'Certificado NAMI').join(' / ')} · sin certificado NAMI ni QR`;
       return `<td class="matrix-status done" title="Aprobado${esc(sources)}"><span>✓</span></td>`;
     }
-    const label = LINK_LABELS[link.level] + origin;
+    const label = (link.folder ? 'Abrir carpeta IRL de la persona' : LINK_LABELS[link.level]) + origin;
     return `<td class="matrix-status done linked level-${link.level}"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" title="${esc(label)}" aria-label="${esc(label)}: ${esc(docs[docIndex].titulo)}">✓<small>↗</small></a></td>`;
   }
 

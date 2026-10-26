@@ -12,7 +12,7 @@ el primero. En la matriz, el certificado NAMI tiene prioridad y el QR se enlaza 
 Con --key fisicoLinks importa CERTIFICADOS FISICOS (evaluaciones en papel escaneadas, misma estructura);
 en la matriz se enlazan cuando no hay certificado NAMI ni QR.
 
-Con --key irlLinks importa CERTIFICADOS IRL (<NOMBRE_RUT>/IRL_y_otras_capacitaciones/<RUT>_IRL-xxxx.pdf). Cada archivo
+Con --key irlLinks importa CERTIFICADOS FISICOS (<NOMBRE_RUT>/IRL_y_otras_capacitaciones/<RUT>_IRL-xxxx.pdf). Cada archivo
 va solo a su columna de IRL (IRL_CURSO): 2026 y pack 2026 -> Actualización IRL; 2025, sin fecha, evaluaciones y
 realizadas 2025 -> IRL versión antigua; anexo -> Anexo IRL Junio 2026.
 """
@@ -85,6 +85,17 @@ def main() -> None:
             entry = people.setdefault(folder_rut, {"folder": folder, "docs": {}})
             entry["docs"].setdefault(str(by_code[match.group(2).zfill(2)]), "/".join(rel_dir.split("/")[1:] + [name]))
 
+    if args.key == "irlLinks":
+        # Columnas IRL aprobadas sin archivo propio: enlace a la carpeta IRL de la persona (IRL_y_otras_capacitaciones).
+        cols = [titulos[c] for c in sorted(set(IRL_CURSO.values())) if c in titulos]
+        por_rut = {re.sub(r"[^0-9K]", "", p["rut"].upper()).lstrip("0"): p for p in data["personas"]}
+        carpetas = 0
+        for rut, entry in people.items():
+            p = por_rut.get(rut.lstrip("0")) or por_rut.get(rut)
+            for i in cols:
+                if p and p["aprob"][i] == "1" and str(i) not in entry["docs"]:
+                    entry["docs"][str(i)] = "IRL_y_otras_capacitaciones"; carpetas += 1
+        print(f"[irlLinks] celdas IRL aprobadas enlazadas a la carpeta de la persona: {carpetas}")
     data[args.key] = {
         "version": 1,
         "updatedAt": datetime.fromtimestamp(newest).strftime("%Y-%m-%d %H:%M") if newest else "",
