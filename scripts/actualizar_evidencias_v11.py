@@ -281,7 +281,8 @@ def finalize(name, records, date):
     text = text.replace("Requisitos aplicables", "Requisitos evaluados")
     note = (f'{s["napp"]} evaluados · {s["pending"]} pendientes · {s["na"]} no aplican. '
             'Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; '
-            f'preguntas nuevas pendientes de evaluar. Actualización: {date}.')
+            'los niveles de preguntas modificadas requieren validación específica de v11. '
+            f'Las preguntas nuevas conservan su evaluación registrada. Actualización: {date}.')
     text = text.replace('<main class="page">', f'<main class="page"><p class="note">{note}</p>', 1)
     if name == "index":
         cuts, acc = [], 0

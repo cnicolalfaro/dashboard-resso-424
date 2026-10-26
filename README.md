@@ -29,6 +29,21 @@ de las observaciones y no modifica los enlaces del visor guardados en el navegad
 
 ## Centro de Auditorías RESSO v11
 
+Para trasladar avances desde v10 sin sobrescribir el Excel original:
+
+```powershell
+python scripts\trasladar_avances_v11.py "C:\ruta\v10.xlsx" "C:\ruta\v11.xlsx" "C:\ruta\v11_actualizada.xlsx" --date 26-10-2026
+```
+
+Requiere `openpyxl` y `lxml`. Usa la hoja de equivalencias: actualiza niveles
+solo de preguntas equivalentes, redondeados al escalón inferior de 25 puntos;
+las modificadas conservan su nivel y reciben observaciones, acciones y responsables
+de v10 con una advertencia de validación pendiente. Las nuevas conservan cualquier
+evaluación propia de v11, sin heredar una de v10. No transfiere enlaces de carpetas
+de v10. Conserva las partes y fórmulas del archivo Excel y solicita recálculo al
+abrirlo; los indicadores web se calculan desde los niveles sin depender de cachés.
+Después se ejecuta el actualizador de v11 sobre el nuevo Excel.
+
 El menú tiene accesos independientes para [RESSO v10](pages/evidencias/index.html)
 y [RESSO v11](pages/evidencias-v11/index.html). Para actualizar únicamente v11:
 
