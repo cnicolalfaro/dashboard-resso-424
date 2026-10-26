@@ -271,6 +271,10 @@ def auditor_page(records, date):
                   '  msg.className = "evidence-msg";', text, count=1, flags=re.S)
     text = re.sub(r'async function uploadEvidenceFile\(\).*?(?=function saveEvidenceSelection)',
                   '', text, count=1, flags=re.S)
+    text = text.replace('if (status === "Brecha relevante") return "red";',
+                        'if (status === "Brecha relevante" || status === "Crítico") return "red";')
+    text = text.replace('<span><i class="dot red"></i>Brecha relevante</span>',
+                        '<span><i class="dot red"></i>Brecha relevante / Crítico</span>')
     return migration_ui(add_filters(text, records), records, auditor=True)
 
 
@@ -279,6 +283,9 @@ def finalize(name, records, date):
     text = path.read_text(encoding="utf-8")
     s = stats(records)
     text = text.replace("Requisitos aplicables", "Requisitos evaluados")
+    text = re.sub(r'(<small>Con brecha</small><strong>)[^<]*(</strong><span>)[^<]*',
+                  lambda m: f'{m[1]}{s["gap"]}{m[2]}{s["menor"]} menores · '
+                  f'{s["rel"]} relevantes · {s["critical"]} críticos', text, count=1)
     note = (f'{s["napp"]} evaluados · {s["pending"]} pendientes · {s["na"]} no aplican. '
             'Los pendientes y N/A se excluyen del porcentaje. Evaluación heredada de v10; '
             'los niveles de preguntas modificadas requieren validación específica de v11. '
