@@ -47,6 +47,19 @@ el vínculo real del archivo sincronizado en SharePoint. No hay escritura remota
 automática desde GitHub Pages. El catálogo inicial está vacío hasta recuperar las
 selecciones del navegador original. Los actualizadores de Excel conservan este catálogo.
 
+Para reutilizar enlaces comunes de v10 en v11 según la hoja `Cambios v10 → v11`:
+
+```powershell
+python scripts\trasladar_catalogo_v11.py "C:\ruta\Revision_Documental_RESSO_v11.xlsx"
+```
+
+Agrega sin duplicar ni reemplazar enlaces propios de v11. Conserva v10 intacta
+y no asigna enlaces a preguntas nuevas. Identifica equivalentes y antecedentes
+de preguntas modificadas (incluidas fusiones y reubicaciones). Enlazar un respaldo
+no confirma cobertura del nuevo alcance ni cambia niveles o estados. Los archivos
+siguen en su ubicación original de SharePoint; no se copian a las carpetas de v11.
+Revisar y publicar el catálogo después de ejecutar el traslado.
+
 ```powershell
 python scripts\actualizar_evidencias.py "C:\ruta\Revision_Documental_RESSO_26-10-2026.xlsx"
 ```
