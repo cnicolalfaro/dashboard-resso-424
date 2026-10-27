@@ -42,9 +42,11 @@ test("importer merges idempotently and does not change the other version", () =>
   try {
     fs.mkdirSync(path.join(folder, "assets"));
     fs.mkdirSync(path.join(folder, "scripts"));
-    for (const name of ["evidence-catalog.js", "evidence-catalog-tools.js"]) {
+    for (const name of ["evidence-catalog-tools.js"]) {
       fs.copyFileSync(path.resolve(__dirname, "..", "assets", name), path.join(folder, "assets", name));
     }
+    fs.writeFileSync(path.join(folder, "assets", "evidence-catalog.js"),
+      'globalThis.RESSO_EVIDENCE_CATALOG = {"schemaVersion":1,"versions":{"v10":{},"v11":{}}};\n');
     const script = path.join(folder, "scripts", "importar_catalogo_evidencias.cjs");
     fs.copyFileSync(path.join(__dirname, "importar_catalogo_evidencias.cjs"), script);
     const input = path.join(folder, "export.json");
