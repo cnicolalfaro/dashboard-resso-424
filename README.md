@@ -18,6 +18,35 @@ Publicado con GitHub Pages. Los porcentajes se alimentan desde
 
 ## Actualizar revisión documental RESSO v10
 
+### Catálogo común de enlaces del modo auditor
+
+Ambas versiones leen [el catálogo publicado](assets/evidence-catalog.js), separado
+en `v10` y `v11`. Se combina con las selecciones locales existentes sin borrarlas;
+los enlaces comunes son de solo lectura en la página y se identifican como tales.
+Las nuevas selecciones siguen siendo locales **hasta su publicación**.
+
+1. En el navegador y origen donde se guardaron los vínculos, abrir modo auditor
+   y pulsar **Exportar enlaces para catálogo común**, en cada versión utilizada.
+2. Revisar el JSON y confirmar que los enlaces pueden compartirse mediante este
+   sitio/repositorio. Un catálogo estático publicado no es privado: no incluir
+   credenciales, enlaces anónimos sensibles ni rutas del PC. Los permisos de
+   SharePoint siguen siendo necesarios y el catálogo no resuelve el bloqueo de iframe.
+3. Incorporar el archivo, sin mezclar versiones:
+
+   ```powershell
+   node scripts\importar_catalogo_evidencias.cjs "C:\ruta\RESSO_v11_catalogo_evidencias.json"
+   ```
+
+4. Revisar y publicar el cambio de `assets/evidence-catalog.js`. Recién entonces
+   otros equipos verán los vínculos. La importación agrega sin duplicar; para
+   corregir o retirar enlaces compartidos se edita y publica el catálogo.
+
+La exportación omite archivos con `localPath` (sus enlaces señalan una carpeta,
+no un archivo portátil) e informa cuántos omitió. Para compartirlos debe agregarse
+el vínculo real del archivo sincronizado en SharePoint. No hay escritura remota
+automática desde GitHub Pages. El catálogo inicial está vacío hasta recuperar las
+selecciones del navegador original. Los actualizadores de Excel conservan este catálogo.
+
 ```powershell
 python scripts\actualizar_evidencias.py "C:\ruta\Revision_Documental_RESSO_26-10-2026.xlsx"
 ```
