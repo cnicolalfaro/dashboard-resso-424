@@ -84,6 +84,21 @@ if (specificSharePointLink({id: 36, link: explicit}) !== explicit) throw Error("
         self.assertIn('id="evidenceMsg"', text)
         self.assertIn("05 RESSO V11", text)
         self.assertIn('${String(r.id).padStart(2, "0")} versión 11', text)
+        self.assertIn("RessoObservations.open(r.id)", text)
+        self.assertIn('src="../../assets/resso-observations.js"', text)
+
+    def test_phase_generator_preserves_shared_history(self):
+        record = dict(id=1, phase="A. PLAN", section="A1. Programa",
+                      question="Pregunta", weight=.1, level=1, result=.1, gap=0,
+                      status="Cumple", priority="Baja", criterion="", observation="",
+                      action="", responsible="", evidence_ref=None,
+                      migration="complete", migration_label="Equivalente",
+                      change_type="Sin cambio", change_detail="Igual")
+        for phase, name in v11.shared.PHASES:
+            with self.subTest(phase=phase):
+                text = v11.phase_page(phase, name, [record], "28-10-2026")
+                self.assertIn("RessoObservations.open(r.id)", text)
+                self.assertIn('src="../../assets/resso-observations.js"', text)
 
 
 if __name__ == "__main__":

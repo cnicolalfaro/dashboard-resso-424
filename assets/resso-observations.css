@@ -1,0 +1,18 @@
+.resso-observations{margin-top:20px;padding:18px;border:1px solid #cedbeb;border-radius:16px;background:#f8fbff;color:#203954}
+.resso-observations h3{font-size:16px;margin:0 0 10px}
+.resso-observations h3 span{display:inline-block;font-size:12px;color:#516b88}
+.resso-observations p{font-size:12px;line-height:1.55;margin:9px 0}
+.resso-observations .obs-notice{background:#fff4d5;padding:10px;border-radius:8px;color:#704d08}
+.resso-observations button{font:inherit;font-size:12px;border:1px solid #b6cbe2;background:#fff;color:#164b86;border-radius:8px;padding:9px 12px;cursor:pointer}
+.resso-observations button[type=submit]{background:#205eaa;color:#fff}
+.resso-observations button:disabled{opacity:.6;cursor:wait}
+.resso-observations form{display:grid;gap:10px;margin-top:16px;border-top:1px solid #dce5ef;padding-top:16px}
+.resso-observations label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.resso-observations input,.resso-observations textarea{width:100%;min-width:0;box-sizing:border-box;font:inherit;font-size:14px;padding:10px;border:1px solid #b8cce1;border-radius:8px;background:#fff;color:#203954}
+.resso-observations textarea{resize:vertical}
+.resso-observations .obs-history{list-style:none;padding:0;margin:12px 0;display:grid;gap:10px;max-height:360px;overflow:auto}
+.resso-observations .obs-history li{padding:12px;background:#fff;border:1px solid #dde5f0;border-radius:9px;overflow-wrap:anywhere}
+.resso-observations time{display:block;color:#63788f;font-size:11px;margin-top:4px}
+.resso-observations .obs-history p{white-space:pre-wrap}
+.resso-observations .obs-error{color:#a3223e;font-weight:700}
+.resso-observations :focus-visible{outline:3px solid #75a8df;outline-offset:2px}

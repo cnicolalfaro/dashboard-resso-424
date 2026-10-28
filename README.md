@@ -18,6 +18,48 @@ Publicado con GitHub Pages. Los porcentajes se alimentan desde
 
 ## Actualizar revisión documental RESSO v10
 
+### Observaciones compartidas por pregunta (v10 y v11)
+
+Al abrir **Revisar requisito / Revisar**, ambos modos muestran el mismo historial
+para una pareja `(versión, número de pregunta)`. V10 y v11 NO comparten comentarios,
+ni siquiera entre preguntas equivalentes. Las observaciones del Excel permanecen
+separadas e intactas.
+
+El cliente [resso-observations.js](assets/resso-observations.js) usa la API pública
+de Supabase del proyecto RESSO OBS. Contiene únicamente su URL y clave **Publishable**:
+no agregar contraseñas, `service_role` ni claves secretas.
+
+Configuración en el proyecto gratuito, sin tocar NAMI:
+
+1. Abrir **SQL Editor → New query**, pegar y ejecutar
+   [resso_observations.sql](supabase/resso_observations.sql) UNA vez. Es una
+   transacción: si la tabla ya existe, revisar antes de volver a ejecutarlo.
+   No elimina ni modifica otras tablas.
+2. Ejecutar [test_resso_observations.sql](supabase/test_resso_observations.sql)
+   para comprobar lectura, creación, reintentos, separación de versiones y
+   denegación de cambios y borrados como visitante. Hace `ROLLBACK`: no deja pruebas.
+3. Publicar las páginas y comprobar el historial desde ambos modos y equipos.
+   Si falta la configuración o falla la conexión, la interfaz informa el error;
+   no simula éxito ni guarda comentarios solo en el navegador.
+
+La tabla tiene RLS y concede a visitantes solo SELECT. Los nuevos aportes entran
+mediante una función de creación controlada; no hay INSERT directo, UPDATE ni
+DELETE para `anon`/`authenticated`. El servidor fija fecha e identificador.
+El administrador del proyecto conserva sus facultades de gestión.
+Los reintentos con el mismo identificador y contenido devuelven el mismo registro.
+El cliente conserva el identificador de un envío fallido mientras esa página sigue
+abierta; no recargar ni cambiar el texto antes de reintentar si hubo un corte.
+
+**Acceso público aprobado para este módulo:** la clave del dashboard NO protege
+estas observaciones ni verifica al autor. No escribir información confidencial,
+RUT, firmas u otros datos personales. Un nombre declarado no prueba identidad.
+Los límites son 80 caracteres de autor, 3000 de texto y 20 aportes por pregunta/versión
+por minuto. Este límite básico NO evita spam distribuido: para privacidad,
+identidad verificable o mayor protección se requiere autenticación y/o un servicio
+de control de abuso. No hay promesa de actualización en tiempo real: se consulta
+al abrir el requisito, después de enviar y con **Actualizar historial**.
+El historial se pagina de a 25 registros, más recientes primero.
+
 ### Catálogo común de enlaces del modo auditor
 
 Ambas versiones leen [el catálogo publicado](assets/evidence-catalog.js), separado

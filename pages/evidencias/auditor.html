@@ -352,6 +352,8 @@ tbody tr:hover td:last-child{background:#fbfcfe}
   .evidence-viewer iframe{height:55vh;min-height:280px}
 }
 </style>
+<link rel="stylesheet" href="../../assets/resso-observations.css">
+<script defer src="../../assets/resso-observations.js"></script>
 </head>
 
 <body>
@@ -966,6 +968,7 @@ function openDetail(id) {
   el("mCriterion").textContent = r.criterion || "—";
   el("mObservation").textContent = r.observation || "—";
   el("mAction").textContent = r.action || "—";
+  RessoObservations.open(r.id);
 
   currentDetailId = r.id;
   const savedEvidence = getEvidenceSelection(r.id);

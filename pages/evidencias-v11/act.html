@@ -73,6 +73,8 @@ border:1px solid #cbd5e1;border-radius:8px;padding:5px 8px;font-size:11px;margin
 .migration-legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 .migration-detail{background:var(--migration-bg)}
 </style>
+<link rel="stylesheet" href="../../assets/resso-observations.css">
+<script defer src="../../assets/resso-observations.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -205,6 +207,7 @@ function openDetail(id) {
   el("mCriterion").textContent = r.criterion;
   el("mObservation").textContent = r.observation;
   el("mAction").textContent = r.action;
+  RessoObservations.open(r.id);
   const link = el("mLink");
   link.href = specificSharePointLink(r);
   link.classList.remove("disabled");

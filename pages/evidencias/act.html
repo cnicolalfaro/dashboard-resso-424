@@ -64,6 +64,8 @@ body{font-family:"Open Sans",Arial,sans-serif;background:radial-gradient(circle 
 @media(max-width:1150px){.hero{grid-template-columns:120px 1fr}.hero-note{grid-column:1/-1}.kpis{grid-template-columns:repeat(2,1fr)}.groups{grid-template-columns:1fr}.req{grid-template-columns:50px 1fr 120px 130px}.actions{grid-column:2/-1;grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.topbar{grid-template-columns:1fr;gap:10px}.contract{justify-self:start}.hero{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.req{grid-template-columns:1fr}.num{width:42px;height:42px}.actions{grid-column:auto;grid-template-columns:1fr}.modal-summary{grid-template-columns:1fr 1fr}}
 </style>
+<link rel="stylesheet" href="../../assets/resso-observations.css">
+<script defer src="../../assets/resso-observations.js"></script>
 </head>
 
 <body>
@@ -250,6 +252,7 @@ function openDetail(id) {
   el("mCriterion").textContent = r.criterion;
   el("mObservation").textContent = r.observation;
   el("mAction").textContent = r.action;
+  RessoObservations.open(r.id);
 
   const link = el("mLink");
 
