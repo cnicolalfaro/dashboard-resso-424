@@ -86,6 +86,9 @@ if (specificSharePointLink({id: 36, link: explicit}) !== explicit) throw Error("
         self.assertIn('${String(r.id).padStart(2, "0")} versión 11', text)
         self.assertIn("RessoObservations.open(r.id)", text)
         self.assertIn('src="../../assets/resso-observations.js"', text)
+        self.assertIn('src="../../assets/resso-previews.js"', text)
+        self.assertIn("RessoPreviews.open(id)", text)
+        self.assertIn("RessoPreviews.close()", text)
 
     def test_phase_generator_preserves_shared_history(self):
         record = dict(id=1, phase="A. PLAN", section="A1. Programa",

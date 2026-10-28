@@ -60,6 +60,36 @@ de control de abuso. No hay promesa de actualización en tiempo real: se consult
 al abrir el requisito, después de enviar y con **Actualizar historial**.
 El historial se pagina de a 25 registros, más recientes primero.
 
+### Vistas previas públicas en el pop-up del auditor
+
+Ambos auditores muestran **Visor de copias públicas** dentro del pop-up de
+evidencias. No intenta eludir el bloqueo de SharePoint: lee copias PDF e imágenes
+desde Supabase Storage; los enlaces originales y el catálogo se conservan.
+La carga se realiza exclusivamente en el panel de Supabase, no desde la página.
+
+1. En RESSO OBS / RESSO 424, ejecutar una vez
+   [resso_previews.sql](supabase/resso_previews.sql) en SQL Editor.
+2. Entrar a **Storage → resso-previews**. Crear carpetas `v10` y `v11`.
+   Dentro, crear la carpeta de la pregunta con dos dígitos: `01` a `40`.
+   Ejemplo: `v11/08/avance.pdf`. No crear subcarpetas adicionales.
+3. Cargar PDF, PNG, JPG/JPEG, WebP o GIF, hasta 20 MiB por archivo.
+   Exportar Word, Excel y PowerPoint a PDF antes de cargarlos.
+   Para varios archivos por pregunta, cargarlos en la misma carpeta.
+4. Abrir **Evidencia** del requisito y pulsar **Actualizar vistas previas**.
+   Elegir un archivo para verlo sin abrir otra ventana. La lista se pagina
+   de a 50 archivos; las versiones no se mezclan ni se heredan automáticamente.
+
+**Los archivos del bucket son públicos**, incluso si la página tiene clave.
+Subir únicamente copias autorizadas para difusión pública, sin RUT, firmas,
+datos personales ni información confidencial. El nombre del archivo también es público.
+No se conceden permisos de carga, edición o borrado a visitantes; la política
+solo permite listar objetos de este bucket con el formato de ruta indicado.
+No agregar otras políticas de escritura pública al bucket.
+El administrador gestiona archivos desde Supabase y controla consumo/cuotas
+del plan. Las copias no se actualizan automáticamente al cambiar el original
+de SharePoint. Para actualizar, es preferible cargar un nombre nuevo y retirar
+la copia anterior desde el panel, evitando archivos antiguos en caché.
+
 ### Catálogo común de enlaces del modo auditor
 
 Ambas versiones leen [el catálogo publicado](assets/evidence-catalog.js), separado

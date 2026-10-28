@@ -365,6 +365,8 @@ border:1px solid #cbd5e1;border-radius:8px;padding:5px 8px;font-size:11px;margin
 </style>
 <link rel="stylesheet" href="../../assets/resso-observations.css">
 <script defer src="../../assets/resso-observations.js"></script>
+<link rel="stylesheet" href="../../assets/resso-previews.css">
+<script defer src="../../assets/resso-previews.js"></script>
 </head>
 
 <body>
@@ -971,6 +973,7 @@ function openEvidencePopup(id) {
   if (!r) return;
 
   currentEvidenceId = id;
+  RessoPreviews.open(id);
 
   const code = el("eCode");
   code.className = `phase-chip ${phaseClass(r.phase)}`;
@@ -1167,6 +1170,7 @@ function removeEvidenceFile(index) {
 }
 
 function closeEvidencePopup() {
+  RessoPreviews.close();
   closeEvidenceViewer();
   el("evidenceBg").classList.remove("show");
   document.body.style.overflow = "";
