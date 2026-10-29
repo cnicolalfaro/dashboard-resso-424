@@ -18,6 +18,12 @@ Publicado con GitHub Pages. Los porcentajes se alimentan desde
 
 ## Actualizar revisión documental RESSO v10
 
+Si la columna N se titula **Observaciones Finales**, el actualizador la publica
+en un bloque independiente del detalle de cada pregunta (usuario y auditor).
+Conserva las observaciones anteriores de L/M y las acciones ya publicadas; no
+convierte las notas finales en comentarios de Supabase ni modifica v11.
+La fecha de corte se obtiene del nombre de la planilla.
+
 ### Observaciones compartidas por pregunta (v10 y v11)
 
 Al abrir **Revisar requisito / Revisar**, ambos modos muestran el mismo historial

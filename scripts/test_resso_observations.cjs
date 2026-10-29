@@ -47,7 +47,9 @@ test("all ten pages wire shared history without changing spreadsheet data", () =
       for (const script of text.matchAll(/<script>([\s\S]*?)<\/script>/g)) new vm.Script(script[1]);
       const old = cp.execFileSync("git", ["show", `HEAD:${relative}`], { encoding: "utf8", cwd: root });
       const data = /const DATA\s*=\s*(\[.*?\]);/s;
-      assert.deepEqual(JSON.parse(text.match(data)[1]), JSON.parse(old.match(data)[1]), relative);
+      const withoutFinalObservations = records => records.map(({ final_observation, ...record }) => record);
+      assert.deepEqual(withoutFinalObservations(JSON.parse(text.match(data)[1])),
+        withoutFinalObservations(JSON.parse(old.match(data)[1])), relative);
     }
   }
 });

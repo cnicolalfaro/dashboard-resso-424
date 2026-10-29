@@ -33,6 +33,7 @@ def load(path):
     if not str(ws.cell(HEADER_ROW, 1).value or "").startswith("N"):
         sys.exit("No se encontro la tabla de requisitos en la fila 29 de la primera hoja.")
     recs = []
+    final_observations = clean(ws.cell(HEADER_ROW, 14).value) == "Observaciones Finales"
     for r in ws.iter_rows(min_row=FIRST_ROW, values_only=True):
         if not isinstance(r[0], int):
             continue
@@ -44,9 +45,11 @@ def load(path):
             priority=r[9] if status != "No aplica" else "—",
             criterion=clean(r[10]) or "",
             observation=clean(r[12]) or clean(r[11]) or "",
-            action=clean(r[13]) or "", responsible=clean(r[14]) or "",
+            action="" if final_observations else clean(r[13]) or "", responsible=clean(r[14]) or "",
             evidence_ref=clean(r[15]),
         ))
+        if final_observations:
+            recs[-1]["final_observation"] = clean(r[13]) or ""
     return recs
 
 
@@ -171,7 +174,7 @@ def filters(text, items):
 def phase_record(r, check=False):
     if check:
         lv = num(r["level"])
-        return OrderedDict(
+        record = OrderedDict(
             id=r["id"], phase=r["phase"], subsection=r["section"], question=r["question"],
             weight=r["weight"], level=r["level"], weighted=r["result"], not_achieved=r["gap"],
             status=r["status"], priority=r["priority"], criterion=r["criterion"],
@@ -179,13 +182,27 @@ def phase_record(r, check=False):
             link=r["evidence_ref"], level_pct=None if lv is None else round(lv * 100, 2),
             weight_pct=round(r["weight"] * 100, 2), usable_link=r["evidence_ref"] or "",
             link_label="Abrir SharePoint" if r["evidence_ref"] else "")
+        if "final_observation" in r:
+            record["final_observation"] = r["final_observation"]
+        return record
     lv = num(r["level"])
-    return OrderedDict(
+    record = OrderedDict(
         id=r["id"], group=group_of(r), groupName=group_name(r), question=r["question"],
         weight=round(r["weight"] * 100, 2), level="N/A" if lv is None else round(lv * 100),
         status=r["status"], priority=r["priority"], criterion=r["criterion"],
         observation=r["observation"], action=r["action"], responsible=r["responsible"],
         link=r["evidence_ref"] or "")
+    if "final_observation" in r:
+        record["final_observation"] = r["final_observation"]
+    return record
+
+
+def preserve_previous_actions(records, previous):
+    """La columna de observaciones finales no sustituye acciones anteriores."""
+    actions = {r["id"]: r["action"] for r in previous}
+    for record in records:
+        if "final_observation" in record:
+            record["action"] = actions[record["id"]]
 
 
 def js_data(rows, compact):
@@ -284,6 +301,11 @@ def main():
     date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else sys.exit("El nombre de la planilla debe incluir la fecha DD-MM-AAAA.")
 
     recs = load(path)
+    if any("final_observation" in r for r in recs):
+        previous = re.search(DATA_RE, read("auditor.html"), re.S)
+        if previous is None:
+            sys.exit("No se encontraron las acciones anteriores; no se actualizaron las paginas.")
+        preserve_previous_actions(recs, json.loads(previous.group(0).split("=", 1)[1].strip().removesuffix(";")))
     tot = stats(recs)
     per_phase = {p: stats([r for r in recs if r["phase"] == p]) for p, _ in PHASES}
     print(f"{len(recs)} requisitos | global {tot['pct']}% | " +

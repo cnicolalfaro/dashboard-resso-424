@@ -1,11 +1,39 @@
 import re
+import tempfile
 import unittest
 from unittest.mock import patch
+from pathlib import Path
+
+import openpyxl
 
 import actualizar_evidencias as evidence
 
 
 class EvidenceUpdateTests(unittest.TestCase):
+    def test_final_observations_are_separate_and_keep_previous_actions(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "29-10-2026.xlsx"
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            sheet["A29"] = "N°"
+            sheet["N29"] = "Observaciones Finales"
+            sheet["P29"] = "Enlace evidencia"
+            values = [1, "A. PLAN", "A1. Programa", "Pregunta", .04, 1, .04, 0,
+                      "Cumple", "Baja", "Criterio", "Anterior", "Reciente",
+                      "Final <texto>", "Responsable", None]
+            for col, value in enumerate(values, 1):
+                sheet.cell(30, col, value)
+            workbook.save(path)
+            records = evidence.load(path)
+        evidence.preserve_previous_actions(records, [{"id": 1, "action": "Acción anterior"}])
+        self.assertEqual(records[0]["observation"], "Reciente")
+        self.assertEqual(records[0]["final_observation"], "Final <texto>")
+        self.assertEqual(records[0]["action"], "Acción anterior")
+        for check in (False, True):
+            output = evidence.phase_record(records[0], check=check)
+            self.assertEqual(output["final_observation"], "Final <texto>")
+            self.assertEqual(output["action"], "Acción anterior")
+
     def test_cutoff_changes_without_modifying_observation_dates(self):
         data = 'const DATA = [{"observation":"Documento al 21-10-2026"}];\n'
         text = "Revisión documental · 21-10-2026\n" + data + "RESSO del 21-10-2026."
